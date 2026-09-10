@@ -4,10 +4,14 @@ dist/
 dist-ssr/
 *.local
 
-# Env files (never commit real keys)
+# Env files (never commit real *secret* keys)
 .env
 .env.*
 !.env.example
+# Exception: the Supabase anon key is meant to be public (RLS-protected,
+# not secret) -- committed so Vercel's git-integration build has it without
+# needing a manual dashboard env var step. See dashboard/README.md.
+!dashboard/.env.production
 
 # Arduino / firmware build artifacts
 firmware/**/build/
