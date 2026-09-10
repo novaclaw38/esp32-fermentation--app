@@ -1,0 +1,33 @@
+# Local Supabase CLI config: `supabase start` uses this for a local dev stack.
+# See https://supabase.com/docs/guides/local-development for the full reference.
+
+project_id = "fermentation-monitor"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[functions.alert-notify]
+verify_jwt = false

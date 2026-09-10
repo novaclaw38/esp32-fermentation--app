@@ -1,0 +1,25 @@
+# Node / dashboard
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Env files (never commit real keys)
+.env
+.env.*
+!.env.example
+
+# Arduino / firmware build artifacts
+firmware/**/build/
+*.hex
+*.bin
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.log

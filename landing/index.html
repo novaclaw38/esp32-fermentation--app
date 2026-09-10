@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fermentation Monitor — stop losing batches to temperature swings</title>
+  <meta name="description" content="A small WiFi sensor that watches your fermenter's temperature and alerts you before a swing ruins the batch." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav">
+      <span class="brand">🧪 Fermentation Monitor</span>
+      <a href="#signup" class="nav-cta">Get early access</a>
+    </nav>
+
+    <div class="hero-content">
+      <h1>Stop losing batches to temperature swings.</h1>
+      <p class="subhead">
+        A small WiFi sensor clips onto your fermenter and watches the temperature
+        around the clock — so a cold night or a hot afternoon doesn't wreck
+        your kombucha, beer, or wine before you notice.
+      </p>
+      <form id="signup-form" class="signup-form">
+        <input type="email" id="email" placeholder="you@example.com" required />
+        <button type="submit">Notify me</button>
+      </form>
+      <p id="signup-message" class="signup-message" hidden></p>
+      <p class="reassure">It's not built for sale yet — we're gauging interest before committing to a batch.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="how-it-works">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <h3>Clip it on</h3>
+          <p>A waterproof probe straps to your fermenter or airlock. Runs weeks on a single battery charge.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <h3>It watches</h3>
+          <p>Readings every few minutes over your home WiFi — no hub, no app pairing dance.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <h3>You get warned</h3>
+          <p>An email the moment temperature drifts outside your range for real, not on a single noisy blip.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing">
+      <h2>Pricing (target)</h2>
+      <div class="price-cards">
+        <div class="price-card">
+          <h3>Device</h3>
+          <p class="price">$99–129</p>
+          <p>One-time. Includes the sensor, probe, and enclosure.</p>
+        </div>
+        <div class="price-card">
+          <h3>Cloud dashboard</h3>
+          <p class="price">$7–9/mo</p>
+          <p>Optional. History, graphs, and email alerts. Basic function still works without it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="signup" id="signup">
+      <h2>Want one?</h2>
+      <p>Leave your email and, if you'd like, a note on what would make this worth buying for you.</p>
+      <form id="signup-form-2" class="signup-form stacked">
+        <input type="email" id="email-2" placeholder="you@example.com" required />
+        <textarea id="comment-2" placeholder="Optional: what would make you buy this? (feature, price, use case...)" rows="3"></textarea>
+        <button type="submit">Join the list</button>
+      </form>
+      <p id="signup-message-2" class="signup-message" hidden></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Not affiliated with Tilt Hydrometer or Inkbird. Built by a homebrewer, for homebrewers.</p>
+  </footer>
+
+  <script>
+    // Fill these in from Project Settings > API before deploying.
+    window.SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+    window.SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
