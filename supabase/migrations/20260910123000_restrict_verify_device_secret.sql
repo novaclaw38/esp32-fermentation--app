@@ -1,0 +1,12 @@
+-- verify_device_secret is only ever called internally by ingest_reading,
+-- ingest_alert, and get_device_config (which run as the function owner, so
+-- the nested call succeeds regardless of the caller's own grants). It has
+-- no reason to be callable directly via PostgREST -- doing so would hand
+-- anon a free "is this device_id/device_secret pair valid" oracle with no
+-- other purpose.
+--
+-- Postgres grants EXECUTE to PUBLIC by default when a function is created,
+-- which is a separate grant from any explicit "to anon"/"to authenticated"
+-- one -- revoking only from those roles leaves it callable via the PUBLIC
+-- grant. Revoke from PUBLIC to actually lock it down.
+revoke execute on function verify_device_secret(text, text) from public;

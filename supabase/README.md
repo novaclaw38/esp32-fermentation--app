@@ -42,31 +42,51 @@ write another customer's device.
 ## Alert emails (Edge Function)
 
 `functions/alert-notify` sends an email via [Resend](https://resend.com)
-whenever a row is inserted into `alerts`. It's triggered by a **Database
-Webhook**, not a Postgres trigger, so no extension (`pg_net`) is required.
+whenever a row is inserted into `alerts`. It's wired up with a Postgres
+trigger + `pg_net` (`migrations/20260910124500_alert_insert_webhook_trigger.sql`),
+not the dashboard's Database Webhooks UI — the whole thing is version
+controlled instead of a manual click-through.
 
 ```bash
 supabase functions deploy alert-notify
 supabase secrets set \
   RESEND_API_KEY=re_your_key \
   ALERT_FROM_EMAIL="alerts@yourdomain.com" \
-  WEBHOOK_SECRET=$(openssl rand -hex 32)
+  WEBHOOK_SECRET=<the same value you stored in Vault below>
 ```
 
-Then in the Supabase dashboard: **Database > Webhooks > Create a new hook**
-- Table: `alerts`, Event: `Insert`
-- Type: Edge Function → `alert-notify`
-- Add header `x-webhook-secret` set to the same value as `WEBHOOK_SECRET`
+Before applying `20260910124500_alert_insert_webhook_trigger.sql`:
+
+1. Store the shared secret in Vault as a **one-off SQL Editor query, not a
+   tracked migration** (so the plaintext value never lands in migration
+   history):
+   ```sql
+   select vault.create_secret(
+     '<a random value, e.g. `openssl rand -hex 32`>',
+     'alert_notify_webhook_secret',
+     'Shared secret between the alerts-insert DB trigger and the alert-notify Edge Function'
+   );
+   ```
+2. Use that same value for the `WEBHOOK_SECRET` function secret above.
+3. Edit `function_url` inside the migration's `notify_alert_insert()` to
+   your project's actual Functions URL before applying it.
 
 Without `RESEND_API_KEY` set, the function logs what it would have sent
 instead of failing — useful for local testing before you have a Resend
-account.
+account. Check delivery any time via `pg_net`'s response log:
+```sql
+select status_code, created, content from net._http_response order by id desc limit 5;
+```
 
 ## Hardening checklist before a real pre-sold batch
 
 - [x] Per-device secret checked server-side (not a shared anon key) — done
       via the RPC functions above.
 - [x] RLS scoping dashboard reads to `devices.user_id = auth.uid()` — done.
+- [x] Internal-only helper (`verify_device_secret`) not exposed as a public
+      RPC — done; remember Postgres grants `EXECUTE` to `PUBLIC` by default,
+      so locking down a SECURITY DEFINER function needs `revoke ... from
+      public`, not just `from anon`.
 - [ ] Rate-limit `ingest_reading`/`ingest_alert` per device (e.g. via a
       Postgres function checking recent row counts) so a malfunctioning or
       malicious unit can't flood the table.
