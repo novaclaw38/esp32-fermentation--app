@@ -20,6 +20,7 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 | [`supabase/`](supabase/) | Postgres schema, RLS policies, device-authenticated RPCs, and the `alert-notify` Edge Function that emails on a new alert |
 | [`dashboard/`](dashboard/) | React + TypeScript + Vite app: magic-link auth, per-device live reading, 48h chart, alert history, threshold editor |
 | [`landing/`](landing/) | Static pre-order/signup page for the Phase 0 validation track |
+| [`hardware/`](hardware/) | Custom PCB design (v2 hardware path) replacing the DevKit+perfboard BOM for a pre-sold batch |
 | [`docs/`](docs/) | The original implementation plan (hardware choice, BOM, phased rollout) |
 
 ## Getting it running end-to-end
@@ -38,6 +39,10 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 4. **Landing page** (optional, for the Phase 0 validation track): fill in
    the Supabase config in `landing/index.html` and deploy the folder to any
    static host.
+5. **Custom PCB** (optional, for the Phase 2 pre-sold batch): once you're
+   past the perfboard prototype, see [`hardware/PCB_DESIGN.md`](hardware/PCB_DESIGN.md)
+   for the small-batch PCB that replaces the DevKit + perfboard + breakout
+   modules — same firmware, no code changes needed.
 
 Once the device is flashed and has WiFi, readings show up on its dashboard
 page within one sleep interval (10 minutes by default), and an out-of-range
