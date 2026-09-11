@@ -5,6 +5,10 @@ DS18B20 sensor node reports into Supabase, a React dashboard shows live
 readings and alert history, and threshold breaches trigger an email.
 Built per the Phase 1 MVP scope in [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md).
 
+**Live**: [dashboard](https://fermentation-monitor-dashboard.vercel.app) ·
+[landing page](https://fermentation-monitor-landing.vercel.app) — both
+deploy automatically from this branch via Vercel's GitHub integration.
+
 ```
 sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--REST/Realtime-- React dashboard
                                         ^
@@ -39,6 +43,19 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 4. **Landing page** (optional, for the Phase 0 validation track): fill in
    the Supabase config in `landing/index.html` and deploy the folder to any
    static host.
+   - Both this and the dashboard are already deployed to Vercel from this
+     branch (see the live links above), via projects
+     `fermentation-monitor-dashboard` and `fermentation-monitor-landing`,
+     git-linked to auto-deploy on every push. Vercel's deployment
+     protection (SSO wall) is disabled on both so the public pages are
+     actually reachable — the dashboard's real access control is Supabase
+     auth/RLS, not Vercel's.
+   - **Manual step still needed**: add the dashboard's live URL
+     (`https://fermentation-monitor-dashboard.vercel.app`) to Supabase's
+     Authentication > URL Configuration > Redirect URLs allow-list.
+     Without it, magic-link sign-in from the deployed dashboard will fail
+     or redirect to the wrong place — this isn't settable via the
+     Supabase API/MCP tools, only the dashboard.
 5. **Custom PCB** (optional, for the Phase 2 pre-sold batch): once you're
    past the perfboard prototype, see [`hardware/PCB_DESIGN.md`](hardware/PCB_DESIGN.md)
    for the small-batch PCB that replaces the DevKit + perfboard + breakout
