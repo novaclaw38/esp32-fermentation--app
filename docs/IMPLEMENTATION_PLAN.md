@@ -35,6 +35,44 @@ Skip gravity/density sensing in v1. Temp monitoring + alerting alone is a sellab
 
 **Margin reference**: at $99 retail (~R1,830), gross margin per unit is roughly R1,500–R2,000 before payment processing fees, shipping to customer, and assembly labor.
 
+This table is the Phase 0/1 prototype BOM: an off-the-shelf DevKit, a
+separate TP4056 breakout module, and hand-wired perfboard. It's what to
+order for the first working node — not what to order for the Phase 2
+pre-sold batch. See below for the batch-quantity numbers once a custom
+PCB is in the picture.
+
+---
+
+## Parts List & Cost Reference (v2 — custom PCB, Phase 2 batch)
+
+Once you're past the perfboard prototype and converting pre-orders into an
+actual 15-25 unit batch, build to the custom PCB in
+[`hardware/PCB_DESIGN.md`](../hardware/PCB_DESIGN.md) instead of
+hand-wiring perfboard. It replaces the DevKit + standalone TP4056 module +
+perfboard + loose resistors with one small board (bare ESP32-WROOM-32E
+module, TP4056 IC, DW01A+FS8205 battery protection the loose TP4056 module
+didn't have, a low-quiescent-current LDO, and the on-board pull-ups/divider)
+— everything else (probe, cell, enclosure) is unchanged from the v1 table.
+
+| Component | Purpose | Cost (USD) | Cost (ZAR, landed*) |
+|---|---|---|---|
+| Custom PCB, fab + SMT assembly (all on-board components incl. ESP32-WROOM-32E) | Replaces DevKit + TP4056 module + perfboard + loose resistors | $6–8 | R165–R220 |
+| DS18B20 waterproof probe | Temp sensing (unchanged) | $1.50–3 | R40–R80 |
+| 18650 Li-ion cell + holder | Battery power (unchanged) | $2–4 | R55–R110 |
+| Project enclosure + cable gland | Weatherproofing (unchanged) | $2–5 | R55–R135 |
+
+**Estimated BOM per unit: ~$11.50–20 USD → roughly R315–R550 ZAR (landed)**
+— slightly *cheaper* than the v1 perfboard BOM at this quantity, mainly
+because LCSC-sourced components in an SMT assembly run undercut buying a
+DevKit + a separate TP4056 breakout module retail, even before counting
+the assembly labor perfboard would have cost instead.
+
+*Same ~25% landed-cost convention as the v1 table above.
+
+**Margin reference**: at $99 retail (~R1,830), gross margin per unit is
+roughly R1,610–R1,940 before payment processing fees, shipping to
+customer, and assembly labor — a modest improvement over the v1 estimate.
+
 ---
 
 ## Phase 0 (Week 1): Parallel validation kickoff
@@ -65,8 +103,8 @@ Skip gravity/density sensing in v1. Temp monitoring + alerting alone is a sellab
 ## Phase 2 (Week 5-6): Small pre-sold batch
 
 - Take the signups from Phase 0 and convert 15-25 into actual pre-orders (payment upfront via PayFast/Stripe — don't build inventory speculatively).
-- Order components in that batch quantity, assemble by hand.
-- **Budget for this batch**: roughly R5,000-R17,000 total ZAR component spend for 15-25 units (landed cost, including shipping/customs on imported parts) — small enough to self-fund from pocket, which is the point of pre-selling before committing to inventory.
+- Order the custom PCB (see `hardware/PCB_DESIGN.md`) in batch quantity, have it SMT-assembled rather than hand-wiring perfboard at this volume.
+- **Budget for this batch**: roughly R4,700-R13,750 total ZAR component+PCB spend for 15-25 units (landed cost, using the v2 PCB BOM above) — small enough to self-fund from pocket, which is the point of pre-selling before committing to inventory. (The earlier perfboard-based estimate was R5,000-R17,000; the PCB path is slightly cheaper at this quantity once assembly is factored in.)
 - This is your real go/no-go: **if you can't convert signups to actual paid pre-orders, the idea needs rework before you sink more time in.**
 
 ---
@@ -90,3 +128,4 @@ This repo implements the Phase 1 MVP build:
 - `supabase/` — Postgres schema, RLS policies, and an Edge Function that emails on new alerts
 - `dashboard/` — React + TypeScript dashboard (auth, per-device live reading, 48h chart, alert history, threshold editor)
 - `landing/` — static one-page pre-order/signup site for the Phase 0 validation track
+- `hardware/` — custom PCB design (schematic, BOM, DFM notes) for the Phase 2 pre-sold batch, replacing the perfboard build above
