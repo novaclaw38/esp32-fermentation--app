@@ -1,0 +1,573 @@
+<title>Sensor Node Schematic</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #fffdf9;
+    --fg: #292217;
+    --muted: #7d7161;
+    --line: #ddd3c0;
+    --panel: #ffffff;
+    --accent: #a8631c;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #201c16;
+      --fg: #f2ede4;
+      --muted: #b8ada0;
+      --line: #4a4136;
+      --panel: #2a251d;
+      --accent: #e6b25c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #201c16;
+    --fg: #f2ede4;
+    --muted: #b8ada0;
+    --line: #4a4136;
+    --panel: #2a251d;
+    --accent: #e6b25c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 2.5rem 3rem;
+  }
+  h1 {
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.3rem;
+    text-wrap: balance;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 62ch;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+  }
+  svg text, svg tspan { font-family: var(--mono); }
+  code { font-family: var(--mono); }
+  .diagram-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 12px;
+  }
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .legend span.swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .notes {
+    margin-top: 2rem;
+  }
+  .notes h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  .notes table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+  .notes th, .notes td {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .notes th { color: var(--muted); font-weight: 600; }
+  .callout {
+    border: 1px solid var(--accent);
+    border-left-width: 4px;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+  .callout strong { color: var(--accent); }
+  code {
+    background: var(--line);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.85em;
+  }
+</style>
+
+<main>
+  <h1>Fermentation Monitor — Sensor Node Schematic</h1>
+  <p class="subtitle">
+    Hand-drawn from <code>hardware/PCB_DESIGN.md</code> — same nets, same GPIOs the firmware already uses,
+    plus one new pin this revision introduces (flagged below). Not a Gerber-ready capture — see
+    "Next steps" for turning this into a real KiCad project.
+  </p>
+
+  <div class="diagram-wrap">
+    <figure>
+      <svg viewBox="0 0 1640 1040" role="img" aria-label="Schematic of the fermentation monitor sensor node: USB-C charges a battery through a TP4056 charger and DW01A/FS8205 protection circuit; the battery feeds a low-quiescent-current 3.3V LDO and a GPIO-gated voltage divider; the ESP32-WROOM-32E module reads the divider on GPIO34, drives a DS18B20 temperature probe on GPIO4, and exposes a UART programming header.">
+
+        <defs>
+          <g id="res">
+            <rect x="-22" y="-9" width="44" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
+          </g>
+          <g id="cap">
+            <line x1="-3" y1="-13" x2="-3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="3" y1="-13" x2="3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+          </g>
+          <g id="dot"><circle r="4.5" fill="currentColor"/></g>
+          <g id="gnd">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-11" y1="12" x2="11" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-6.5" y1="17" x2="6.5" y2="17" stroke="currentColor" stroke-width="2"/>
+            <line x1="-2.5" y1="22" x2="2.5" y2="22" stroke="currentColor" stroke-width="2"/>
+          </g>
+        </defs>
+
+        <g font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+
+        <!-- ============ BAND 1: CHARGE PATH ============ -->
+
+        <!-- J1 USB-C -->
+        <rect x="40" y="60" width="150" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="115" y="112" text-anchor="middle" font-weight="700">J1</text>
+        <text x="115" y="130" text-anchor="middle">USB-C</text>
+        <text x="115" y="146" text-anchor="middle" fill="var(--muted)" font-size="10.5">power in</text>
+        <text x="55" y="78" font-size="10.5">VBUS</text>
+        <text x="55" y="184" font-size="10.5">GND</text>
+        <text x="150" y="90" font-size="10.5">CC1</text>
+        <text x="150" y="150" font-size="10.5">CC2</text>
+
+        <!-- VBUS wire up and right to TP4056 -->
+        <polyline points="110,60 110,40 330,40 330,70" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="180" y="34" font-size="11" fill="var(--muted)">VBUS (5V, USB only)</text>
+
+        <!-- J1 GND -->
+        <line x1="70" y1="190" x2="70" y2="205" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(70,205)"/>
+
+        <!-- CC1 / CC2 5.1k to GND (USB-C power-sink identification) -->
+        <line x1="190" y1="95" x2="215" y2="95" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(237,95)"/>
+        <line x1="259" y1="95" x2="280" y2="95" stroke="currentColor" stroke-width="2"/>
+        <line x1="280" y1="95" x2="280" y2="118" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(280,118)"/>
+        <text x="215" y="83" font-size="10">R7 5.1k</text>
+
+        <line x1="190" y1="150" x2="215" y2="150" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(237,150)"/>
+        <line x1="259" y1="150" x2="300" y2="150" stroke="currentColor" stroke-width="2"/>
+        <line x1="300" y1="150" x2="300" y2="118" stroke="currentColor" stroke-width="2"/>
+        <text x="215" y="163" font-size="10">R8 5.1k</text>
+
+        <!-- U2 TP4056 -->
+        <rect x="330" y="70" width="170" height="160" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="415" y="108" text-anchor="middle" font-weight="700">U2</text>
+        <text x="415" y="126" text-anchor="middle">TP4056</text>
+        <text x="415" y="142" text-anchor="middle" fill="var(--muted)" font-size="10.5">Li-ion charger</text>
+        <text x="340" y="86" font-size="10.5">VCC</text>
+        <text x="340" y="222" font-size="10.5">GND</text>
+        <text x="430" y="86" font-size="10.5">BAT+</text>
+        <text x="345" y="200" font-size="10.5">PROG</text>
+        <text x="430" y="150" font-size="10.5">CHRG</text>
+        <text x="430" y="180" font-size="10.5">STDBY</text>
+
+        <!-- TP4056 GND -->
+        <line x1="360" y1="230" x2="360" y2="245" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(360,245)"/>
+
+        <!-- Rprog: exits the TP4056 package at its bottom edge (y=230), then routes below it -->
+        <line x1="370" y1="230" x2="370" y2="250" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(370,272) rotate(90)"/>
+        <line x1="370" y1="294" x2="370" y2="310" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(370,310)"/>
+        <text x="382" y="270" font-size="10">R9 1.2k</text>
+        <text x="382" y="282" font-size="9.5" fill="var(--muted)">sets ~1A charge</text>
+
+        <!-- BAT+ pin out to the right, will trunk down in band 2 -->
+        <line x1="500" y1="86" x2="560" y2="86" stroke="currentColor" stroke-width="2"/>
+
+        <!-- CHRG / STDBY LEDs, fed from a VBUS tap -->
+        <line x1="110" y1="40" x2="640" y2="40" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="40" x2="640" y2="55" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(640,40)"/>
+
+        <line x1="640" y1="55" x2="640" y2="66" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(640,88) rotate(90)"/>
+        <line x1="640" y1="110" x2="640" y2="150" stroke="currentColor" stroke-width="2"/>
+        <polygon points="632,150 632,166 648,158" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="648" y1="150" x2="648" y2="166" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="166" x2="640" y2="180" stroke="currentColor" stroke-width="2"/>
+        <line x1="500" y1="150" x2="640" y2="150" stroke="currentColor" stroke-width="2"/>
+        <text x="655" y="95" font-size="10">R10 2k</text>
+        <text x="655" y="162" font-size="10">D1 red (CHRG)</text>
+
+        <line x1="700" y1="40" x2="700" y2="66" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(700,40)"/>
+        <use href="#res" transform="translate(700,88) rotate(90)"/>
+        <line x1="700" y1="110" x2="700" y2="150" stroke="currentColor" stroke-width="2"/>
+        <polygon points="692,150 692,166 708,158" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="708" y1="150" x2="708" y2="166" stroke="currentColor" stroke-width="2"/>
+        <line x1="700" y1="166" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
+        <line x1="500" y1="180" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
+        <text x="715" y="95" font-size="10">R11 2k</text>
+        <text x="715" y="162" font-size="10">D2 green (STDBY)</text>
+
+        <!-- ============ BAND 2: BATTERY, PROTECTION, POWER CONVERSION ============ -->
+
+        <!-- J3 battery holder -->
+        <rect x="40" y="360" width="140" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="110" y="408" text-anchor="middle" font-weight="700">J3</text>
+        <text x="110" y="426" text-anchor="middle">18650 holder</text>
+        <text x="50" y="378" font-size="10.5">CELL+</text>
+        <text x="50" y="482" font-size="10.5">CELL−</text>
+
+        <!-- CELL+ to BAT+ junction -->
+        <line x1="110" y1="360" x2="110" y2="330" stroke="currentColor" stroke-width="2"/>
+        <line x1="110" y1="330" x2="560" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(110,330)"/>
+
+        <!-- BAT+ trunk down from TP4056's BAT+ pin, and rightward to LDO + divider -->
+        <line x1="560" y1="86" x2="560" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(560,330)"/>
+        <line x1="560" y1="330" x2="1000" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <text x="600" y="320" font-size="11" font-weight="600">BAT+ (3.0–4.2V, unregulated)</text>
+
+        <!-- CELL- into protection block -->
+        <line x1="110" y1="490" x2="110" y2="510" stroke="currentColor" stroke-width="2"/>
+        <line x1="110" y1="510" x2="260" y2="510" stroke="currentColor" stroke-width="2"/>
+
+        <!-- U3/U4 protection -->
+        <rect x="260" y="450" width="230" height="120" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="375" y="495" text-anchor="middle" font-weight="700">U3 DW01A + U4 FS8205</text>
+        <text x="375" y="512" text-anchor="middle" fill="var(--muted)" font-size="10.5">low-side pack protection</text>
+        <text x="265" y="522" font-size="10">CELL−</text>
+        <text x="440" y="522" font-size="10">SYS GND ▶</text>
+
+        <!-- protection output = the actual system GND used everywhere else -->
+        <line x1="490" y1="510" x2="560" y2="510" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="560" y1="510" x2="560" y2="525" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#gnd" transform="translate(560,525)"/>
+        <text x="440" y="600" font-size="9.5" fill="var(--muted)" width="300">
+          <tspan x="300" y="600">note: this is the ONLY place "GND" originates — every other</tspan>
+          <tspan x="300" y="614">GND flag in this schematic is the same protected net</tspan>
+        </text>
+
+        <!-- U5 LDO (accent — Iq callout) -->
+        <rect x="700" y="380" width="150" height="110" rx="4" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="775" y="415" text-anchor="middle" font-weight="700" fill="var(--accent)">U5 XC6206</text>
+        <text x="775" y="432" text-anchor="middle" fill="var(--accent)">3.3V LDO</text>
+        <text x="775" y="450" text-anchor="middle" fill="var(--accent)" font-size="10.5">Iq &lt; 5µA — not AMS1117</text>
+        <line x1="775" y1="380" x2="775" y2="330" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(775,330)"/>
+        <use href="#cap" transform="translate(730,355)"/>
+        <line x1="730" y1="342" x2="730" y2="330" stroke="currentColor" stroke-width="2"/>
+        <line x1="730" y1="368" x2="730" y2="380" stroke="currentColor" stroke-width="2"/>
+        <text x="695" y="362" font-size="9.5">C5 10µF</text>
+
+        <line x1="850" y1="435" x2="900" y2="435" stroke="currentColor" stroke-width="2.4"/>
+        <text x="855" y="425" font-size="10">OUT → 3V3</text>
+        <use href="#cap" transform="translate(915,435) rotate(90)"/>
+        <line x1="900" y1="435" x2="915" y2="435" stroke="currentColor" stroke-width="2"/>
+        <line x1="915" y1="422" x2="915" y2="410" stroke="currentColor" stroke-width="2"/>
+        <line x1="915" y1="448" x2="915" y2="460" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(915,460)"/>
+        <text x="925" y="440" font-size="9.5">C6 1µF</text>
+
+        <line x1="775" y1="490" x2="775" y2="505" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(775,505)"/>
+
+        <!-- 3V3 net label stub, reused everywhere downstream -->
+        <line x1="900" y1="435" x2="900" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="890" y1="410" x2="910" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <text x="900" y="400" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+
+        <!-- Gated battery-sense divider (accent — the current-saving fix) -->
+        <line x1="1000" y1="330" x2="1150" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <rect x="1130" y="355" width="150" height="90" rx="4" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="1205" y="378" text-anchor="middle" font-weight="700" fill="var(--accent)" font-size="12">GPIO-gated</text>
+        <text x="1205" y="394" text-anchor="middle" fill="var(--accent)" font-size="11">battery sense</text>
+        <text x="1205" y="410" text-anchor="middle" fill="var(--accent)" font-size="10">saves ~21µA vs. free-running</text>
+        <line x1="1150" y1="330" x2="1150" y2="355" stroke="currentColor" stroke-width="0" opacity="0"/>
+
+        <line x1="1000" y1="330" x2="1000" y2="330" stroke="currentColor" stroke-width="0"/>
+        <!-- Q1 PMOS high-side switch, gate driven by GPIO25 -->
+        <rect x="1030" y="355" width="60" height="34" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="1060" y="376" text-anchor="middle" font-size="10" fill="var(--accent)">Q1 PMOS</text>
+        <line x1="1000" y1="330" x2="1060" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1060" y1="330" x2="1060" y2="355" stroke="currentColor" stroke-width="2"/>
+        <text x="1063" y="345" font-size="9">S</text>
+        <line x1="1060" y1="389" x2="1060" y2="420" stroke="currentColor" stroke-width="2"/>
+        <text x="1063" y="405" font-size="9">D</text>
+        <line x1="1030" y1="372" x2="990" y2="372" stroke="var(--accent)" stroke-width="2"/>
+        <text x="960" y="368" font-size="9" fill="var(--accent)">G</text>
+
+        <!-- R6 gate pull-up to BAT+ (holds PMOS off whenever Q2 is off) -->
+        <use href="#res" transform="translate(990,340) rotate(90)"/>
+        <line x1="990" y1="362" x2="990" y2="372" stroke="currentColor" stroke-width="2"/>
+        <line x1="990" y1="318" x2="990" y2="330" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(990,330)"/>
+        <text x="998" y="345" font-size="9.5">R6 100k</text>
+
+        <!-- Gate node ties R6, the PMOS gate, and Q2's collector together -->
+        <line x1="990" y1="372" x2="960" y2="372" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#dot" transform="translate(960,372)"/>
+        <line x1="960" y1="372" x2="960" y2="410" stroke="var(--accent)" stroke-width="2"/>
+
+        <!-- Q2 NPN level-shifter: a GPIO can pull this LOW to enable, but its HIGH
+             (3.3V) can't guarantee the PMOS off with BAT+ up to 4.2V on the source
+             (Vgs would only reach about -0.9V) -- so the GPIO switches Q2 instead of
+             the PMOS gate directly, and R6 (not the GPIO) holds the gate at BAT+
+             i.e. fully off, whenever Q2 is off. -->
+        <rect x="942" y="410" width="36" height="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="960" y="429" text-anchor="middle" font-size="9" fill="var(--accent)">Q2</text>
+        <line x1="960" y1="440" x2="960" y2="460" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#gnd" transform="translate(960,460)"/>
+        <text x="984" y="432" font-size="9.5" fill="var(--accent)">NPN (e.g. MMBT3904)</text>
+
+        <!-- Base resistor + GPIO25 -->
+        <line x1="942" y1="425" x2="923" y2="425" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#res" transform="translate(901,425)"/>
+        <text x="901" y="415" text-anchor="middle" font-size="9.5" fill="var(--accent)">R12 10k</text>
+        <line x1="879" y1="425" x2="860" y2="425" stroke="var(--accent)" stroke-width="2"/>
+        <line x1="860" y1="425" x2="860" y2="790" stroke="var(--accent)" stroke-width="2"/>
+        <text x="820" y="600" font-size="10.5" fill="var(--accent)" transform="rotate(-90 860 600)" text-anchor="middle">GPIO25 (BATT_EN) — drives Q2's base, not the PMOS gate directly</text>
+
+        <!-- R1 / ADC node / R2 -->
+        <line x1="1060" y1="420" x2="1150" y2="420" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(1150,420)"/>
+        <line x1="1172" y1="420" x2="1210" y2="420" stroke="currentColor" stroke-width="2"/>
+        <text x="1150" y="410" text-anchor="middle" font-size="10">R1 100k</text>
+        <use href="#dot" transform="translate(1210,420)"/>
+        <line x1="1210" y1="420" x2="1210" y2="470" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(1210,492) rotate(90)"/>
+        <line x1="1210" y1="514" x2="1210" y2="530" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1210,530)"/>
+        <text x="1220" y="495" font-size="10">R2 100k</text>
+
+        <!-- filter cap at ADC node -->
+        <use href="#cap" transform="translate(1250,440)"/>
+        <line x1="1210" y1="440" x2="1237" y2="440" stroke="currentColor" stroke-width="2"/>
+        <line x1="1263" y1="440" x2="1280" y2="440" stroke="currentColor" stroke-width="2"/>
+        <line x1="1280" y1="440" x2="1280" y2="530" stroke="currentColor" stroke-width="2"/>
+        <line x1="1280" y1="530" x2="1210" y2="530" stroke="currentColor" stroke-width="2"/>
+        <text x="1237" y="428" font-size="9.5">C7 0.1µF</text>
+
+        <!-- ADC net down to ESP32 GPIO34 -->
+        <line x1="1210" y1="420" x2="1210" y2="330" stroke="currentColor" stroke-width="0" opacity="0"/>
+        <line x1="1210" y1="420" x2="1290" y2="420" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1290" y1="420" x2="1290" y2="790" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1300" y="600" font-size="10.5" transform="rotate(-90 1300 600)" text-anchor="middle">GPIO34 (ADC1_CH6, battery sense)</text>
+
+        <!-- ============ BAND 3: ESP32 HUB ============ -->
+
+        <!-- U1 ESP32 -->
+        <rect x="900" y="700" width="300" height="300" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <text x="1050" y="835" text-anchor="middle" font-weight="700" font-size="14">U1</text>
+        <text x="1050" y="855" text-anchor="middle" font-size="13">ESP32-WROOM-32E</text>
+        <text x="1050" y="872" text-anchor="middle" fill="var(--muted)" font-size="10.5">(classic ESP32 — keeps GPIO34</text>
+        <text x="1050" y="886" text-anchor="middle" fill="var(--muted)" font-size="10.5">ADC mapping firmware-compatible)</text>
+
+        <!-- left pins: 3V3, EN, IO0, GND -->
+        <text x="908" y="736" font-size="11">3V3</text>
+        <text x="908" y="796" font-size="11">EN</text>
+        <text x="908" y="856" font-size="11">IO0</text>
+        <text x="908" y="976" font-size="11">GND</text>
+
+        <line x1="900" y1="740" x2="780" y2="740" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="780" y1="740" x2="780" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="780" y1="410" x2="900" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(900,410)"/>
+
+        <!-- EN RC -->
+        <line x1="900" y1="800" x2="760" y2="800" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(760,800)"/>
+        <use href="#res" transform="translate(760,760) rotate(90)"/>
+        <line x1="760" y1="738" x2="760" y2="720" stroke="currentColor" stroke-width="2"/>
+        <line x1="750" y1="720" x2="770" y2="720" stroke="currentColor" stroke-width="2.4"/>
+        <text x="760" y="710" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <text x="700" y="755" font-size="10">R4 10k</text>
+        <use href="#cap" transform="translate(760,830) rotate(90)"/>
+        <line x1="760" y1="800" x2="760" y2="817" stroke="currentColor" stroke-width="2"/>
+        <line x1="760" y1="843" x2="760" y2="860" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(760,860)"/>
+        <text x="705" y="822" font-size="10">C1 1µF</text>
+
+        <!-- IO0 RC + boot button -->
+        <line x1="900" y1="860" x2="640" y2="860" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(640,860)"/>
+        <use href="#res" transform="translate(640,820) rotate(90)"/>
+        <line x1="640" y1="798" x2="640" y2="780" stroke="currentColor" stroke-width="2"/>
+        <line x1="630" y1="780" x2="650" y2="780" stroke="currentColor" stroke-width="2.4"/>
+        <text x="640" y="770" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <text x="580" y="815" font-size="10">R5 10k</text>
+        <rect x="620" y="890" width="40" height="24" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="640" y="908" text-anchor="middle" font-size="10">SW1</text>
+        <line x1="640" y1="860" x2="640" y2="890" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="914" x2="640" y2="930" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(640,930)"/>
+        <text x="580" y="895" font-size="9.5" fill="var(--muted)">boot-mode select</text>
+        <text x="580" y="908" font-size="9.5" fill="var(--muted)">(optional if J4-only)</text>
+
+        <!-- ESP32 GND -->
+        <line x1="900" y1="980" x2="850" y2="980" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="850" y1="980" x2="850" y2="1000" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#gnd" transform="translate(850,1000)"/>
+
+        <!-- decoupling caps on the 3V3 drop into U1 -->
+        <use href="#cap" transform="translate(940,740)"/>
+        <line x1="900" y1="740" x2="927" y2="740" stroke="currentColor" stroke-width="0" opacity="0"/>
+        <line x1="940" y1="727" x2="940" y2="710" stroke="currentColor" stroke-width="2"/>
+        <line x1="940" y1="710" x2="900" y2="710" stroke="currentColor" stroke-width="0" opacity="0"/>
+        <line x1="940" y1="753" x2="940" y2="770" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(940,770)"/>
+        <text x="950" y="748" font-size="9.5">C2, C3 0.1µF ×2</text>
+        <text x="950" y="760" font-size="9.5">at module VDD pins</text>
+
+        <!-- right pins: GPIO34, GPIO4, U0TXD, U0RXD -->
+        <text x="1192" y="736" text-anchor="end" font-size="11">GPIO34</text>
+        <text x="1192" y="796" text-anchor="end" font-size="11">GPIO4</text>
+        <text x="1192" y="856" text-anchor="end" font-size="11">U0TXD</text>
+        <text x="1192" y="916" text-anchor="end" font-size="11">U0RXD</text>
+
+        <line x1="1200" y1="740" x2="1290" y2="740" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1290" y1="740" x2="1290" y2="790" stroke="currentColor" stroke-width="0" opacity="0"/>
+        <!-- (GPIO34 wire already drawn descending from the divider above at x=1290 down to y=790; -->
+        <!-- connect it into the pin here) -->
+        <line x1="1290" y1="790" x2="1290" y2="740" stroke="currentColor" stroke-width="2.4"/>
+
+        <!-- GPIO25 wire descending from Q2's base resistor at x=860 down to an -->
+        <!-- open flying lead below the module -- this GPIO isn't a fixed pin -->
+        <!-- assignment on the module footprint, just any free output-capable GPIO -->
+        <line x1="860" y1="790" x2="860" y2="1010" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="860" cy="1010" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="875" y="1005" font-size="10" fill="var(--accent)">→ any free GPIO (e.g. GPIO25), driven HIGH only</text>
+        <text x="875" y="1018" font-size="10" fill="var(--accent)">while reading the battery divider — new in firmware</text>
+
+        <!-- GPIO4 to DS18B20 -->
+        <line x1="1200" y1="800" x2="1350" y2="800" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(1350,800)"/>
+        <use href="#res" transform="translate(1350,760) rotate(90)"/>
+        <line x1="1350" y1="738" x2="1350" y2="720" stroke="currentColor" stroke-width="2"/>
+        <line x1="1340" y1="720" x2="1360" y2="720" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1350" y="710" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <text x="1362" y="770" font-size="10">R3 4.7k pull-up</text>
+        <line x1="1350" y1="800" x2="1440" y2="800" stroke="currentColor" stroke-width="2.4"/>
+
+        <!-- J2 DS18B20 connector -->
+        <rect x="1440" y="740" width="160" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1520" y="770" text-anchor="middle" font-weight="700">J2</text>
+        <text x="1520" y="788" text-anchor="middle" font-size="11">DS18B20 probe</text>
+        <text x="1520" y="804" text-anchor="middle" fill="var(--muted)" font-size="10">(waterproof, off-board)</text>
+        <text x="1450" y="822" font-size="10.5">DATA</text>
+        <text x="1450" y="842" font-size="10.5">VCC</text>
+        <text x="1450" y="862" font-size="10.5">GND</text>
+        <line x1="1440" y1="838" x2="1400" y2="838" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1400" y1="838" x2="1400" y2="720" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1400" y1="720" x2="1360" y2="720" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1440" y1="858" x2="1420" y2="858" stroke="currentColor" stroke-width="2"/>
+        <line x1="1420" y1="858" x2="1420" y2="880" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1420,880)"/>
+
+        <!-- J4 programming header -->
+        <rect x="1300" y="920" width="190" height="90" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1395" y="945" text-anchor="middle" font-weight="700" font-size="11">J4 — programming header</text>
+        <text x="1310" y="965" font-size="10">3V3 · GND · TXD · RXD · EN · IO0</text>
+        <text x="1310" y="980" font-size="9.5" fill="var(--muted)">one-time USB-UART jig at assembly;</text>
+        <text x="1310" y="992" font-size="9.5" fill="var(--muted)">field updates go over OTA, not here</text>
+
+        <line x1="1200" y1="860" x2="1395" y2="860" stroke="currentColor" stroke-width="2"/>
+        <line x1="1395" y1="860" x2="1395" y2="920" stroke="currentColor" stroke-width="2"/>
+        <text x="1230" y="850" font-size="9.5" fill="var(--muted)">TXD</text>
+
+        <line x1="1200" y1="916" x2="1360" y2="916" stroke="currentColor" stroke-width="2"/>
+        <line x1="1360" y1="916" x2="1360" y2="920" stroke="currentColor" stroke-width="2"/>
+        <text x="1230" y="930" font-size="9.5" fill="var(--muted)">RXD</text>
+
+        </g>
+      </svg>
+      <figcaption>
+        USB-C charges the cell through TP4056; DW01A+FS8205 sit on the cell's low side and define the
+        single shared GND every other net in this schematic taps into. The battery feeds a
+        low-quiescent LDO and a GPIO-gated sense divider (both amber) — the two places this revision
+        diverges from a naive port of the DevKit prototype. GPIO4, GPIO34, EN and IO0 are unchanged
+        from the firmware; the divider's enable line is the one new pin this board introduces.
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--accent)"></span>Where this design deviates from the naive port — see PCB_DESIGN.md §"decisions the naive version gets wrong"</span>
+  </div>
+
+  <div class="notes">
+    <div class="callout">
+      <strong>Firmware TODO introduced by this hardware revision:</strong> <code>GPIO25</code> (or any
+      free output-capable GPIO) must be driven <code>HIGH</code> immediately before
+      <code>readBatteryVoltage()</code> and <code>LOW</code> right after, with <code>pinMode(25, OUTPUT)</code>
+      added in <code>setup()</code>. Without this change the divider reads ~0V on every cycle — this is
+      not optional, and isn't in <code>fermentation_monitor_v1.ino</code> yet.
+    </div>
+
+    <h2>Why Q2, not a GPIO wired straight to the PMOS gate</h2>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem;">
+      The obvious first draft ties the GPIO directly to Q1's gate with R6 as a pull-up. That's not safe
+      here: a push-pull GPIO driving HIGH wins over a 100kΩ pull-up regardless of what it's fighting,
+      so the "off" state ends up at whatever the GPIO's HIGH level is — 3.3V — not at <code>BAT+</code>.
+      With a freshly-charged cell at 4.2V that's V<sub>GS</sub> ≈ −0.9V on the PMOS, which is inside the
+      threshold region for parts like the AO3401 rather than solidly off. Q2 (a cheap NPN) turns the
+      GPIO into a low-side switch instead: GPIO HIGH pulls the gate to ~0V through Q2 (strongly on);
+      GPIO LOW/floating leaves R6 alone to pull the gate all the way to <code>BAT+</code> (Vgs = 0,
+      solidly off, no matter the cell voltage).
+    </p>
+
+    <h2>GPIO map</h2>
+    <table>
+      <tr><th>Pin</th><th>Net</th><th>Status</th></tr>
+      <tr><td><code>GPIO4</code></td><td>DS18B20 1-Wire data</td><td>Unchanged — matches <code>ONE_WIRE_BUS</code></td></tr>
+      <tr><td><code>GPIO34</code></td><td>Battery ADC (ADC1_CH6, input-only)</td><td>Unchanged — matches <code>readBatteryVoltage()</code></td></tr>
+      <tr><td><code>EN</code></td><td>Reset, RC delay</td><td>Unchanged — standard ESP32 boot circuit</td></tr>
+      <tr><td><code>IO0</code></td><td>Boot-mode select</td><td>Unchanged — standard ESP32 boot circuit</td></tr>
+      <tr><td><code>U0TXD</code> / <code>U0RXD</code></td><td>UART0, programming header</td><td>Unchanged — same pins <code>Serial.begin()</code> already uses</td></tr>
+      <tr><td><code>GPIO25</code> (proposed)</td><td>Battery-divider enable</td><td><strong>New</strong> — needs the firmware change above</td></tr>
+    </table>
+
+    <h2>Next steps</h2>
+    <p style="font-size:0.88rem; color:var(--muted)">
+      This is a hand-drawn reference, not a Gerber-ready capture. Before ordering: reproduce this in
+      KiCad or 立创EDA (<code>.claude/skills/pcb-designer/references/kicad-workflow.md</code> or
+      <code>lceda-workflow.md</code>), run the skill's DFM pass on the real footprint placement, and
+      confirm the ESP32-WROOM-32E's antenna keep-out against the actual board outline — none of that
+      geometry is meaningful in a schematic-only drawing like this one.
+    </p>
+  </div>
+</main>

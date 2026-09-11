@@ -4,8 +4,13 @@ Produced with the [`pcb-designer`](../.claude/skills/pcb-designer/SKILL.md) skil
 This replaces the v1 BOM's "ESP32 DevKit + perfboard + breakout modules"
 (see `docs/IMPLEMENTATION_PLAN.md`) with a single small-batch PCB, for once
 you're past the perfboard prototype and into the 15-25 unit pre-sold batch
-(Phase 2). The firmware in `firmware/fermentation_monitor_v1/` needs **zero
-changes** — every net below lands on the same GPIOs the sketch already uses.
+(Phase 2). Almost every net below lands on the same GPIOs the sketch already
+uses — the one exception is the battery-divider enable line, which needs a
+small firmware addition (see §2 and `schematic.html`).
+
+A hand-drawn schematic covering every net in this document is in
+[`hardware/schematic.html`](schematic.html) — open it directly or view the
+published version linked from the PR/session.
 
 ## Why move off the DevKit
 
@@ -87,12 +92,21 @@ line in the implementation plan was warning about.
 **DFM note on the divider**: as drawn, the 100k/100k divider draws ~21µA
 continuously any time the battery is above 0V — that's *more* than the
 ESP32's own deep-sleep current, and would roughly double your sleep-current
-budget for no reason. Gate it with a high-side P-MOSFET (or feed it from a
-GPIO driven high only during the brief `readBatteryVoltage()` call) so it
-only draws current for the few milliseconds per wake cycle when you're
-actually taking the reading. This is a **change worth making now** — it
-costs one SOT-23 PMOS and a resistor, and roughly doubles standby battery
+budget for no reason. Gate it with a high-side PMOS (Q1) so it only draws
+current for the few milliseconds per wake cycle when you're actually taking
+the reading. This is a **change worth making now** — it costs one SOT-23
+PMOS, one small NPN, and two resistors, and roughly doubles standby battery
 life.
+
+Don't wire the GPIO straight to the PMOS gate, though — a push-pull GPIO
+driving HIGH (3.3V) overpowers a simple pull-up resistor regardless of what
+it's fighting, so the "off" state lands at 3.3V, not at `BAT+` (up to
+4.2V). That leaves V<sub>GS</sub> around −0.9V on a freshly-charged cell —
+inside the threshold region for a part like the AO3401, not solidly off.
+Use a small NPN (Q2) as a low-side switch instead: GPIO HIGH pulls the
+PMOS gate to ~0V through Q2 (strongly on); GPIO LOW/floating leaves R6 to
+pull the gate all the way to `BAT+` (V<sub>GS</sub> = 0, off regardless of
+cell voltage). See `schematic.html` for the full circuit.
 
 At a rough weighted average of ~30-50µA sleep-dominant draw (after gating
 the divider) against an 18650's ~2500-3000mAh capacity, that's still deep
@@ -124,6 +138,8 @@ carrier board for the same firmware, not a redesign.
 | U4 | FS8205A | SOT-23-6 | 1 | LCSC (search FS8205A) | ~$0.08 | Dual MOSFET pair paired with DW01A |
 | U5 | XC6206P332MR (3.3V LDO, low-Iq) | SOT-23-3 | 1 | LCSC C5446 | ~$0.03 | **Not AMS1117** — Iq must stay in the single-digit µA range |
 | Q1 | Small-signal PMOS (e.g. AO3401) | SOT-23 | 1 | LCSC C15127 | ~$0.02 | Gates the battery divider — see power-budget DFM note |
+| Q2 | Small-signal NPN (e.g. MMBT3904) | SOT-23 | 1 | LCSC C8598 | ~$0.02 | Low-side switch for Q1's gate — a GPIO can't drive the PMOS gate directly, see DFM note |
+| R12 | 10kΩ | 0603 | 1 | — | ~$0.01 | Q2 base resistor |
 | R1,R2 | 100kΩ 1% | 0603 | 2 | — | ~$0.01 ea | Battery divider — matches firmware's 1:1 assumption exactly |
 | R3 | 4.7kΩ | 0603 | 1 | — | ~$0.01 | DS18B20 1-Wire pull-up |
 | R4 | 10kΩ | 0603 | 1 | — | ~$0.01 | EN pull-up |
@@ -213,6 +229,9 @@ large enough that assembly-line USB flashing time becomes the bottleneck.
 - [ ] EN: 10kΩ pull-up + 1µF RC delay present
 - [ ] IO0: 10kΩ pull-up present; button (or header-only) confirmed
 - [ ] Battery divider is gated (PMOS), not free-running
+- [ ] PMOS gate is switched by Q2 (NPN low-side), not driven straight from a
+      GPIO — a direct GPIO connection can't guarantee full off with `BAT+`
+      above the GPIO's HIGH level
 - [ ] DW01A + FS8205 protection present between cell and TP4056/load —
       don't rely on a bare TP4056 IC alone
 - [ ] LDO is a low-Iq part (XC6206/MCP1700-class), not AMS1117-class
