@@ -167,15 +167,50 @@ values baked into stored rows.
    near 90°, the board's long axis isn't X** — change which axis
    `readTiltDegrees()` treats as the long one. Do this before collecting any
    calibration points; a wrong axis makes every later step garbage.
-2. Float it in a few sugar solutions of known gravity (measure each with a
-   hydrometer), recording the tilt angle it reports for each. Three or four
-   points spanning ~1.000–1.080 is enough.
+2. Float it in a few sugar solutions of known gravity, recording the tilt
+   angle it reports for each. Three or four points spanning ~1.000–1.080 is
+   enough. **Hold all the solutions at the same temperature, measure that
+   temperature, and write it down** — step 4 depends on it.
+
+   Use hydrometer readings already corrected to 20 °C (or a refractometer, or
+   solutions of known gravity). The curve you're fitting maps tilt to *true*
+   gravity; feeding it uncorrected hydrometer readings bakes a temperature
+   error into the curve itself, which no later correction can undo.
 3. Fit a polynomial (`SG = a·tilt³ + b·tilt² + c·tilt + d`) and write the
    coefficients to that device's `calibration_a`…`calibration_d` columns.
    Set the unused higher terms to `0` for a linear or quadratic fit.
+4. **Set `calibration_temp_c` to the temperature from step 2.** Readings are
+   corrected to a 20 °C reference, and that correction is measured *from this
+   value* — not from an assumed 20 °C. If you calibrated at 24 °C and leave
+   this at the default 20, every reading is quietly biased by about half a
+   gravity point. The dashboard's calibration form has a field for it.
+
+Both are editable from the device page in the dashboard; no SQL needed.
 
 Until `calibration_c` is set, the view returns `null` gravity rather than a
 plausible-looking wrong number.
+
+#### Temperature correction
+
+Gravity is corrected to a 20 °C reference using the standard hydrometer
+curve, applied relative to `calibration_temp_c`. Across 5–35 °C that is worth
+roughly −1.9 to +4.3 gravity points — the difference between calling a batch
+finished at 1.010 and still working at 1.014.
+
+The correction models the **liquid's** thermal expansion, which dominates and
+needs no extra calibration. It does not model the **device's** own: a plastic
+housing expands far more than a glass hydrometer, so its displaced volume, and
+therefore its buoyancy, shifts measurably over a 20 K swing. That part is
+housing-specific and can only be measured. If you calibrate at two
+temperatures and find a residual slope, put it in `temp_coeff_sg_per_c`
+(SG per °C); it defaults to 0 and is a no-op until then.
+
+Both the raw and corrected values are exposed (`gravity_sg_raw` and
+`gravity_sg`), so the size of the correction is visible rather than buried.
+
+**This correction is untested against real liquid.** The maths is verified —
+the Postgres view and the dashboard's client-side copy agree to five decimal
+places across 5–35 °C — but no physical unit has ever floated in anything.
 
 ### Known gaps specific to this sketch
 
@@ -190,3 +225,7 @@ plausible-looking wrong number.
 - **No gravity-based alerting** (e.g. "fermentation stalled"). That needs
   trend history across readings, which belongs in a backend job, not
   firmware.
+- **The device's own thermal expansion is not modelled by default.** The
+  standard correction covers the liquid; `temp_coeff_sg_per_c` exists for the
+  housing but stays 0 until someone calibrates at two temperatures and
+  measures it.

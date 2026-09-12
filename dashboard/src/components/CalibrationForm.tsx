@@ -27,6 +27,8 @@ function initial(device: Device): Record<Coefficient, string> {
 
 export default function CalibrationForm({ device, onSaved }: Props) {
   const [values, setValues] = useState(() => initial(device));
+  const [calTemp, setCalTemp] = useState(String(device.calibration_temp_c ?? 20));
+  const [tempCoeff, setTempCoeff] = useState(String(device.temp_coeff_sg_per_c ?? 0));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -62,6 +64,26 @@ export default function CalibrationForm({ device, onSaved }: Props) {
       setError("c is required — without it the device stays uncalibrated and no gravity is computed.");
       return;
     }
+
+    // The temperature correction is applied relative to this value, so a wrong
+    // one biases every reading rather than failing visibly.
+    const parsedCalTemp = Number(calTemp.trim());
+    if (calTemp.trim() === "" || !Number.isFinite(parsedCalTemp)) {
+      setError("Calibration temperature is required — the correction is measured from it.");
+      return;
+    }
+    if (parsedCalTemp < -10 || parsedCalTemp > 50) {
+      setError("Calibration temperature must be between −10°C and 50°C.");
+      return;
+    }
+    updates.calibration_temp_c = parsedCalTemp;
+
+    const parsedCoeff = tempCoeff.trim() === "" ? 0 : Number(tempCoeff.trim());
+    if (!Number.isFinite(parsedCoeff)) {
+      setError(`"${tempCoeff}" isn't a number.`);
+      return;
+    }
+    updates.temp_coeff_sg_per_c = parsedCoeff;
 
     setSaving(true);
     const { error: updateError } = await supabase.from("devices").update(updates).eq("id", device.id);
@@ -99,6 +121,52 @@ export default function CalibrationForm({ device, onSaved }: Props) {
             <span className="mt-0.5 block text-xs text-stone-400">{hint}</span>
           </label>
         ))}
+      </div>
+
+      <div className="rounded-md border border-stone-200 bg-stone-50 p-3">
+        <p className="text-sm font-medium text-stone-800">Temperature correction</p>
+        <p className="mt-1 text-xs text-stone-600">
+          Readings are corrected to a 20°C reference using the standard hydrometer curve. The
+          correction is measured <em>from the temperature you calibrated at</em>, not from an
+          assumed 20°C — so this field has to be right, or every reading is quietly biased. Across
+          5–35°C the correction is worth roughly −1.9 to +4.3 gravity points.
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="text-sm">
+            Calibration temperature (°C)
+            <input
+              type="number"
+              step="0.1"
+              required
+              value={calTemp}
+              onChange={(e) => {
+                setCalTemp(e.target.value);
+                setSaved(false);
+              }}
+              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            />
+            <span className="mt-0.5 block text-xs text-stone-400">
+              What the reference solutions were at
+            </span>
+          </label>
+          <label className="text-sm">
+            Residual drift (SG per °C)
+            <input
+              type="text"
+              inputMode="decimal"
+              value={tempCoeff}
+              onChange={(e) => {
+                setTempCoeff(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="0"
+              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            />
+            <span className="mt-0.5 block text-xs text-stone-400">
+              Optional. Leave 0 unless you calibrated at two temperatures
+            </span>
+          </label>
+        </div>
       </div>
 
       <p className="text-xs text-stone-500">

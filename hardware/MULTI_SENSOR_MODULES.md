@@ -182,13 +182,44 @@ calibration instructions in `firmware/README.md`.
   stored on the `devices` row. Keeping raw tilt in the table means
   recalibrating a device fixes its whole history rather than leaving wrong
   values baked into stored rows.
+- **The temperature reading feeds the gravity calculation**, which is the
+  whole reason this module carries its own DS18B20.
+  `20260912140000_gravity_temperature_correction.sql` applies the standard
+  hydrometer correction to a 20 °C reference, measured relative to each
+  device's `calibration_temp_c`. Across 5–35 °C that is worth about −1.9 to
+  +4.3 gravity points. An optional `temp_coeff_sg_per_c` covers the housing's
+  own thermal expansion, which the liquid correction doesn't model; it
+  defaults to 0.
 - Schema support is applied:
   `supabase/migrations/20260912100000_tilt_gravity_support.sql` adds
   `readings.tilt_deg`, `devices.device_type`, the calibration columns, the
   extra `ingest_reading` parameter, and the gravity view.
-- **Still untested on hardware** — in particular the tilt axis assumption
-  (which physical axis runs along the housing) is unverified, and it's
-  step 1 of the calibration procedure for exactly that reason.
+
+#### The potting is now load-bearing for accuracy, not just for sealing
+
+The correction wants **wort** temperature. Potting the DS18B20 against the
+inside of the housing wall is what gets it: the sensor couples to the wall,
+which is submerged, so in steady state it converges on the liquid. Mounted on
+the board in open air instead, it would read the internal air — self-heated
+and badly lagged.
+
+Self-heating itself is negligible (≈2 mW time-averaged at a 15-minute duty
+cycle, well under 0.01 K through a submerged wall), and the firmware reads
+the DS18B20 immediately on wake, before the radio comes up. **The risk is
+build quality**: an air gap behind the sensor, or epoxy that isn't actually
+thermally conductive, decouples it from the wall and it drifts toward
+internal air temperature — biasing both the customer-facing reading and now
+the gravity number too. Worth checking per unit on the first build.
+
+Note also that the Hub remains the better *thermometer*: its cabled probe
+sits directly in the wort with negligible thermal mass, so it responds in
+seconds where this one is wall-mediated and trails during fast changes.
+
+- **Still untested on hardware** — the tilt axis assumption (which physical
+  axis runs along the housing) is unverified and is step 1 of the calibration
+  procedure for exactly that reason, and no physical unit has floated in
+  anything, so the temperature correction is verified as maths but not
+  against real liquid.
 
 ---
 

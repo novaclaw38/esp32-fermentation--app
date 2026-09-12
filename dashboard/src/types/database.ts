@@ -17,6 +17,19 @@ export interface Device {
   calibration_b: number | null;
   calibration_c: number | null;
   calibration_d: number | null;
+  /**
+   * Temperature of the reference solutions when the polynomial above was
+   * fitted. The temperature correction is applied relative to THIS, not to an
+   * assumed 20C — the polynomial's output is "SG as this device reads at this
+   * temperature". Not nullable; defaults to 20 in the database.
+   */
+  calibration_temp_c: number;
+  /**
+   * Optional residual SG drift per degree C for device-specific effects the
+   * standard liquid correction doesn't model (mainly housing thermal
+   * expansion). 0 = unused. Not nullable; defaults to 0.
+   */
+  temp_coeff_sg_per_c: number;
 }
 
 export interface Reading {
@@ -32,10 +45,13 @@ export interface Reading {
 /**
  * A row from the `readings_with_gravity` view: everything in `readings` plus
  * the specific gravity Postgres derived from the device's calibration curve.
- * `gravity_sg` is null when the device is uncalibrated or the row has no tilt.
+ * Both are null when the device is uncalibrated or the row has no tilt.
  */
 export interface ReadingWithGravity extends Reading {
+  /** Corrected to a 20C reference. This is the number to show a brewer. */
   gravity_sg: number | null;
+  /** Uncorrected polynomial output, so the size of the correction is visible. */
+  gravity_sg_raw: number | null;
 }
 
 export interface Alert {

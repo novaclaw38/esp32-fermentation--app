@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from "recharts";
 import type { ReadingWithGravity } from "../types/database";
-import { formatSg } from "../lib/gravity";
+import { formatSg, formatPoints } from "../lib/gravity";
 
 interface Props {
   readings: ReadingWithGravity[];
@@ -67,6 +67,14 @@ export default function GravityChart({ readings, calibrated }: Props) {
   const latest = plotted[plotted.length - 1].value;
   const delta = latest - first;
 
+  // Show how much the temperature correction actually moved the latest reading,
+  // so it's auditable rather than invisible.
+  const latestRow = points[points.length - 1];
+  const correction =
+    latestRow.gravity_sg != null && latestRow.gravity_sg_raw != null
+      ? latestRow.gravity_sg - latestRow.gravity_sg_raw
+      : null;
+
   // Pad the domain so a nearly-flat series doesn't render as a jagged line
   // across the full height of the chart, which reads as violent movement when
   // the actual change is a couple of gravity points.
@@ -117,6 +125,14 @@ export default function GravityChart({ readings, calibrated }: Props) {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {!showingTilt && correction != null && (
+        <p className="text-xs text-stone-500">
+          Latest reading corrected to 20°C: {formatSg(latestRow.gravity_sg_raw as number)} raw →{" "}
+          <span className="text-stone-700">{formatSg(latestRow.gravity_sg as number)}</span> (
+          {formatPoints(correction)} points at {(latestRow.temperature_c ?? 0).toFixed(1)}°C).
+        </p>
+      )}
 
       <p className="text-xs text-stone-500">
         Now {format(latest)} · {delta >= 0 ? "+" : "−"}

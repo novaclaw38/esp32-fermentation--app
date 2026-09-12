@@ -76,6 +76,14 @@ via `lib/gravity.ts`. That file is a deliberate duplicate of the view's SQL
 expression — if you change the polynomial in the migration, change it there
 too, or live readings will silently disagree with reloaded ones.
 
+**Gravity is corrected to 20 °C, relative to the calibration temperature.**
+`devices.calibration_temp_c` records what the reference solutions were at when
+the tilt→SG curve was fitted, and the standard hydrometer correction is applied
+from *that* baseline — not from an assumed 20 °C. A device calibrated at 24 °C
+but left at the default 20 is biased on every reading, silently, which is why
+the calibration form requires the field. The chart shows the raw and corrected
+values side by side so the size of the correction is visible.
+
 **Uncalibrated devices chart tilt, not gravity.** With no curve, every
 `gravity_sg` is null and a gravity chart would be blank. The chart instead
 plots the raw tilt angle and says plainly that the numbers aren't SG — the

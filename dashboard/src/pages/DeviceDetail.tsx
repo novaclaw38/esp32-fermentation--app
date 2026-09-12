@@ -7,7 +7,13 @@ import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
-import { computeGravitySg, formatSg, isCalibrated, isTiltDevice } from "../lib/gravity";
+import {
+  computeGravitySg,
+  computeGravitySgRaw,
+  formatSg,
+  isCalibrated,
+  isTiltDevice,
+} from "../lib/gravity";
 
 const HISTORY_HOURS = 48;
 
@@ -44,8 +50,16 @@ export default function DeviceDetail() {
           // See lib/gravity.ts.
           const row = payload.new as Reading;
           const current = deviceRef.current;
-          const gravity_sg = current ? computeGravitySg(current, row.tilt_deg ?? null) : null;
-          setReadings((prev) => [...prev, { ...row, gravity_sg }]);
+          setReadings((prev) => [
+            ...prev,
+            {
+              ...row,
+              gravity_sg: current
+                ? computeGravitySg(current, row.tilt_deg ?? null, row.temperature_c ?? null)
+                : null,
+              gravity_sg_raw: current ? computeGravitySgRaw(current, row.tilt_deg ?? null) : null,
+            },
+          ]);
         },
       )
       .on(
@@ -114,7 +128,11 @@ export default function DeviceDetail() {
       if (!prev) return prev;
       const next = { ...prev, ...updates };
       setReadings((rows) =>
-        rows.map((r) => ({ ...r, gravity_sg: computeGravitySg(next, r.tilt_deg) })),
+        rows.map((r) => ({
+          ...r,
+          gravity_sg: computeGravitySg(next, r.tilt_deg, r.temperature_c),
+          gravity_sg_raw: computeGravitySgRaw(next, r.tilt_deg),
+        })),
       );
       return next;
     });

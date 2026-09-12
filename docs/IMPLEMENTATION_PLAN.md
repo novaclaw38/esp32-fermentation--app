@@ -233,8 +233,10 @@ cover the floating Temp + Gravity unit: `readings.tilt_deg`,
 (`supabase/migrations/20260912100000_tilt_gravity_support.sql`).
 
 The dashboard charts gravity for `tilt` devices and takes each unit's
-calibration curve, so the floating module is complete end to end in
-software. What's untested is physical: the tilt axis assumption and the
+calibration curve and calibration temperature, and gravity is corrected to a
+20 °C reference using the standard hydrometer curve — so the floating module
+is complete end to end in software, including the temperature compensation
+the onboard DS18B20 exists for. What's untested is physical: the tilt axis assumption and the
 housing's waterproofing.
 
 Not yet built: CO₂ module firmware and its schema/dashboard support.
