@@ -127,7 +127,8 @@
     independently-useful temperature reading, so this single unit covers both
     temperature <em>and</em> gravity for anyone who wants both — no separate Hub
     required. Reuses the Hub's power section (TP4056 + DW01A/FS8205 protection +
-    low-Iq LDO + Q1/Q2-gated battery divider) unchanged, plus an ADXL345
+    low-Iq LDO + Q1/Q2-gated battery divider) with one deliberate change — R9 sets a
+    0.5C charge for this unit's small cell, not the Hub's 1A — plus an ADXL345
     accelerometer for tilt-based gravity estimation. The Hub is still its own
     product for temp-only or humidity — see <code>MULTI_SENSOR_MODULES.md</code>.
   </p>
@@ -177,13 +178,13 @@
         <line x1="259" y1="95" x2="280" y2="95" stroke="currentColor" stroke-width="2"/>
         <line x1="280" y1="95" x2="280" y2="118" stroke="currentColor" stroke-width="2"/>
         <use href="#gnd" transform="translate(280,118)"/>
-        <text x="215" y="83" font-size="10">R7 5.1k</text>
+        <text x="215" y="83" font-size="10">R11 5.1k</text>
 
         <line x1="190" y1="150" x2="215" y2="150" stroke="currentColor" stroke-width="2"/>
         <use href="#res" transform="translate(237,150)"/>
         <line x1="259" y1="150" x2="300" y2="150" stroke="currentColor" stroke-width="2"/>
         <line x1="300" y1="150" x2="300" y2="118" stroke="currentColor" stroke-width="2"/>
-        <text x="215" y="163" font-size="10">R8 5.1k</text>
+        <text x="215" y="163" font-size="10">R12 5.1k</text>
 
         <rect x="330" y="70" width="170" height="160" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
         <text x="415" y="108" text-anchor="middle" font-weight="700">U2</text>
@@ -203,8 +204,8 @@
         <use href="#res" transform="translate(370,272) rotate(90)"/>
         <line x1="370" y1="294" x2="370" y2="310" stroke="currentColor" stroke-width="2"/>
         <use href="#gnd" transform="translate(370,310)"/>
-        <text x="382" y="270" font-size="10">R9 1.2k</text>
-        <text x="382" y="282" font-size="9.5" fill="var(--muted)">sets ~1A charge</text>
+        <text x="382" y="270" font-size="10">R9 6.8k</text>
+        <text x="382" y="282" font-size="9.5" fill="var(--muted)">~176mA = 0.5C</text>
 
         <line x1="500" y1="86" x2="560" y2="86" stroke="currentColor" stroke-width="2"/>
 
@@ -219,7 +220,7 @@
         <line x1="648" y1="150" x2="648" y2="166" stroke="currentColor" stroke-width="2"/>
         <line x1="640" y1="166" x2="640" y2="180" stroke="currentColor" stroke-width="2"/>
         <line x1="500" y1="150" x2="640" y2="150" stroke="currentColor" stroke-width="2"/>
-        <text x="655" y="95" font-size="10">R21 2k</text>
+        <text x="655" y="95" font-size="10">R13 2k</text>
         <text x="655" y="162" font-size="10">D1 red (CHRG)</text>
 
         <line x1="700" y1="40" x2="700" y2="66" stroke="currentColor" stroke-width="2"/>
@@ -230,7 +231,7 @@
         <line x1="708" y1="150" x2="708" y2="166" stroke="currentColor" stroke-width="2"/>
         <line x1="700" y1="166" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
         <line x1="500" y1="180" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
-        <text x="715" y="95" font-size="10">R22 2k</text>
+        <text x="715" y="95" font-size="10">R14 2k</text>
         <text x="715" y="162" font-size="10">D2 green (STDBY)</text>
 
         <!-- ============ BAND 2: BATTERY, PROTECTION, POWER CONVERSION (unchanged) ============ -->
@@ -278,7 +279,7 @@
         <use href="#cap" transform="translate(730,355)"/>
         <line x1="730" y1="342" x2="730" y2="330" stroke="currentColor" stroke-width="2"/>
         <line x1="730" y1="368" x2="730" y2="380" stroke="currentColor" stroke-width="2"/>
-        <text x="695" y="362" font-size="9.5">C5 10µF</text>
+        <text x="695" y="362" font-size="9.5">C7 1µF</text>
 
         <line x1="850" y1="435" x2="900" y2="435" stroke="currentColor" stroke-width="2.4"/>
         <text x="855" y="425" font-size="10">OUT → 3V3</text>
@@ -287,7 +288,7 @@
         <line x1="915" y1="422" x2="915" y2="410" stroke="currentColor" stroke-width="2"/>
         <line x1="915" y1="448" x2="915" y2="460" stroke="currentColor" stroke-width="2"/>
         <use href="#gnd" transform="translate(915,460)"/>
-        <text x="925" y="440" font-size="9.5">C6 1µF</text>
+        <text x="925" y="440" font-size="9.5">C8 1µF</text>
 
         <line x1="775" y1="490" x2="775" y2="505" stroke="currentColor" stroke-width="2"/>
         <use href="#gnd" transform="translate(775,505)"/>
@@ -350,7 +351,7 @@
         <line x1="1263" y1="440" x2="1280" y2="440" stroke="currentColor" stroke-width="2"/>
         <line x1="1280" y1="440" x2="1280" y2="530" stroke="currentColor" stroke-width="2"/>
         <line x1="1280" y1="530" x2="1210" y2="530" stroke="currentColor" stroke-width="2"/>
-        <text x="1237" y="428" font-size="9.5">C7 0.1µF</text>
+        <text x="1237" y="428" font-size="9.5">C9 0.1µF</text>
 
         <line x1="1210" y1="420" x2="1290" y2="420" stroke="currentColor" stroke-width="2.4"/>
         <line x1="1290" y1="420" x2="1290" y2="810" stroke="currentColor" stroke-width="2.4"/>
@@ -490,7 +491,7 @@
         </g>
       </svg>
       <figcaption>
-        Power section (USB-C, TP4056, DW01A/FS8205, low-Iq LDO, Q1/Q2-gated divider) is identical to
+        Power section (USB-C, TP4056, DW01A/FS8205, low-Iq LDO, Q1/Q2-gated divider) is the Hub's, with one deliberate change — R9 is 6.8k not 1.2k, because this unit's slim 350mAh cell cannot take the Hub's 1A. Otherwise identical to
         the Hub board — see <a href="schematic.html" style="color:inherit">schematic.html</a> for the
         detailed rationale. What's new here: an ADXL345 accelerometer over I²C for tilt, and a
         potted (not connectorized) DS18B20 that doubles as this unit's own temperature reading, since
@@ -504,6 +505,23 @@
   </div>
 
   <div class="notes">
+    <div class="callout">
+      <strong>Order from <code>BOM_TEMP_GRAVITY.md</code>, not from this drawing.</strong>
+      The BOM is the authoritative parts list and includes components this figure doesn't
+      draw: the TP4056 input/output caps (C5, C6), the 3V3 bulk cap (C4), and the ADXL345
+      decoupling (C10, C11). Designators here match the BOM — in particular R11/R12 are the
+      USB-C CC pull-downs (required, or a USB-C charger never enables VBUS) and R7/R8 are the
+      I²C pull-ups; an earlier revision of this drawing used R7/R8 for both.
+    </div>
+
+    <div class="callout">
+      <strong>R9 is 6.8kΩ, not the Hub's 1.2kΩ.</strong>
+      That sets the TP4056 to ~176mA — 0.5C for the ~350mAh cell this housing takes. The Hub's
+      1.2kΩ/1A would be roughly 2.9C into the same cell, which is a cell-damage and venting
+      risk, not merely poor cycle life. Re-size R9 if you change cells:
+      <code>I_charge ≈ 1200 / R_prog</code>.
+    </div>
+
     <div class="callout">
       <strong>This module needs new firmware, not a variant of <code>fermentation_monitor_v1.ino</code>.</strong>
       It posts tilt angle, temperature, and battery as three independent readings — temperature is a

@@ -135,7 +135,7 @@ no accelerometer) or when humidity is wanted instead.
 | R4,R5 | 10kΩ | 0603 | 2 | ~$0.01 ea | EN / IO0 pull-ups |
 | R6 | 100kΩ | 0603 | 1 | ~$0.01 | Q1 gate pull-up to BAT+ |
 | R7,R8 | 4.7kΩ | 0603 | 2 | ~$0.01 ea | I²C pull-ups (ADXL345) |
-| R9 | 1.2kΩ | 0603 | 1 | ~$0.01 | TP4056 PROG (~1A charge) |
+| R9 | 6.8kΩ | 0603 | 1 | ~$0.01 | TP4056 PROG — ~176mA, i.e. 0.5C for the 350mAh cell this housing takes. **Not** the Hub's 1.2kΩ/1A, which would be ~2.9C here |
 | R10 | 10kΩ | 0603 | 1 | ~$0.01 | Q2 base resistor |
 | C1 | 1µF | 0603 | 1 | ~$0.02 | EN RC delay |
 | C2,C3 | 0.1µF | 0603 | 2 | ~$0.02 ea | Module VDD decoupling |
