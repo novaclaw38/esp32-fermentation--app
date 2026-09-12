@@ -1,0 +1,597 @@
+<title>CO2 Safety Module Schematic</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #fffdf9;
+    --fg: #292217;
+    --muted: #7d7161;
+    --line: #ddd3c0;
+    --panel: #ffffff;
+    --accent: #a8631c;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #201c16;
+      --fg: #f2ede4;
+      --muted: #b8ada0;
+      --line: #4a4136;
+      --panel: #2a251d;
+      --accent: #e6b25c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #201c16;
+    --fg: #f2ede4;
+    --muted: #b8ada0;
+    --line: #4a4136;
+    --panel: #2a251d;
+    --accent: #e6b25c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 2.5rem 3rem;
+  }
+  h1 {
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.3rem;
+    text-wrap: balance;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 62ch;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+  }
+  svg text, svg tspan { font-family: var(--mono); }
+  code { font-family: var(--mono); }
+  .diagram-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 12px;
+  }
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .legend span.swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .notes { margin-top: 2rem; }
+  .notes h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+  .notes table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+  .notes th, .notes td {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .notes th { color: var(--muted); font-weight: 600; }
+  .callout {
+    border: 1px solid var(--accent);
+    border-left-width: 4px;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+  .callout strong { color: var(--accent); }
+  code {
+    background: var(--line);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.85em;
+  }
+</style>
+
+<main>
+  <h1>Fermentation Monitor — CO₂ Safety Module Schematic</h1>
+  <p class="subtitle">
+    An ambient-room safety monitor, not a fermentation sensor — placed away from the
+    vessel, not inside the sealed headspace (see <code>MULTI_SENSOR_MODULES.md</code>
+    for why). Reuses the Hub's power section, plus a Sensirion SCD41 NDIR CO₂ sensor
+    and a locally-driven piezo buzzer so the alarm doesn't depend on WiFi or the dashboard.
+  </p>
+
+  <div class="diagram-wrap">
+    <figure>
+      <svg viewBox="0 0 1720 1140" role="img" aria-label="Schematic of the CO2 Safety Module: the same USB-C, TP4056, DW01A/FS8205 protection, low-quiescent LDO and GPIO-gated battery divider as the Hub board, feeding an ESP32-WROOM-32E that reads a Sensirion SCD41 CO2 sensor over I2C and drives a piezo buzzer through an NPN transistor for a local, network-independent alarm.">
+
+        <defs>
+          <g id="res">
+            <rect x="-22" y="-9" width="44" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
+          </g>
+          <g id="cap">
+            <line x1="-3" y1="-13" x2="-3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="3" y1="-13" x2="3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+          </g>
+          <g id="dot"><circle r="4.5" fill="currentColor"/></g>
+          <g id="gnd">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-11" y1="12" x2="11" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-6.5" y1="17" x2="6.5" y2="17" stroke="currentColor" stroke-width="2"/>
+            <line x1="-2.5" y1="22" x2="2.5" y2="22" stroke="currentColor" stroke-width="2"/>
+          </g>
+        </defs>
+
+        <g font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+
+        <!-- ============ BAND 1: CHARGE PATH (unchanged from the Hub; omit U2-U5,J1 entirely for USB-only builds) ============ -->
+
+        <rect x="40" y="60" width="150" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="115" y="112" text-anchor="middle" font-weight="700">J1</text>
+        <text x="115" y="130" text-anchor="middle">USB-C</text>
+        <text x="115" y="146" text-anchor="middle" fill="var(--muted)" font-size="10.5">charge, or primary power</text>
+        <text x="55" y="78" font-size="10.5">VBUS</text>
+        <text x="55" y="184" font-size="10.5">GND</text>
+        <text x="150" y="90" font-size="10.5">CC1</text>
+        <text x="150" y="150" font-size="10.5">CC2</text>
+
+        <polyline points="110,60 110,40 330,40 330,70" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="180" y="34" font-size="11" fill="var(--muted)">VBUS (5V, USB only)</text>
+
+        <line x1="70" y1="190" x2="70" y2="205" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(70,205)"/>
+
+        <line x1="190" y1="95" x2="215" y2="95" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(237,95)"/>
+        <line x1="259" y1="95" x2="280" y2="95" stroke="currentColor" stroke-width="2"/>
+        <line x1="280" y1="95" x2="280" y2="118" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(280,118)"/>
+        <text x="215" y="83" font-size="10">R7 5.1k</text>
+
+        <line x1="190" y1="150" x2="215" y2="150" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(237,150)"/>
+        <line x1="259" y1="150" x2="300" y2="150" stroke="currentColor" stroke-width="2"/>
+        <line x1="300" y1="150" x2="300" y2="118" stroke="currentColor" stroke-width="2"/>
+        <text x="215" y="163" font-size="10">R8 5.1k</text>
+
+        <rect x="330" y="70" width="170" height="160" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="415" y="108" text-anchor="middle" font-weight="700">U2</text>
+        <text x="415" y="126" text-anchor="middle">TP4056</text>
+        <text x="415" y="142" text-anchor="middle" fill="var(--muted)" font-size="10.5">Li-ion charger</text>
+        <text x="340" y="86" font-size="10.5">VCC</text>
+        <text x="340" y="222" font-size="10.5">GND</text>
+        <text x="430" y="86" font-size="10.5">BAT+</text>
+        <text x="345" y="200" font-size="10.5">PROG</text>
+        <text x="430" y="150" font-size="10.5">CHRG</text>
+        <text x="430" y="180" font-size="10.5">STDBY</text>
+
+        <line x1="360" y1="230" x2="360" y2="245" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(360,245)"/>
+
+        <line x1="370" y1="230" x2="370" y2="250" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(370,272) rotate(90)"/>
+        <line x1="370" y1="294" x2="370" y2="310" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(370,310)"/>
+        <text x="382" y="270" font-size="10">R9 1.2k</text>
+        <text x="382" y="282" font-size="9.5" fill="var(--muted)">sets ~1A charge</text>
+
+        <line x1="500" y1="86" x2="560" y2="86" stroke="currentColor" stroke-width="2"/>
+
+        <line x1="110" y1="40" x2="640" y2="40" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="40" x2="640" y2="55" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(640,40)"/>
+
+        <line x1="640" y1="55" x2="640" y2="66" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(640,88) rotate(90)"/>
+        <line x1="640" y1="110" x2="640" y2="150" stroke="currentColor" stroke-width="2"/>
+        <polygon points="632,150 632,166 648,158" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="648" y1="150" x2="648" y2="166" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="166" x2="640" y2="180" stroke="currentColor" stroke-width="2"/>
+        <line x1="500" y1="150" x2="640" y2="150" stroke="currentColor" stroke-width="2"/>
+        <text x="655" y="95" font-size="10">R20 2k</text>
+        <text x="655" y="162" font-size="10">D1 red (CHRG)</text>
+
+        <line x1="700" y1="40" x2="700" y2="66" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(700,40)"/>
+        <use href="#res" transform="translate(700,88) rotate(90)"/>
+        <line x1="700" y1="110" x2="700" y2="150" stroke="currentColor" stroke-width="2"/>
+        <polygon points="692,150 692,166 708,158" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="708" y1="150" x2="708" y2="166" stroke="currentColor" stroke-width="2"/>
+        <line x1="700" y1="166" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
+        <line x1="500" y1="180" x2="700" y2="180" stroke="currentColor" stroke-width="2"/>
+        <text x="715" y="95" font-size="10">R21 2k</text>
+        <text x="715" y="162" font-size="10">D2 green (STDBY)</text>
+
+        <!-- ============ BAND 2: BATTERY, PROTECTION, POWER CONVERSION (unchanged; omit if USB-only) ============ -->
+
+        <rect x="40" y="360" width="140" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="110" y="408" text-anchor="middle" font-weight="700">—</text>
+        <text x="110" y="426" text-anchor="middle">18650 holder</text>
+        <text x="110" y="442" text-anchor="middle" fill="var(--muted)" font-size="9.5">omit entirely if this unit</text>
+        <text x="110" y="455" text-anchor="middle" fill="var(--muted)" font-size="9.5">runs on continuous USB power</text>
+        <text x="50" y="378" font-size="10.5">CELL+</text>
+        <text x="50" y="482" font-size="10.5">CELL−</text>
+
+        <line x1="110" y1="360" x2="110" y2="330" stroke="currentColor" stroke-width="2"/>
+        <line x1="110" y1="330" x2="560" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(110,330)"/>
+
+        <line x1="560" y1="86" x2="560" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(560,330)"/>
+        <line x1="560" y1="330" x2="1000" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <text x="600" y="320" font-size="11" font-weight="600">BAT+ (3.0–4.2V, unregulated)</text>
+
+        <line x1="110" y1="490" x2="110" y2="510" stroke="currentColor" stroke-width="2"/>
+        <line x1="110" y1="510" x2="260" y2="510" stroke="currentColor" stroke-width="2"/>
+
+        <rect x="260" y="450" width="230" height="120" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="375" y="495" text-anchor="middle" font-weight="700">U3 DW01A + U4 FS8205</text>
+        <text x="375" y="512" text-anchor="middle" fill="var(--muted)" font-size="10.5">low-side pack protection</text>
+        <text x="265" y="522" font-size="10">CELL−</text>
+        <text x="440" y="522" font-size="10">SYS GND ▶</text>
+
+        <line x1="490" y1="510" x2="560" y2="510" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="560" y1="510" x2="560" y2="525" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#gnd" transform="translate(560,525)"/>
+        <text x="440" y="600" font-size="9.5" fill="var(--muted)">
+          <tspan x="300" y="600">note: this is the ONLY place "GND" originates — every other</tspan>
+          <tspan x="300" y="614">GND flag in this schematic is the same protected net</tspan>
+        </text>
+
+        <rect x="700" y="380" width="150" height="110" rx="4" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="775" y="415" text-anchor="middle" font-weight="700" fill="var(--accent)">U5 XC6206</text>
+        <text x="775" y="432" text-anchor="middle" fill="var(--accent)">3.3V LDO</text>
+        <text x="775" y="450" text-anchor="middle" fill="var(--accent)" font-size="10.5">Iq &lt; 5µA — not AMS1117</text>
+        <line x1="775" y1="380" x2="775" y2="330" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(775,330)"/>
+        <use href="#cap" transform="translate(730,355)"/>
+        <line x1="730" y1="342" x2="730" y2="330" stroke="currentColor" stroke-width="2"/>
+        <line x1="730" y1="368" x2="730" y2="380" stroke="currentColor" stroke-width="2"/>
+        <text x="695" y="362" font-size="9.5">C5 10µF</text>
+
+        <line x1="850" y1="435" x2="900" y2="435" stroke="currentColor" stroke-width="2.4"/>
+        <text x="855" y="425" font-size="10">OUT → 3V3</text>
+        <use href="#cap" transform="translate(915,435) rotate(90)"/>
+        <line x1="900" y1="435" x2="915" y2="435" stroke="currentColor" stroke-width="2"/>
+        <line x1="915" y1="422" x2="915" y2="410" stroke="currentColor" stroke-width="2"/>
+        <line x1="915" y1="448" x2="915" y2="460" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(915,460)"/>
+        <text x="925" y="440" font-size="9.5">C6 1µF</text>
+
+        <line x1="775" y1="490" x2="775" y2="505" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(775,505)"/>
+
+        <line x1="900" y1="435" x2="900" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="890" y1="410" x2="910" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <text x="900" y="400" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+
+        <line x1="1000" y1="330" x2="1150" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <rect x="1130" y="355" width="150" height="90" rx="4" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="1205" y="378" text-anchor="middle" font-weight="700" fill="var(--accent)" font-size="12">GPIO-gated</text>
+        <text x="1205" y="394" text-anchor="middle" fill="var(--accent)" font-size="11">battery sense</text>
+        <text x="1205" y="410" text-anchor="middle" fill="var(--accent)" font-size="10">same Q1/Q2 fix as the Hub</text>
+
+        <rect x="1030" y="355" width="60" height="34" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="1060" y="376" text-anchor="middle" font-size="10" fill="var(--accent)">Q1 PMOS</text>
+        <line x1="1000" y1="330" x2="1060" y2="330" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1060" y1="330" x2="1060" y2="355" stroke="currentColor" stroke-width="2"/>
+        <text x="1063" y="345" font-size="9">S</text>
+        <line x1="1060" y1="389" x2="1060" y2="420" stroke="currentColor" stroke-width="2"/>
+        <text x="1063" y="405" font-size="9">D</text>
+        <line x1="1030" y1="372" x2="990" y2="372" stroke="var(--accent)" stroke-width="2"/>
+        <text x="960" y="368" font-size="9" fill="var(--accent)">G</text>
+
+        <use href="#res" transform="translate(990,340) rotate(90)"/>
+        <line x1="990" y1="362" x2="990" y2="372" stroke="currentColor" stroke-width="2"/>
+        <line x1="990" y1="318" x2="990" y2="330" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(990,330)"/>
+        <text x="998" y="345" font-size="9.5">R6 100k</text>
+
+        <line x1="990" y1="372" x2="960" y2="372" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#dot" transform="translate(960,372)"/>
+        <line x1="960" y1="372" x2="960" y2="410" stroke="var(--accent)" stroke-width="2"/>
+
+        <rect x="942" y="410" width="36" height="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="960" y="429" text-anchor="middle" font-size="9" fill="var(--accent)">Q2</text>
+        <line x1="960" y1="440" x2="960" y2="460" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#gnd" transform="translate(960,460)"/>
+        <text x="984" y="432" font-size="9.5" fill="var(--accent)">NPN (e.g. MMBT3904)</text>
+
+        <line x1="942" y1="425" x2="923" y2="425" stroke="var(--accent)" stroke-width="2"/>
+        <use href="#res" transform="translate(901,425)"/>
+        <text x="901" y="415" text-anchor="middle" font-size="9.5" fill="var(--accent)">R10 10k</text>
+        <line x1="879" y1="425" x2="860" y2="425" stroke="var(--accent)" stroke-width="2"/>
+        <line x1="860" y1="425" x2="860" y2="810" stroke="var(--accent)" stroke-width="2"/>
+
+        <line x1="1060" y1="420" x2="1150" y2="420" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(1150,420)"/>
+        <line x1="1172" y1="420" x2="1210" y2="420" stroke="currentColor" stroke-width="2"/>
+        <text x="1150" y="410" text-anchor="middle" font-size="10">R1 100k</text>
+        <use href="#dot" transform="translate(1210,420)"/>
+        <line x1="1210" y1="420" x2="1210" y2="470" stroke="currentColor" stroke-width="2"/>
+        <use href="#res" transform="translate(1210,492) rotate(90)"/>
+        <line x1="1210" y1="514" x2="1210" y2="530" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1210,530)"/>
+        <text x="1220" y="495" font-size="10">R2 100k</text>
+
+        <use href="#cap" transform="translate(1250,440)"/>
+        <line x1="1210" y1="440" x2="1237" y2="440" stroke="currentColor" stroke-width="2"/>
+        <line x1="1263" y1="440" x2="1280" y2="440" stroke="currentColor" stroke-width="2"/>
+        <line x1="1280" y1="440" x2="1280" y2="530" stroke="currentColor" stroke-width="2"/>
+        <line x1="1280" y1="530" x2="1210" y2="530" stroke="currentColor" stroke-width="2"/>
+        <text x="1237" y="428" font-size="9.5">C7 0.1µF</text>
+
+        <line x1="1210" y1="420" x2="1290" y2="420" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1290" y1="420" x2="1290" y2="810" stroke="currentColor" stroke-width="2.4"/>
+
+        <!-- ============ BAND 3: ESP32 + SCD41 + LOCAL ALARM ============ -->
+
+        <rect x="900" y="700" width="300" height="380" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <text x="1050" y="875" text-anchor="middle" font-weight="700" font-size="14">U1</text>
+        <text x="1050" y="895" text-anchor="middle" font-size="13">ESP32-WROOM-32E</text>
+        <text x="1050" y="912" text-anchor="middle" fill="var(--muted)" font-size="10.5">same module + firmware base</text>
+        <text x="1050" y="926" text-anchor="middle" fill="var(--muted)" font-size="10.5">as the Hub, new sketch</text>
+
+        <text x="908" y="756" font-size="11">3V3</text>
+        <text x="908" y="816" font-size="11">EN</text>
+        <text x="908" y="876" font-size="11">IO0</text>
+        <text x="908" y="996" font-size="11">GND</text>
+
+        <line x1="900" y1="760" x2="780" y2="760" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="780" y1="760" x2="780" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="780" y1="410" x2="900" y2="410" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(900,410)"/>
+
+        <line x1="900" y1="820" x2="760" y2="820" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(760,820)"/>
+        <use href="#res" transform="translate(760,780) rotate(90)"/>
+        <line x1="760" y1="758" x2="760" y2="740" stroke="currentColor" stroke-width="2"/>
+        <line x1="750" y1="740" x2="770" y2="740" stroke="currentColor" stroke-width="2.4"/>
+        <text x="760" y="730" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <text x="700" y="775" font-size="10">R4 10k</text>
+        <use href="#cap" transform="translate(760,850) rotate(90)"/>
+        <line x1="760" y1="820" x2="760" y2="837" stroke="currentColor" stroke-width="2"/>
+        <line x1="760" y1="863" x2="760" y2="880" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(760,880)"/>
+        <text x="705" y="842" font-size="10">C1 1µF</text>
+
+        <line x1="900" y1="880" x2="640" y2="880" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(640,880)"/>
+        <use href="#res" transform="translate(640,840) rotate(90)"/>
+        <line x1="640" y1="818" x2="640" y2="800" stroke="currentColor" stroke-width="2"/>
+        <line x1="630" y1="800" x2="650" y2="800" stroke="currentColor" stroke-width="2.4"/>
+        <text x="640" y="790" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <text x="580" y="835" font-size="10">R5 10k</text>
+        <rect x="620" y="910" width="40" height="24" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="640" y="928" text-anchor="middle" font-size="10">SW1</text>
+        <line x1="640" y1="880" x2="640" y2="910" stroke="currentColor" stroke-width="2"/>
+        <line x1="640" y1="934" x2="640" y2="950" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(640,950)"/>
+        <text x="580" y="915" font-size="9.5" fill="var(--muted)">boot-mode select</text>
+        <text x="580" y="928" font-size="9.5" fill="var(--muted)">(optional if J4-only)</text>
+
+        <line x1="900" y1="1000" x2="850" y2="1000" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="850" y1="1000" x2="850" y2="1020" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#gnd" transform="translate(850,1020)"/>
+
+        <use href="#cap" transform="translate(940,760)"/>
+        <line x1="940" y1="747" x2="940" y2="730" stroke="currentColor" stroke-width="2"/>
+        <line x1="940" y1="773" x2="940" y2="790" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(940,790)"/>
+        <text x="950" y="768" font-size="9.5">C2, C3 0.1µF ×2</text>
+        <text x="950" y="780" font-size="9.5">at module VDD pins</text>
+
+        <!-- right pins: GPIO34, GPIO26 (buzzer), SDA, SCL, U0TXD, U0RXD -->
+        <text x="1192" y="736" text-anchor="end" font-size="11">GPIO34</text>
+        <text x="1192" y="806" text-anchor="end" font-size="11">GPIO26</text>
+        <text x="1192" y="866" text-anchor="end" font-size="11">GPIO21 (SDA)</text>
+        <text x="1192" y="926" text-anchor="end" font-size="11">GPIO22 (SCL)</text>
+        <text x="1192" y="976" text-anchor="end" font-size="11">U0TXD</text>
+        <text x="1192" y="1016" text-anchor="end" font-size="11">U0RXD</text>
+
+        <!-- GPIO34: reconciled up from the incoming divider line -->
+        <line x1="1200" y1="730" x2="1290" y2="730" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1290" y1="810" x2="1290" y2="730" stroke="currentColor" stroke-width="2.4"/>
+
+        <!-- GPIO25 flying lead -->
+        <line x1="860" y1="810" x2="860" y2="1050" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="860" cy="1050" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="875" y="1045" font-size="10" fill="var(--accent)">→ any free GPIO (e.g. GPIO25), driven HIGH only</text>
+        <text x="875" y="1058" font-size="10" fill="var(--accent)">while reading the battery divider — same fix as the Hub</text>
+
+        <!-- GPIO26: buzzer driver (NPN low-side switch, standard buzzer topology).
+             Routed at y=784 (not 800) specifically to pass ABOVE R7's body (R7 spans
+             y798-842 at x1321-1339) rather than through it; R17 sits at x=1300, clear
+             of R7's x1321-1339 span by a 12px gap. -->
+        <line x1="1200" y1="800" x2="1220" y2="800" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1220" y1="800" x2="1220" y2="784" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1220" y1="784" x2="1250" y2="784" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#res" transform="translate(1272,784)"/>
+        <text x="1272" y="774" text-anchor="middle" font-size="10">R11 1k</text>
+        <line x1="1294" y1="784" x2="1300" y2="784" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(1300,784)"/>
+        <use href="#res" transform="translate(1300,824) rotate(90)"/>
+        <line x1="1300" y1="784" x2="1300" y2="802" stroke="currentColor" stroke-width="2"/>
+        <line x1="1300" y1="846" x2="1300" y2="864" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1300,864)"/>
+        <text x="1240" y="829" font-size="9.5">R17 10k</text>
+        <text x="1240" y="841" font-size="9.5" fill="var(--muted)">anti-float</text>
+
+        <rect x="1400" y="770" width="50" height="60" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1425" y="805" text-anchor="middle" font-size="9">Q3</text>
+        <text x="1408" y="765" font-size="9">NPN</text>
+        <line x1="1300" y1="784" x2="1400" y2="784" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1345" y="777" font-size="8.5">B</text>
+        <line x1="1450" y1="785" x2="1470" y2="785" stroke="currentColor" stroke-width="2"/>
+        <text x="1453" y="778" font-size="8.5">C</text>
+        <line x1="1425" y1="830" x2="1425" y2="850" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1425,850)"/>
+        <text x="1428" y="838" font-size="8.5">E</text>
+
+        <!-- BZ1 buzzer + D3 flyback, both to 3V3 -->
+        <rect x="1440" y="700" width="80" height="50" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1480" y="730" text-anchor="middle" font-size="10.5">BZ1</text>
+        <line x1="1470" y1="785" x2="1470" y2="750" stroke="currentColor" stroke-width="2"/>
+        <use href="#dot" transform="translate(1470,750)"/>
+        <line x1="1470" y1="700" x2="1470" y2="680" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1460" y1="680" x2="1480" y2="680" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1470" y="670" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+
+        <!-- D3 flyback, in parallel with the buzzer: cathode (bar, top) to 3V3, anode
+             (triangle base, bottom) to the collector/buzzer- node -- reverse-biased
+             during normal operation, only conducts the turn-off inductive spike -->
+        <line x1="1470" y1="785" x2="1530" y2="785" stroke="currentColor" stroke-width="2"/>
+        <line x1="1530" y1="785" x2="1530" y2="758" stroke="currentColor" stroke-width="2"/>
+        <polygon points="1520,758 1540,758 1530,742" fill="none" stroke="currentColor" stroke-width="2"/>
+        <line x1="1520" y1="742" x2="1540" y2="742" stroke="currentColor" stroke-width="2"/>
+        <line x1="1530" y1="742" x2="1530" y2="680" stroke="currentColor" stroke-width="2"/>
+        <line x1="1530" y1="680" x2="1470" y2="680" stroke="currentColor" stroke-width="2"/>
+        <text x="1543" y="754" font-size="9">D3 1N4148</text>
+        <text x="1543" y="766" font-size="9" fill="var(--muted)">flyback</text>
+
+        <!-- SDA / SCL to SCD41 -->
+        <line x1="1200" y1="860" x2="1330" y2="860" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(1330,860)"/>
+        <use href="#res" transform="translate(1330,820) rotate(90)"/>
+        <line x1="1330" y1="798" x2="1330" y2="780" stroke="currentColor" stroke-width="2"/>
+        <line x1="1330" y1="842" x2="1330" y2="860" stroke="currentColor" stroke-width="2"/>
+        <line x1="1320" y1="780" x2="1340" y2="780" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1330" y="770" text-anchor="middle" font-weight="700" font-size="10.5">3V3</text>
+        <text x="1275" y="815" font-size="9.5">R7 4.7k</text>
+
+        <line x1="1200" y1="920" x2="1350" y2="920" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(1350,920)"/>
+        <use href="#res" transform="translate(1350,880) rotate(90)"/>
+        <line x1="1350" y1="858" x2="1350" y2="840" stroke="currentColor" stroke-width="2"/>
+        <line x1="1350" y1="902" x2="1350" y2="920" stroke="currentColor" stroke-width="2"/>
+        <line x1="1340" y1="840" x2="1360" y2="840" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1350" y="830" text-anchor="middle" font-weight="700" font-size="10.5">3V3</text>
+        <text x="1295" y="875" font-size="9.5">R8 4.7k</text>
+
+        <rect x="1400" y="850" width="180" height="120" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1490" y="895" text-anchor="middle" font-weight="700">U6</text>
+        <text x="1490" y="913" text-anchor="middle">SCD41</text>
+        <text x="1490" y="929" text-anchor="middle" fill="var(--muted)" font-size="9.5">CO₂ + temp + humidity (I²C)</text>
+        <text x="1490" y="945" text-anchor="middle" fill="var(--muted)" font-size="9">SEL→GND (selects I2C mode)</text>
+        <text x="1490" y="959" text-anchor="middle" fill="var(--muted)" font-size="9">use single-shot low-power mode</text>
+        <line x1="1330" y1="860" x2="1400" y2="860" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1350" y1="920" x2="1400" y2="920" stroke="currentColor" stroke-width="2.4"/>
+
+        <!-- SCD41 VDD/GND + decoupling -->
+        <text x="1410" y="884" font-size="10.5">VDD</text>
+        <text x="1410" y="944" font-size="10.5">GND</text>
+        <line x1="1580" y1="880" x2="1600" y2="880" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#dot" transform="translate(1600,880)"/>
+        <line x1="1600" y1="880" x2="1600" y2="800" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1590" y1="800" x2="1610" y2="800" stroke="currentColor" stroke-width="2.4"/>
+        <text x="1600" y="790" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+        <line x1="1600" y1="880" x2="1640" y2="880" stroke="currentColor" stroke-width="2"/>
+        <use href="#cap" transform="translate(1640,900) rotate(90)"/>
+        <line x1="1640" y1="913" x2="1640" y2="930" stroke="currentColor" stroke-width="2"/>
+        <use href="#gnd" transform="translate(1640,930)"/>
+        <text x="1650" y="904" font-size="9.5">C11 0.1µF</text>
+        <line x1="1580" y1="940" x2="1600" y2="940" stroke="currentColor" stroke-width="2.4"/>
+        <line x1="1600" y1="940" x2="1600" y2="970" stroke="currentColor" stroke-width="2.4"/>
+        <use href="#gnd" transform="translate(1600,970)"/>
+
+        <!-- UART to programming header -->
+        <line x1="1200" y1="980" x2="1250" y2="980" stroke="currentColor" stroke-width="2"/>
+        <line x1="1250" y1="980" x2="1250" y2="1000" stroke="currentColor" stroke-width="2"/>
+        <line x1="1250" y1="1000" x2="1400" y2="1000" stroke="currentColor" stroke-width="2"/>
+        <line x1="1200" y1="1020" x2="1270" y2="1020" stroke="currentColor" stroke-width="2"/>
+        <line x1="1270" y1="1020" x2="1270" y2="1040" stroke="currentColor" stroke-width="2"/>
+        <line x1="1270" y1="1040" x2="1400" y2="1040" stroke="currentColor" stroke-width="2"/>
+        <rect x="1400" y="990" width="180" height="80" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="1490" y="1015" text-anchor="middle" font-weight="700" font-size="11">J4 — programming header</text>
+        <text x="1410" y="1035" font-size="10">3V3 · GND · TXD · RXD · EN · IO0</text>
+        <text x="1410" y="1050" font-size="9.5" fill="var(--muted)">one-time USB-UART jig at assembly</text>
+
+        </g>
+      </svg>
+      <figcaption>
+        Power section is identical to the Hub — see <a href="schematic.html" style="color:inherit">schematic.html</a>
+        for the rationale, or omit U2-U5/J1/the cell entirely and run this module on continuous USB
+        power if it lives near an outlet. What's new: a Sensirion SCD41 (I²C, integrated temp+humidity)
+        and a GPIO-driven piezo buzzer through Q3 — a local alarm independent of WiFi/dashboard.
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--accent)"></span>Power-section fix reused unchanged from the Hub — see <code>PCB_DESIGN.md</code></span>
+  </div>
+
+  <div class="notes">
+    <div class="callout">
+      <strong>Placement: the room, not the vessel.</strong> Active-fermentation headspace runs near
+      100% CO₂ — every consumer NDIR sensor, the SCD41 included, saturates well below that. This
+      module belongs in ambient air near the fermentation area, monitoring for dangerous room-level
+      buildup, not inside a sealed airlock. Label the enclosure accordingly so it doesn't end up
+      zip-tied to a carboy by mistake.
+    </div>
+
+    <h2>Why a local buzzer, not just a dashboard alert</h2>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem;">
+      Every other alert in this product line can fail soft — a delayed temperature notification means
+      a slightly-off batch. A CO₂ safety alarm that depends on WiFi being up, Supabase being reachable,
+      and someone actively watching the dashboard has already failed at the one thing it exists for.
+      Fire BZ1 in firmware at a hardcoded threshold, independent of any network round-trip; treat the
+      dashboard-configurable threshold as a secondary, adjustable layer on top of that, not a replacement
+      for it.
+    </p>
+
+    <h2>Why SCD41 and not a cheap MQ-135</h2>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem;">
+      MQ-135-class sensors are unspecific gas/VOC sensors with no real CO₂ calibration — a common
+      mistake for exactly this use case. The SCD41 is a genuine NDIR sensor with a spec'd accuracy
+      range (400-5000 ppm) that covers the ambient-safety use case, and it outputs temperature and
+      humidity for free — no separate BME280 needed on this module.
+    </p>
+
+    <h2>GPIO map</h2>
+    <table>
+      <tr><th>Pin</th><th>Net</th><th>Notes</th></tr>
+      <tr><td><code>GPIO21</code> / <code>GPIO22</code></td><td>I²C — SCD41</td><td>Same I²C pins as the Hub's humidity add-on and the Tilt Module</td></tr>
+      <tr><td><code>GPIO26</code></td><td>Buzzer driver (Q3 base, via R11)</td><td><strong>New</strong> — fire in firmware at a hardcoded fail-safe threshold</td></tr>
+      <tr><td><code>GPIO34</code></td><td>Battery ADC</td><td>Same gated-divider circuit as the Hub (omit if USB-only)</td></tr>
+      <tr><td><code>GPIO25</code></td><td>Battery-divider enable</td><td>Same Q1/Q2 fix as the Hub (omit if USB-only)</td></tr>
+      <tr><td><code>EN</code> / <code>IO0</code></td><td>Standard boot circuit</td><td>Unchanged</td></tr>
+    </table>
+
+    <h2>Battery vs. USB-only</h2>
+    <p style="font-size:0.88rem; color:var(--muted)">
+      The SCD41 draws meaningfully more current per measurement than a DS18B20 read — duty-cycle it
+      with single-shot low-power mode at a 2-5 minute interval rather than continuous periodic mode.
+      If this unit is going to sit on a shelf near an outlet anyway, running it on continuous USB power
+      and omitting U2-U5, J1's charge circuitry, and the battery entirely is a legitimate simplification —
+      see <a href="MULTI_SENSOR_MODULES.md" style="color:inherit">MULTI_SENSOR_MODULES.md</a> for the full BOM either way.
+    </p>
+  </div>
+</main>

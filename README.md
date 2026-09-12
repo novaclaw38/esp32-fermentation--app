@@ -24,7 +24,7 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 | [`supabase/`](supabase/) | Postgres schema, RLS policies, device-authenticated RPCs, and the `alert-notify` Edge Function that emails on a new alert |
 | [`dashboard/`](dashboard/) | React + TypeScript + Vite app: magic-link auth, per-device live reading, 48h chart, alert history, threshold editor |
 | [`landing/`](landing/) | Static pre-order/signup page for the Phase 0 validation track |
-| [`hardware/`](hardware/) | Custom PCB design (v2 hardware path) replacing the DevKit+perfboard BOM for a pre-sold batch |
+| [`hardware/`](hardware/) | Custom PCB design (v2 hardware path) replacing the DevKit+perfboard BOM, plus humidity/gravity/CO₂ sensor modules — see [`hardware/MULTI_SENSOR_MODULES.md`](hardware/MULTI_SENSOR_MODULES.md) |
 | [`docs/`](docs/) | The original implementation plan (hardware choice, BOM, phased rollout) |
 
 ## Getting it running end-to-end

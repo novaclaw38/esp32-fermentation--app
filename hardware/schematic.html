@@ -525,6 +525,111 @@
     </figure>
   </div>
 
+  <h2 style="margin-top:2.5rem; font-size:1.05rem;">Add-on: humidity/pressure (BME280, I²C)</h2>
+  <p class="subtitle" style="margin-bottom:1rem;">
+    Taps two GPIOs the Hub doesn't otherwise use. See
+    <a href="MULTI_SENSOR_MODULES.md" style="color:inherit">MULTI_SENSOR_MODULES.md</a> for the
+    placement rationale and full add-on BOM.
+  </p>
+  <div class="diagram-wrap">
+    <figure>
+      <svg viewBox="0 0 780 270" role="img" aria-label="Schematic of the humidity add-on: the ESP32 module's GPIO21 and GPIO22 pins connect via I2C, with 4.7 kilohm pull-ups to 3V3, to a BME280 temperature-humidity-pressure sensor configured for I2C mode with its CSB pin tied to 3V3 and SDO tied to GND.">
+        <defs>
+          <g id="res2">
+            <rect x="-22" y="-9" width="44" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
+          </g>
+          <g id="cap2">
+            <line x1="-3" y1="-13" x2="-3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="3" y1="-13" x2="3" y2="13" stroke="currentColor" stroke-width="2.2"/>
+          </g>
+          <g id="gnd2">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-11" y1="12" x2="11" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="-6.5" y1="17" x2="6.5" y2="17" stroke="currentColor" stroke-width="2"/>
+            <line x1="-2.5" y1="22" x2="2.5" y2="22" stroke="currentColor" stroke-width="2"/>
+          </g>
+          <g id="dot2"><circle r="4.5" fill="currentColor"/></g>
+        </defs>
+        <g font-family="ui-monospace, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+
+          <!-- ESP32 stub (full module is in the figure above) -->
+          <rect x="40" y="90" width="140" height="90" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="110" y="130" text-anchor="middle" font-weight="700">U1</text>
+          <text x="110" y="148" text-anchor="middle" fill="var(--muted)" font-size="10.5">ESP32 (above)</text>
+          <text x="184" y="106" text-anchor="end" font-size="11">GPIO21 (SDA)</text>
+          <text x="184" y="166" text-anchor="end" font-size="11">GPIO22 (SCL)</text>
+
+          <line x1="180" y1="110" x2="420" y2="110" stroke="currentColor" stroke-width="2.4"/>
+          <line x1="180" y1="162" x2="440" y2="162" stroke="currentColor" stroke-width="2.4"/>
+
+          <!-- pull-ups -->
+          <use href="#dot2" transform="translate(420,110)"/>
+          <use href="#res2" transform="translate(420,80) rotate(90)"/>
+          <line x1="420" y1="102" x2="420" y2="110" stroke="currentColor" stroke-width="2"/>
+          <line x1="420" y1="58" x2="420" y2="45" stroke="currentColor" stroke-width="2"/>
+          <line x1="410" y1="45" x2="430" y2="45" stroke="currentColor" stroke-width="2.4"/>
+          <text x="420" y="35" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+          <text x="432" y="75" font-size="10">R15 4.7k</text>
+
+          <use href="#dot2" transform="translate(440,162)"/>
+          <use href="#res2" transform="translate(440,132) rotate(90)"/>
+          <line x1="440" y1="154" x2="440" y2="162" stroke="currentColor" stroke-width="2"/>
+          <line x1="440" y1="110" x2="440" y2="97" stroke="currentColor" stroke-width="2"/>
+          <line x1="430" y1="97" x2="450" y2="97" stroke="currentColor" stroke-width="2.4"/>
+          <text x="440" y="87" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+          <text x="452" y="127" font-size="10">R16 4.7k</text>
+
+          <!-- BME280 -->
+          <rect x="470" y="80" width="140" height="130" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="540" y="103" text-anchor="middle" font-weight="700">U7</text>
+          <text x="540" y="121" text-anchor="middle">BME280</text>
+          <text x="540" y="137" text-anchor="middle" fill="var(--muted)" font-size="10">temp+humidity+pressure</text>
+          <text x="478" y="106" font-size="10.5">SDA</text>
+          <text x="478" y="158" font-size="10.5">SCL</text>
+          <line x1="420" y1="110" x2="470" y2="110" stroke="currentColor" stroke-width="2.4"/>
+          <line x1="440" y1="162" x2="470" y2="162" stroke="currentColor" stroke-width="2.4"/>
+
+          <text x="478" y="186" font-size="10.5">CSB</text>
+          <line x1="470" y1="182" x2="450" y2="182" stroke="currentColor" stroke-width="2"/>
+          <line x1="450" y1="182" x2="450" y2="50" stroke="currentColor" stroke-width="2"/>
+          <line x1="440" y1="50" x2="460" y2="50" stroke="currentColor" stroke-width="2.4"/>
+          <text x="450" y="40" text-anchor="middle" font-weight="700" font-size="10.5">3V3</text>
+          <text x="330" y="178" font-size="9.5" fill="var(--muted)">tied to 3V3 (selects I2C mode)</text>
+
+          <text x="478" y="200" font-size="10.5">SDO</text>
+          <line x1="470" y1="196" x2="455" y2="196" stroke="currentColor" stroke-width="2"/>
+          <line x1="455" y1="196" x2="455" y2="230" stroke="currentColor" stroke-width="2"/>
+          <use href="#gnd2" transform="translate(455,230)"/>
+          <text x="380" y="215" font-size="9.5" fill="var(--muted)">tied to GND (address 0x76)</text>
+
+          <text x="602" y="106" text-anchor="end" font-size="10.5">VDD</text>
+          <line x1="610" y1="102" x2="650" y2="102" stroke="currentColor" stroke-width="2.4"/>
+          <use href="#dot2" transform="translate(650,102)"/>
+          <line x1="650" y1="102" x2="650" y2="45" stroke="currentColor" stroke-width="2.4"/>
+          <line x1="640" y1="45" x2="660" y2="45" stroke="currentColor" stroke-width="2.4"/>
+          <text x="650" y="35" text-anchor="middle" font-weight="700" font-size="11">3V3</text>
+
+          <!-- decoupling cap branches off the VDD net, does not sit inline -->
+          <line x1="650" y1="102" x2="690" y2="102" stroke="currentColor" stroke-width="2"/>
+          <use href="#cap2" transform="translate(690,120) rotate(90)"/>
+          <line x1="690" y1="133" x2="690" y2="150" stroke="currentColor" stroke-width="2"/>
+          <use href="#gnd2" transform="translate(690,150)"/>
+          <text x="700" y="124" font-size="9.5">C9 0.1µF</text>
+
+          <text x="602" y="200" text-anchor="end" font-size="10.5">GND</text>
+          <line x1="610" y1="196" x2="625" y2="196" stroke="currentColor" stroke-width="2"/>
+          <line x1="625" y1="196" x2="625" y2="230" stroke="currentColor" stroke-width="2"/>
+          <use href="#gnd2" transform="translate(625,230)"/>
+
+        </g>
+      </svg>
+      <figcaption>
+        BME280 in I²C mode (CSB→3V3, SDO→GND for address 0x76) on the ESP32's default I²C pins.
+        Doesn't touch the existing DS18B20, battery, or power circuitry from the main schematic above.
+      </figcaption>
+    </figure>
+  </div>
+
   <div class="legend">
     <span><span class="swatch" style="background:var(--accent)"></span>Where this design deviates from the naive port — see PCB_DESIGN.md §"decisions the naive version gets wrong"</span>
   </div>
@@ -559,7 +664,22 @@
       <tr><td><code>IO0</code></td><td>Boot-mode select</td><td>Unchanged — standard ESP32 boot circuit</td></tr>
       <tr><td><code>U0TXD</code> / <code>U0RXD</code></td><td>UART0, programming header</td><td>Unchanged — same pins <code>Serial.begin()</code> already uses</td></tr>
       <tr><td><code>GPIO25</code> (proposed)</td><td>Battery-divider enable</td><td><strong>New</strong> — needs the firmware change above</td></tr>
+      <tr><td><code>GPIO21</code> / <code>GPIO22</code> (proposed)</td><td>I²C — BME280 humidity/pressure add-on</td><td><strong>New</strong> — see the add-on figure above; ESP32 Arduino core's default I²C pins, unused otherwise</td></tr>
     </table>
+
+    <h2>Other modules in this product line</h2>
+    <p style="font-size:0.88rem; color:var(--muted)">
+      Gravity/density and CO₂ don't fit on this board — each has a placement
+      constraint (floating in the liquid; ambient room air) that puts it on
+      its own device instead. See
+      <a href="MULTI_SENSOR_MODULES.md" style="color:inherit">MULTI_SENSOR_MODULES.md</a>
+      for the full rationale, and their own schematics:
+      <a href="schematic-gravity-module.html" style="color:inherit">schematic-gravity-module.html</a>
+      (Tilt/Gravity Module) and
+      <a href="schematic-co2-module.html" style="color:inherit">schematic-co2-module.html</a>
+      (CO₂ Safety Module) — both reuse this board's power section (TP4056 +
+      DW01A/FS8205 + low-Iq LDO + the Q1/Q2-gated battery divider) as-is.
+    </p>
 
     <h2>Next steps</h2>
     <p style="font-size:0.88rem; color:var(--muted)">
