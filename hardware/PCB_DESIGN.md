@@ -149,7 +149,8 @@ carrier board for the same firmware, not a redesign.
 | C2,C3 | 0.1µF | 0603 | 2 | — | ~$0.02 ea | Module VDD decoupling |
 | C4 | 10µF | 0805 | 1 | — | ~$0.03 | Bulk cap on 3V3 |
 | C5,C6 | 10µF | 0805 | 2 | — | ~$0.03 ea | TP4056 input/output caps |
-| J1 | USB-C 16-pin (power only, CC resistors optional) | SMD | 1 | LCSC C165948 | ~$0.15 | Charging input |
+| J1 | USB-C 16-pin (power only) | SMD | 1 | LCSC C165948 | ~$0.15 | Charging input |
+| R13,R14 | 5.1kΩ 1% | 0603 | 2 | — | ~$0.01 ea | USB-C CC1/CC2 pull-downs. **Not optional** — a USB-C charger will not enable VBUS without seeing them. A legacy USB-A→C cable masks this on the bench because it carries its own pull-up |
 | J2 | JST-PH 3-pin, board-mount | SMD/THT | 1 | — | ~$0.10 | DS18B20 probe connector |
 | J3 | JST-PH 2-pin, board-mount | THT | 1 | — | ~$0.08 | 18650 holder leads |
 | J4 | 2.54mm 6-pin header | THT | 1 | — | ~$0.05 | Programming header |

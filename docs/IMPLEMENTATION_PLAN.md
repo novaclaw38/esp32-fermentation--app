@@ -125,7 +125,9 @@ ADXL345 accelerometer for tilt. Full per-reference BOM in
 | Slim Li-ion cell (10440 or LiPo pouch) | Battery power — format is set by housing diameter, not capacity | $1.50–3 | R40–R80 |
 | Sealed floating housing (vial/tube + top cap) | Flotation + waterproofing | $3–6 | R80–R165 |
 
-**Estimated BOM per unit: ~$13–21 USD → roughly R360–R580 ZAR (landed)**
+**Estimated BOM per unit: ~$13–22 USD → roughly R360–R600 ZAR (landed)**
+— itemised in full, including ballast, potting, gasket and desiccant, in
+[`hardware/BOM_TEMP_GRAVITY.md`](../hardware/BOM_TEMP_GRAVITY.md)
 — the electronics come to ~$6–8/unit, essentially the same as the Hub;
 the ADXL345 adds under $2 and the DS18B20 gets *cheaper* because it's a
 bare potted sensor rather than a waterproof cabled probe with a sealed
@@ -181,8 +183,8 @@ polynomial both need a real unit in real liquid before any batch order.
 - Order the custom PCB (see `hardware/PCB_DESIGN.md`) in batch quantity, have it SMT-assembled rather than hand-wiring perfboard at this volume.
 - **Budget for this batch**: roughly R4,700-R13,750 total ZAR component+PCB spend for 15-25 units (landed cost, using the v2 PCB BOM above) — small enough to self-fund from pocket, which is the point of pre-selling before committing to inventory. (The earlier perfboard-based estimate was R5,000-R17,000; the PCB path is slightly cheaper at this quantity once assembly is factored in.)
 - If pre-orders skew toward gravity, the floating Temp + Gravity unit is
-  the batch to build instead of (or alongside) the Hub: ~R360-R580/unit
-  landed, so 15-25 units is roughly R5,400-R14,500 — the same order of
+  the batch to build instead of (or alongside) the Hub: ~R360-R600/unit
+  landed, so 15-25 units is roughly R5,400-R15,000 — the same order of
   magnitude as the Hub batch. Order housings first and leak-test them
   before committing to a PCB run; the board is proven architecture, the
   housing is not.

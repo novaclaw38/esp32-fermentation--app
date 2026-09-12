@@ -148,6 +148,12 @@ no accelerometer) or when humidity is wanted instead.
 | — | Slim Li-ion cell (10440 or LiPo pouch) | — | 1 | ~$1.50-3 | Pick after housing diameter is fixed |
 | — | Sealed floating housing | — | 1 | ~$3-6 | The real unknown cost — mechanical, not electrical |
 
+> **The table above is the board-level sketch, not the order list.** The
+> complete, reconciled parts list — including the USB-C CC resistors that
+> were missing here, a fix for the duplicated R7/R8 designators, corrected
+> capacitors, and the mechanical parts (ballast, potting, gasket, desiccant)
+> — is in [`BOM_TEMP_GRAVITY.md`](BOM_TEMP_GRAVITY.md). Order from that one.
+
 **Estimated electronics BOM**: ~$6-8/unit, comparable to the Hub. Housing
 is the wildcard — a 3D-printed or repurposed-vial housing needs its own
 waterproofing validation (this is exactly the kind of thing the original
