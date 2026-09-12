@@ -1,9 +1,15 @@
 # Fermentation Monitor
 
-A WiFi temperature monitor for homebrewers and kombucha makers: an ESP32 +
-DS18B20 sensor node reports into Supabase, a React dashboard shows live
-readings and alert history, and threshold breaches trigger an email.
+A WiFi fermentation monitor for homebrewers and kombucha makers: an ESP32
+sensor node reports into Supabase, a React dashboard shows live readings
+and alert history, and threshold breaches trigger an email.
 Built per the Phase 1 MVP scope in [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md).
+
+Two device designs: the **Hub** (external DS18B20 probe, sits outside the
+fermenter, optional BME280 humidity) and the floating **Temp + Gravity
+Module** — a sealed unit that floats *inside* the fermenter and reports
+both temperature and specific gravity from its tilt angle. If you want
+both readings, that's one device, not two.
 
 **Live**: [dashboard](https://fermentation-monitor-dashboard.vercel.app) ·
 [landing page](https://fermentation-monitor-landing.vercel.app) — both
