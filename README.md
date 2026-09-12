@@ -50,13 +50,22 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
      protection (SSO wall) is disabled on both so the public pages are
      actually reachable — the dashboard's real access control is Supabase
      auth/RLS, not Vercel's.
-   - **Manual step still needed**: in Supabase, turn off Authentication >
-     Sign In / Providers > Email > **"Confirm email"**. Sign-in works
-     without it, but *creating* an account will otherwise sit waiting on a
-     confirmation email that Supabase's built-in (heavily rate-limited)
-     mail service may never deliver — which is what broke the original
-     magic-link flow. This isn't settable via the Supabase API/MCP tools,
-     only the dashboard. Turn it back on once real SMTP is configured.
+   - **Auth setup (done on this project, needed on a fresh one)**: turn off
+     Authentication > Sign In / Providers > Email > **"Confirm email"** in
+     Supabase. Sign-in works without it, but *creating* an account will
+     otherwise sit waiting on a confirmation email that Supabase's built-in
+     (heavily rate-limited) mail service may never deliver — which is what
+     broke the original magic-link flow. Not settable via the Supabase
+     API/MCP tools, only the dashboard.
+
+     Verified working end-to-end against the live project: signup returns a
+     session with no email sent, sign-in works, wrong passwords are
+     rejected, and a signed-in user can add a device and read its readings
+     back through RLS.
+
+     **Turn confirmation back on once real SMTP is configured** — until
+     then, someone can register an email address they don't own. Configuring
+     SMTP (Resend covers this and the `alert-notify` emails) is the fix.
 5. **Custom PCB** (optional, for the Phase 2 pre-sold batch): once you're
    past the perfboard prototype, see [`hardware/PCB_DESIGN.md`](hardware/PCB_DESIGN.md)
    for the small-batch PCB that replaces the DevKit + perfboard + breakout
