@@ -1,6 +1,16 @@
-# Fermentation Monitor — v1 Firmware
+# Fermentation Monitor — Firmware
 
-Arduino/C++ firmware for the ESP32 + DS18B20 temperature monitoring node.
+Two sketches, one per device type:
+
+| Sketch | Device | Reads |
+|---|---|---|
+| [`fermentation_monitor_v1/`](fermentation_monitor_v1/) | **Hub** — sits outside the fermenter, probe in the liquid | Temperature, battery |
+| [`fermentation_tilt_v1/`](fermentation_tilt_v1/) | **Temp + Gravity Module** — sealed, floats in the liquid | Temperature, tilt angle (→ gravity), battery |
+
+They are separate sketches, not build variants — different sensors, different
+wiring, different Supabase device type. Most of this README covers the Hub
+sketch; see [Temp + Gravity Module sketch](#temp--gravity-module-sketch) at the
+bottom for what differs.
 
 ## Required Arduino Libraries
 
@@ -111,3 +121,72 @@ since `setInsecure()` accepts any TLS certificate.
   library — fine for the small, fixed-shape RPC responses used here, but
   don't extend it for anything more complex without switching to
   ArduinoJson.
+- **The Hub sketch does not drive the battery-divider enable pin.** That's
+  deliberate: the current DevKit/perfboard prototype wires the divider
+  straight to `BAT+` with no gating transistor, so there's nothing to
+  drive. When you build the Hub PCB from `hardware/PCB_DESIGN.md`, port the
+  `BATTERY_EN_PIN` handling out of `fermentation_tilt_v1` — it's already
+  written and correct there (including the settling delay).
+
+---
+
+## Temp + Gravity Module sketch
+
+`fermentation_tilt_v1/` targets the sealed floating module
+(`hardware/schematic-gravity-module.html`). Everything above about board
+settings, libraries, config placeholders, and OTA applies unchanged. What's
+different:
+
+### Extra library
+
+- **Wire** (I²C) — bundled with the ESP32 core, no install needed. The
+  ADXL345 is driven directly through `Wire` rather than a sensor library:
+  it's a presence check, two register writes, and one 6-byte burst read,
+  which isn't worth a dependency.
+
+### Wiring differences
+
+| | Hub | Temp + Gravity |
+|---|---|---|
+| DS18B20 | External waterproof probe via JST | Potted against the housing wall, no connector |
+| Accelerometer | — | ADXL345 on `GPIO21`/`GPIO22`, SDO→GND (addr `0x53`) |
+| Battery divider | Ungated (prototype) | Gated via `GPIO25` → Q2 → Q1 |
+
+### What it posts
+
+`{temperature_c, tilt_deg, battery_v}` — **raw tilt angle, not gravity**.
+Specific gravity is computed on read by the `readings_with_gravity` view
+using per-device calibration coefficients on the `devices` row, so
+recalibrating a device fixes its entire history instead of leaving wrong
+values baked into stored rows.
+
+### Calibrating a unit
+
+1. Flash it, seal it, and confirm the serial log prints a sane tilt angle:
+   near 0° held upright, near 90° laid flat. **If it's inverted or pinned
+   near 90°, the board's long axis isn't X** — change which axis
+   `readTiltDegrees()` treats as the long one. Do this before collecting any
+   calibration points; a wrong axis makes every later step garbage.
+2. Float it in a few sugar solutions of known gravity (measure each with a
+   hydrometer), recording the tilt angle it reports for each. Three or four
+   points spanning ~1.000–1.080 is enough.
+3. Fit a polynomial (`SG = a·tilt³ + b·tilt² + c·tilt + d`) and write the
+   coefficients to that device's `calibration_a`…`calibration_d` columns.
+   Set the unused higher terms to `0` for a linear or quadratic fit.
+
+Until `calibration_c` is set, the view returns `null` gravity rather than a
+plausible-looking wrong number.
+
+### Known gaps specific to this sketch
+
+- **The tilt axis assumption is unverified** — see calibration step 1. The
+  code comments say so at the point it matters, but nothing has been on real
+  hardware yet.
+- **Disturbance rejection is crude.** A reading whose acceleration magnitude
+  isn't within 0.8–1.2 g is discarded as "someone bumped it," which catches
+  handling but not slow sloshing. If real batches turn out noisy, a median
+  of several bursts spread over a minute would beat the current single
+  averaged burst.
+- **No gravity-based alerting** (e.g. "fermentation stalled"). That needs
+  trend history across readings, which belongs in a backend job, not
+  firmware.

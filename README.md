@@ -20,7 +20,7 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 
 | Path | What it is |
 |---|---|
-| [`firmware/`](firmware/) | ESP32 Arduino sketch: reads the DS18B20 every wake cycle, posts readings, checks thresholds, deep-sleeps, supports remote config + OTA |
+| [`firmware/`](firmware/) | Two ESP32 Arduino sketches — the Hub (temperature) and the Temp + Gravity Module (temperature + tilt/gravity). Both deep-sleep between readings and support remote config + OTA |
 | [`supabase/`](supabase/) | Postgres schema, RLS policies, device-authenticated RPCs, and the `alert-notify` Edge Function that emails on a new alert |
 | [`dashboard/`](dashboard/) | React + TypeScript + Vite app: magic-link auth, per-device live reading, 48h chart, alert history, threshold editor |
 | [`landing/`](landing/) | Static pre-order/signup page for the Phase 0 validation track |

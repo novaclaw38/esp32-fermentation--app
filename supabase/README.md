@@ -7,10 +7,26 @@ the firmware and dashboard.
 
 | Table | Purpose | Write access |
 |---|---|---|
-| `devices` | One row per physical unit: owner, thresholds, sleep interval, per-device secret | Dashboard user (own rows only) |
-| `readings` | Temperature/battery time series | Only via `ingest_reading()` RPC |
+| `devices` | One row per physical unit: owner, `device_type`, thresholds, sleep interval, per-device secret, gravity calibration coefficients | Dashboard user (own rows only) |
+| `readings` | Temperature/battery/tilt time series | Only via `ingest_reading()` RPC |
 | `alerts` | Threshold-breach events | Only via `ingest_alert()` RPC (insert); dashboard user can update `acknowledged` |
 | `waitlist` | Landing page pre-order/signup emails | Anyone can insert, nobody can read via API |
+| `readings_with_gravity` (view) | `readings` plus `gravity_sg`, computed from each device's calibration curve | Read-only; `security_invoker = true` so RLS still applies |
+
+### Gravity is computed on read, not stored
+
+The Temp + Gravity Module posts a raw `tilt_deg`; the
+`readings_with_gravity` view applies that device's calibration polynomial
+(`SG = a·tilt³ + b·tilt² + c·tilt + d`, from the `calibration_*` columns on
+`devices`). Recalibrating a unit therefore corrects its entire history
+instead of leaving wrong values baked into stored rows. Gravity reads
+`null` until `calibration_c` is set, rather than returning a
+plausible-looking wrong number.
+
+The view is declared `with (security_invoker = true)`. Without that, it
+would run as its owner and return every device's readings to any caller,
+bypassing the RLS policies on `readings` entirely — worth keeping in mind
+for any future view over these tables.
 
 Firmware never touches `devices`/`readings`/`alerts` directly with the anon
 key — see `verify_device_secret()`, `ingest_reading()`, `ingest_alert()`,

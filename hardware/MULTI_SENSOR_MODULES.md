@@ -157,23 +157,32 @@ implementation plan flagged as "most likely to eat unexpected time").
 
 | Pin | Net |
 |---|---|
-| `GPIO4` | DS18B20 (potted, temp compensation for the tilt curve) |
+| `GPIO4` | DS18B20 (potted — this module's primary temperature reading) |
 | `GPIO21` / `GPIO22` | I²C (ADXL345) |
 | `GPIO34` | Battery ADC |
 | `GPIO25` | Battery-divider enable (same Q1/Q2 pattern as the Hub) |
 | `EN` / `IO0` | Standard ESP32 boot circuit |
 
-### Firmware notes (not yet written)
+### Firmware — written
 
-- Reads accelerometer X/Y/Z each wake, computes tilt angle
-  (`atan2`-based, standard iSpindel approach), posts `{tilt, temp_c,
-  battery_v}` — **not** a gravity value directly. SG comes from a
-  calibration polynomial fitted per-device from a handful of
-  (tilt, known-SG) pairs taken during setup — that curve-fitting is a
-  dashboard/backend feature, not firmware.
-- Needs its own Supabase device type / table shape (a `tilt_readings`
-  table, or a `readings` column addition) — out of scope for this
-  hardware-only pass; flagging so it's not silently assumed away.
+`firmware/fermentation_tilt_v1/fermentation_tilt_v1.ino`, with setup and
+calibration instructions in `firmware/README.md`.
+
+- Reads accelerometer X/Y/Z each wake, averages a burst of samples,
+  computes the tilt angle, and posts `{temperature_c, tilt_deg,
+  battery_v}` — **not** a gravity value directly.
+- SG is computed on read by the `readings_with_gravity` view from
+  per-device calibration coefficients (`SG = a·tilt³ + b·tilt² + c·tilt + d`)
+  stored on the `devices` row. Keeping raw tilt in the table means
+  recalibrating a device fixes its whole history rather than leaving wrong
+  values baked into stored rows.
+- Schema support is applied:
+  `supabase/migrations/20260912100000_tilt_gravity_support.sql` adds
+  `readings.tilt_deg`, `devices.device_type`, the calibration columns, the
+  extra `ingest_reading` parameter, and the gravity view.
+- **Still untested on hardware** — in particular the tilt axis assumption
+  (which physical axis runs along the housing) is unverified, and it's
+  step 1 of the calibration procedure for exactly that reason.
 
 ---
 
@@ -281,12 +290,14 @@ higher-margin SKU rather than bundling it into a base kit.
 |---|---|---|---|
 | MCU | ESP32-WROOM-32E | same | same |
 | Power architecture (TP4056+protection+LDO+gated divider) | ✓ (validated) | reused as-is | reused as-is |
-| Firmware | `fermentation_monitor_v1.ino` (exists) | new sketch needed | new sketch needed |
-| Supabase schema | `devices`/`readings`/`alerts` (exists) | needs extension | needs extension |
-| Dashboard view | exists | needs a new view | needs a new view |
+| Firmware | `fermentation_monitor_v1.ino` (exists) | `fermentation_tilt_v1.ino` (exists) | new sketch needed |
+| Supabase schema | `devices`/`readings`/`alerts` (exists) | extended (tilt + calibration, applied) | needs extension |
+| Dashboard view | exists | needs a gravity chart | needs a new view |
 
 The hardware reuse is real and deliberate — the same validated power
 section (including the Q1/Q2 gating fix from `PCB_DESIGN.md`) shows up on
-all three boards rather than being re-derived each time. The firmware and
-backend work is genuinely new for both the Temp + Gravity and CO₂ modules
-and isn't covered by this pass — say the word when you want to tackle either.
+all three boards rather than being re-derived each time.
+
+Still outstanding: a dashboard view that plots gravity for `tilt` devices
+(the data and the `readings_with_gravity` view are ready, the UI isn't),
+and the CO₂ module's firmware and schema.
