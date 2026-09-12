@@ -292,12 +292,13 @@ higher-margin SKU rather than bundling it into a base kit.
 | Power architecture (TP4056+protection+LDO+gated divider) | ✓ (validated) | reused as-is | reused as-is |
 | Firmware | `fermentation_monitor_v1.ino` (exists) | `fermentation_tilt_v1.ino` (exists) | new sketch needed |
 | Supabase schema | `devices`/`readings`/`alerts` (exists) | extended (tilt + calibration, applied) | needs extension |
-| Dashboard view | exists | needs a gravity chart | needs a new view |
+| Dashboard view | exists | gravity chart + calibration form (exists) | needs a new view |
 
 The hardware reuse is real and deliberate — the same validated power
 section (including the Q1/Q2 gating fix from `PCB_DESIGN.md`) shows up on
 all three boards rather than being re-derived each time.
 
-Still outstanding: a dashboard view that plots gravity for `tilt` devices
-(the data and the `readings_with_gravity` view are ready, the UI isn't),
-and the CO₂ module's firmware and schema.
+Still outstanding: the CO₂ module's firmware and schema. The Temp +
+Gravity Module is complete end to end — schematic, firmware, schema, and a
+dashboard that charts its gravity and takes its calibration curve — with
+the hardware validation caveats above (tilt axis, housing) still open.

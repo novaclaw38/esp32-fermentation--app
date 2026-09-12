@@ -230,6 +230,9 @@ cover the floating Temp + Gravity unit: `readings.tilt_deg`,
 `readings_with_gravity` view that computes SG on read
 (`supabase/migrations/20260912100000_tilt_gravity_support.sql`).
 
-Not yet built: CO₂ module firmware and its schema/dashboard support, and a
-dashboard chart that plots gravity for `tilt` devices (the data lands
-correctly, but the UI still only charts temperature).
+The dashboard charts gravity for `tilt` devices and takes each unit's
+calibration curve, so the floating module is complete end to end in
+software. What's untested is physical: the tilt axis assumption and the
+housing's waterproofing.
+
+Not yet built: CO₂ module firmware and its schema/dashboard support.

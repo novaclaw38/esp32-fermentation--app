@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
-import type { Device } from "../types/database";
+import type { Device, DeviceType } from "../types/database";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -17,6 +17,7 @@ export default function Devices() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState<DeviceType>("hub");
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +45,7 @@ export default function Devices() {
       id: newId.trim(),
       user_id: session.user.id,
       name: newName.trim() || "Fermentation Monitor",
+      device_type: newType,
       device_secret: secret,
     });
 
@@ -55,6 +57,7 @@ export default function Devices() {
     setCreatedSecret(secret);
     setNewId("");
     setNewName("");
+    setNewType("hub");
     loadDevices();
   }
 
@@ -99,6 +102,38 @@ export default function Devices() {
               placeholder="Kitchen Kombucha"
             />
           </label>
+          <fieldset className="text-sm">
+            <legend>Device type</legend>
+            <div className="mt-1 space-y-1">
+              <label className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="device_type"
+                  className="mt-1"
+                  checked={newType === "hub"}
+                  onChange={() => setNewType("hub")}
+                />
+                <span>
+                  <span className="font-medium">Hub</span> — temperature only, external probe.
+                  Flash <code>fermentation_monitor_v1</code>.
+                </span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="device_type"
+                  className="mt-1"
+                  checked={newType === "tilt"}
+                  onChange={() => setNewType("tilt")}
+                />
+                <span>
+                  <span className="font-medium">Temp + Gravity</span> — the floating module:
+                  temperature <em>and</em> gravity. Flash <code>fermentation_tilt_v1</code>, then
+                  enter its calibration curve on the device page.
+                </span>
+              </label>
+            </div>
+          </fieldset>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700">
             Create device
@@ -138,7 +173,14 @@ export default function Devices() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-stone-900">{d.name}</p>
-                    <p className="text-sm text-stone-500">{d.id}</p>
+                    <p className="text-sm text-stone-500">
+                      {d.id}
+                      {d.device_type === "tilt" && (
+                        <span className="ml-2 rounded bg-brew-50 px-1.5 py-0.5 text-xs font-medium text-brew-700">
+                          Temp + Gravity
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <div className="text-right text-sm text-stone-500">
                     <p>

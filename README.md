@@ -28,7 +28,7 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 |---|---|
 | [`firmware/`](firmware/) | Two ESP32 Arduino sketches — the Hub (temperature) and the Temp + Gravity Module (temperature + tilt/gravity). Both deep-sleep between readings and support remote config + OTA |
 | [`supabase/`](supabase/) | Postgres schema, RLS policies, device-authenticated RPCs, and the `alert-notify` Edge Function that emails on a new alert |
-| [`dashboard/`](dashboard/) | React + TypeScript + Vite app: email/password auth, per-device live reading, 48h chart, alert history, threshold editor |
+| [`dashboard/`](dashboard/) | React + TypeScript + Vite app: email/password auth, per-device live reading, 48h temperature chart, gravity chart + calibration for Temp + Gravity units, alert history, threshold editor |
 | [`landing/`](landing/) | Static pre-order/signup page for the Phase 0 validation track |
 | [`hardware/`](hardware/) | Custom PCB design (v2 hardware path) replacing the DevKit+perfboard BOM, plus humidity/gravity/CO₂ sensor modules — see [`hardware/MULTI_SENSOR_MODULES.md`](hardware/MULTI_SENSOR_MODULES.md) |
 | [`docs/`](docs/) | The original implementation plan (hardware choice, BOM, phased rollout) |
