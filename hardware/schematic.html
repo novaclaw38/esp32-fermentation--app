@@ -675,7 +675,9 @@
       <a href="MULTI_SENSOR_MODULES.md" style="color:inherit">MULTI_SENSOR_MODULES.md</a>
       for the full rationale, and their own schematics:
       <a href="schematic-gravity-module.html" style="color:inherit">schematic-gravity-module.html</a>
-      (Tilt/Gravity Module) and
+      (Temp + Gravity Module — its onboard DS18B20 is a real standalone
+      temperature reading, not just internal compensation, so it covers both
+      temp and gravity in one device rather than needing this Hub as well) and
       <a href="schematic-co2-module.html" style="color:inherit">schematic-co2-module.html</a>
       (CO₂ Safety Module) — both reuse this board's power section (TP4056 +
       DW01A/FS8205 + low-Iq LDO + the Q1/Q2-gated battery divider) as-is.

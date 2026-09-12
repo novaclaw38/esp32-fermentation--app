@@ -1,4 +1,4 @@
-<title>Tilt Module Schematic</title>
+<title>Temp + Gravity Module Schematic</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root {
@@ -120,18 +120,21 @@
 </style>
 
 <main>
-  <h1>Fermentation Monitor — Tilt/Gravity Module Schematic</h1>
+  <h1>Fermentation Monitor — Temp + Gravity Module Schematic</h1>
   <p class="subtitle">
-    A sealed, floating device — not a Hub add-on. Reuses the Hub's power section
-    (TP4056 + DW01A/FS8205 protection + low-Iq LDO + Q1/Q2-gated battery divider)
-    unchanged, plus an ADXL345 accelerometer for tilt-based gravity estimation.
-    See <code>MULTI_SENSOR_MODULES.md</code> for why this has to be a separate
-    physical device.
+    A sealed, floating device — not a Hub add-on, and not gravity-only. The DS18B20
+    already on board (needed to temperature-compensate the tilt curve) is a real,
+    independently-useful temperature reading, so this single unit covers both
+    temperature <em>and</em> gravity for anyone who wants both — no separate Hub
+    required. Reuses the Hub's power section (TP4056 + DW01A/FS8205 protection +
+    low-Iq LDO + Q1/Q2-gated battery divider) unchanged, plus an ADXL345
+    accelerometer for tilt-based gravity estimation. The Hub is still its own
+    product for temp-only or humidity — see <code>MULTI_SENSOR_MODULES.md</code>.
   </p>
 
   <div class="diagram-wrap">
     <figure>
-      <svg viewBox="0 0 1640 1140" role="img" aria-label="Schematic of the Tilt Module: the same USB-C, TP4056, DW01A/FS8205 protection, low-quiescent LDO and GPIO-gated battery divider as the Hub board, feeding an ESP32-WROOM-32E that reads an ADXL345 accelerometer over I2C for tilt-based gravity estimation and a DS18B20 potted inside the sealed housing for temperature compensation, with no external probe connector.">
+      <svg viewBox="0 0 1640 1140" role="img" aria-label="Schematic of the Temp + Gravity Module: the same USB-C, TP4056, DW01A/FS8205 protection, low-quiescent LDO and GPIO-gated battery divider as the Hub board, feeding an ESP32-WROOM-32E that reads an ADXL345 accelerometer over I2C for tilt-based gravity estimation and a DS18B20 potted inside the sealed housing that serves as this unit's own primary temperature reading, with no external probe connector.">
 
         <defs>
           <g id="res">
@@ -490,7 +493,8 @@
         Power section (USB-C, TP4056, DW01A/FS8205, low-Iq LDO, Q1/Q2-gated divider) is identical to
         the Hub board — see <a href="schematic.html" style="color:inherit">schematic.html</a> for the
         detailed rationale. What's new here: an ADXL345 accelerometer over I²C for tilt, and a
-        potted (not connectorized) DS18B20, since the whole module is already sealed and submerged.
+        potted (not connectorized) DS18B20 that doubles as this unit's own temperature reading, since
+        the whole module is already sealed and submerged.
       </figcaption>
     </figure>
   </div>
@@ -502,9 +506,11 @@
   <div class="notes">
     <div class="callout">
       <strong>This module needs new firmware, not a variant of <code>fermentation_monitor_v1.ino</code>.</strong>
-      It posts tilt angle + temperature + battery, not a temperature reading — gravity comes from a
-      per-device calibration curve (tilt → SG) fitted from a few reference readings, which is backend/
-      dashboard work, not firmware. See <code>MULTI_SENSOR_MODULES.md</code>.
+      It posts tilt angle, temperature, and battery as three independent readings — temperature is a
+      real, standalone reading from this unit (not just an internal input), so a customer who wants
+      both temp and gravity only needs this one device, no separate Hub. Gravity/SG itself is <em>not</em>
+      posted directly — it comes from a per-device calibration curve (tilt → SG) fitted from a few
+      reference readings, which is backend/dashboard work, not firmware. See <code>MULTI_SENSOR_MODULES.md</code>.
     </div>
 
     <h2>Why the DS18B20 is potted, not on a connector</h2>

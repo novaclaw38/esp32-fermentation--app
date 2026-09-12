@@ -7,10 +7,16 @@ before any schematic gets drawn:
 
 | Sensor | Where it physically has to live | Consequence |
 |---|---|---|
-| Temperature | In the liquid (waterproof probe) | Already on the **Hub** — no change |
+| Temperature | In the liquid | Either the **Hub**'s external probe, *or* the **Temp + Gravity Module** below — pick one, not both, if you want both readings |
 | Humidity | Headspace/ambient air near the vessel | Cheap add-on to the **Hub** (I²C, same board) |
-| Gravity/density | Floating *inside* the liquid, sealed | Its own device — the **Tilt Module** |
+| Gravity/density | Floating *inside* the liquid, sealed | Its own device — the **Temp + Gravity Module** |
 | CO₂ | Ambient room air, away from the vessel | Its own device — the **CO₂ Safety Module** |
+
+**If you want both temperature and gravity**: don't build a Hub *and* a
+gravity device — the gravity device already needs a temperature sensor
+on board (to compensate the tilt→SG curve), and that reading is just as
+usable as the Hub's. One floating unit covers both. The Hub is still its
+own product for temp-only (cheaper, no accelerometer) or for humidity.
 
 ## Why gravity/density can't just be "a sensor on the hub"
 
@@ -25,6 +31,13 @@ setup) converts angle → SG. This only works if the whole electronics
 package is sealed inside something that floats — it cannot be the same
 physical unit as the Hub, which sits outside the fermenter.
 
+That floating package already needs its own temperature sensor (to
+compensate the tilt curve — tilt angle vs. SG shifts with temperature),
+and there's no reason to treat that reading as internal-only: it's posted
+as a normal, independent temperature value. So for anyone who wants both
+temperature and gravity, the answer isn't "Hub + gravity device" — it's
+just the one floating unit, renamed accordingly below.
+
 ## Why CO₂ can't just be "a sensor in the airlock"
 
 The intuitive placement — inside the sealed headspace, reading fermentation
@@ -32,8 +45,8 @@ off-gas — doesn't work with any sensor a hobbyist product can afford.
 Active fermentation headspace runs close to 100% CO₂ (~1,000,000 ppm);
 every consumer NDIR sensor (the SCD41 used here included) saturates well
 below that, most below 40,000 ppm. Reading fermentation *rate* from CO₂ is
-also redundant with the Tilt Module's gravity curve, which measures the
-same thing far more precisely.
+also redundant with the Temp + Gravity Module's gravity curve, which
+measures the same thing far more precisely.
 
 What CO₂ monitoring is actually good for here is **safety**: fermentation
 off-gas building up in an enclosed, poorly-ventilated room (a cellar,
@@ -71,7 +84,7 @@ posted alongside the existing temperature/battery fields).
 
 ---
 
-## Module 2: Tilt/Gravity Module (new standalone device)
+## Module 2: Temp + Gravity Module (new standalone device)
 
 Full schematic: [`schematic-gravity-module.html`](schematic-gravity-module.html).
 
@@ -79,6 +92,13 @@ A sealed, floating body — same electrical architecture as the Hub (ESP32-
 WROOM-32E, TP4056 charging, DW01A+FS8205 protection, low-Iq LDO, gated
 battery divider — all reused verbatim from `PCB_DESIGN.md` since that
 design is already validated) plus an ADXL345 accelerometer for tilt.
+
+**This is the combined temp+gravity unit, not a gravity-only device.**
+The DS18B20 it needs anyway (to compensate the tilt→SG curve) is posted
+as its own independent reading — so a customer who wants both temperature
+and gravity buys/builds *this one device*, not a Hub plus a separate
+gravity sensor. The Hub remains the right choice for temp-only (cheaper,
+no accelerometer) or when humidity is wanted instead.
 
 ### Key differences from the Hub, and why
 
@@ -227,9 +247,9 @@ dashboard someone isn't looking at has already failed at its one job.
 
 **Estimated BOM**: ~$14-16/unit battery-powered (dominated by the SCD41),
 ~$11-13/unit if built USB-only. This is meaningfully pricier than the
-Hub or Tilt Module — the CO₂ sensor alone is roughly 5x the Hub's entire
-electronics cost. Worth pricing this as a distinct, higher-margin SKU
-rather than bundling it into a base kit.
+Hub or Temp + Gravity Module — the CO₂ sensor alone is roughly 5x the
+Hub's entire electronics cost. Worth pricing this as a distinct,
+higher-margin SKU rather than bundling it into a base kit.
 
 ### GPIO map (new firmware)
 
@@ -250,14 +270,14 @@ rather than bundling it into a base kit.
   level, but the hardcoded local one is what makes this a safety device
   rather than a datalogger with an opinion.
 - Needs a new Supabase device type / readings shape (`co2_ppm`,
-  `humidity_pct` alongside `temperature_c`) — same caveat as the Tilt
-  Module: schema/dashboard work is out of scope for this hardware pass.
+  `humidity_pct` alongside `temperature_c`) — same caveat as the Temp +
+  Gravity Module: schema/dashboard work is out of scope for this hardware pass.
 
 ---
 
 ## What's shared vs. new across the whole product line
 
-| | Hub | Tilt Module | CO₂ Module |
+| | Hub | Temp + Gravity Module | CO₂ Module |
 |---|---|---|---|
 | MCU | ESP32-WROOM-32E | same | same |
 | Power architecture (TP4056+protection+LDO+gated divider) | ✓ (validated) | reused as-is | reused as-is |
@@ -268,5 +288,5 @@ rather than bundling it into a base kit.
 The hardware reuse is real and deliberate — the same validated power
 section (including the Q1/Q2 gating fix from `PCB_DESIGN.md`) shows up on
 all three boards rather than being re-derived each time. The firmware and
-backend work is genuinely new for both the Tilt and CO₂ modules and isn't
-covered by this pass — say the word when you want to tackle either.
+backend work is genuinely new for both the Temp + Gravity and CO₂ modules
+and isn't covered by this pass — say the word when you want to tackle either.
