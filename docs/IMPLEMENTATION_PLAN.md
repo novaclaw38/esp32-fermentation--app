@@ -66,7 +66,7 @@ Firmware: `firmware/fermentation_tilt_v1/`.
 
 *Landed cost includes a ~25% markup over raw USD/ZAR conversion for shipping and customs on imported electronics — budget against this number, not the raw FX rate.
 
-**Margin reference**: at $99 retail (~R1,830), gross margin per unit is roughly R1,500–R2,000 before payment processing fees, shipping to customer, and assembly labor.
+**Margin reference**: at $55 retail (~R1,510), gross margin per unit is roughly R825–R1,180 before payment processing fees, shipping to customer, and assembly labor. (The earlier version of this line assumed $99 retail; see the competitive reality check for why that price does not hold.)
 
 This table is the Phase 0/1 prototype BOM: an off-the-shelf DevKit, a
 separate TP4056 breakout module, and hand-wired perfboard. It's what to
@@ -102,9 +102,11 @@ the assembly labor perfboard would have cost instead.
 
 *Same ~25% landed-cost convention as the v1 table above.
 
-**Margin reference**: at $99 retail (~R1,830), gross margin per unit is
-roughly R1,610–R1,940 before payment processing fees, shipping to
-customer, and assembly labor — a modest improvement over the v1 estimate.
+**Margin reference**: at $55 retail (~R1,510), gross margin per unit is
+roughly R960–R1,195 before payment processing fees, shipping to customer,
+and assembly labor — a modest improvement over the v1 estimate. The Hub is
+the SKU where this price is comfortable: it competes with Inkbird-class
+controllers at $35–50, not with a $50 float.
 
 ---
 
@@ -122,12 +124,19 @@ ADXL345 accelerometer for tilt. Full per-reference BOM in
 | Custom PCB, fab + SMT assembly (ESP32-WROOM-32E, TP4056, DW01A+FS8205, LDO, passives) | Same board architecture as the Hub | $6–8 | R165–R220 |
 | ADXL345 accelerometer | Tilt angle → specific gravity | ~$1.80 | ~R50 |
 | DS18B20 (bare, potted inside the housing) | Temperature — both the SG compensation *and* the customer-facing reading | $1–2 | R28–R55 |
-| Slim Li-ion cell (10440 or LiPo pouch) | Battery power — format is set by housing diameter, not capacity | $1.50–3 | R40–R80 |
-| Sealed floating housing (vial/tube + top cap) | Flotation + waterproofing | $3–6 | R80–R165 |
+| 18650 Li-ion cell (~2500mAh) | Battery power — the 37mm housing fits one, giving ~5 months per charge instead of ~3 weeks | $2–4 | R55–R110 |
+| Sealed floating housing, ~37mm × 125mm (tube + top cap) | Flotation + waterproofing | $3–7 | R80–R195 |
 
-**Estimated BOM per unit: ~$13–22 USD → roughly R360–R600 ZAR (landed)**
+**Estimated BOM per unit: ~$13–25 USD → roughly R360–R690 ZAR (landed)**
 — itemised in full, including ballast, potting, gasket and desiccant, in
 [`hardware/BOM_TEMP_GRAVITY.md`](../hardware/BOM_TEMP_GRAVITY.md)
+
+**Housing diameter is the decision that matters most here.** An earlier
+revision assumed a 25–32mm test-tube vial, which forces a ~350mAh cell and
+about three weeks of battery life. Specifying ~37mm (matching KegLand's RAPT
+Pill at 37 × 125mm) fits an 18650 and takes that to an estimated ~5 months at
+the firmware's 15-minute interval — the difference between charging between
+every batch and charging twice a year, for a few cents of extra plastic.
 — the electronics come to ~$6–8/unit, essentially the same as the Hub;
 the ADXL345 adds under $2 and the DS18B20 gets *cheaper* because it's a
 bare potted sensor rather than a waterproof cabled probe with a sealed
@@ -150,10 +159,66 @@ polynomial both need a real unit in real liquid before any batch order.
 
 ---
 
+## Competitive reality check (added after the fact — read before pricing)
+
+This plan originally anchored pricing against the Tilt Hydrometer alone. That
+was an incomplete picture and produced a target price the market will not
+support. Checked September 2026:
+
+| | Tilt | Tilt Pro | RAPT Pill (KegLand) | This design |
+|---|---|---|---|---|
+| Price | $135 | $175 (Pro Mini) | ~$48–54 | — |
+| Radio | Bluetooth LE | BLE | WiFi **+** BLE | WiFi only |
+| Battery | CR123A primary | 2×AA lithium | 18650 rechargeable | 18650 rechargeable |
+| Life | 12–24 months | 3–5 years | "months" | ~5 months (estimated) |
+| Gravity accuracy | ±0.002 SG | ±0.002 | ±0.002 | **unknown** |
+| Pressure rating | — | — | 0–5 bar | **none** |
+| Backend | phone / Tilt Pi | same | RAPT cloud | **your own Supabase** |
+| Shipping today | yes | yes | yes | **no** |
+
+Sources: [tilthydrometer.com](https://tilthydrometer.com/),
+[Tilt review/specs](https://www.homebrewfinds.com/tilt-hydrometer-review/),
+[RAPT Pill](https://kegland.com.au/products/green-rapt-pill-hydrometer-thermometer-wifi-bluetooth).
+
+**The $99–129 target was wrong.** RAPT sells at roughly half that and does
+more: both radios, pressure-rated to 5 bar, an optional wireless-charging
+variant, and years of field-proven firmware. Asking $99 for an unbuilt product
+against a $50 incumbent is not a pricing question, it is a non-starter.
+
+**Three honest consequences:**
+
+1. **The float SKU is not a standalone business at this scale.** BOM is
+   $13–25/unit. To undercut RAPT you would price near $45–55, leaving
+   $20–40 before shipping, payment fees, and your own assembly time. For a
+   hand-assembled batch that is close to break-even — a cost-recovering
+   hobby product, not a margin business. Decide deliberately whether that is
+   acceptable rather than discovering it after ordering 25 housings.
+2. **The Hub is the better commercial bet.** It competes against Inkbird-class
+   temperature controllers at $35–50, not against a $50 float that took a
+   manufacturer years to refine, and its BOM is $11.50–20. Same backend, same
+   dashboard, far less to get wrong.
+3. **The defensible difference is software and ownership, not hardware.** You
+   will not out-manufacture KegLand on an injection-moulded pressure-rated
+   float. What this build has that neither competitor offers: gravity computed
+   on read so recalibration retroactively fixes history, temperature
+   correction measured from a recorded calibration temperature, and a backend
+   the customer owns and can self-host rather than a vendor cloud. If there is
+   a business here, that is where it lives.
+
+**Also worth knowing before promising anything:** Tilt publishes 300 ft range
+in water but **20 ft in a 5-gallon stainless keg**. WiFi/BLE at 2.4 GHz does
+not pass through a steel wall at all (skin depth ~8.6 µm; a 1.2 mm wall is
+~1200 dB), so in-vessel hydrometers depend entirely on the vessel's apertures
+and gasket seams. Sealed stainless conicals are effectively out of reach for
+this whole product class, ours included. Say so up front rather than in
+support tickets.
+
+---
+
 ## Phase 0 (Week 1): Parallel validation kickoff
 
 **Landing page track:**
-- One-page site: problem statement ("stop losing batches to temperature swings"), how it works, pre-order email capture, target price ($99-129 device + $9/mo optional dashboard subscription — anchor near Tilt's $135 and Inkbird's $35-50). In ZAR terms (~R18.5/USD) that's roughly R1,830-R2,390 device + R165/mo — useful for your own cost tracking, but keep the storefront priced in USD since the audience is global (Reddit/forums homebrew communities).
+- One-page site: problem statement ("stop losing batches to temperature swings"), how it works, pre-order email capture, target price — **see the competitive reality check above before setting this.** The original $99-129 anchor was based on Tilt's $135 alone and does not survive contact with RAPT at ~$50. Realistic options are to price the float at $45-55 (roughly cost recovery at this batch size), or to lead with the Hub at $45-65 against Inkbird-class controllers at $35-50. Keep the storefront priced in USD since the audience is global (Reddit/forums homebrew communities); track your own costs in ZAR.
 - Post in r/Homebrewing, r/fermentation, r/Kombucha, Homebrew Talk forums. Be upfront it's not built yet — "would you use this, what would you pay" gets more honest signal than a polished fake-door.
 - Track: signups, and importantly the *comments* — feature requests tell you what v2 should be.
 
@@ -183,8 +248,8 @@ polynomial both need a real unit in real liquid before any batch order.
 - Order the custom PCB (see `hardware/PCB_DESIGN.md`) in batch quantity, have it SMT-assembled rather than hand-wiring perfboard at this volume.
 - **Budget for this batch**: roughly R4,700-R13,750 total ZAR component+PCB spend for 15-25 units (landed cost, using the v2 PCB BOM above) — small enough to self-fund from pocket, which is the point of pre-selling before committing to inventory. (The earlier perfboard-based estimate was R5,000-R17,000; the PCB path is slightly cheaper at this quantity once assembly is factored in.)
 - If pre-orders skew toward gravity, the floating Temp + Gravity unit is
-  the batch to build instead of (or alongside) the Hub: ~R360-R600/unit
-  landed, so 15-25 units is roughly R5,400-R15,000 — the same order of
+  the batch to build instead of (or alongside) the Hub: ~R360-R690/unit
+  landed, so 15-25 units is roughly R5,400-R17,250 — the same order of
   magnitude as the Hub batch. Order housings first and leak-test them
   before committing to a PCB run; the board is proven architecture, the
   housing is not.

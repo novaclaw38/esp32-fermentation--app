@@ -47,7 +47,7 @@ imported electronics), not the raw FX rate.
 | R5 | 10kΩ | 1 | IO0 pull-up |
 | R6 | 100kΩ | 1 | Q1 gate pull-up to BAT+ — this, not the GPIO, defines the solidly-off state |
 | R7, R8 | 4.7kΩ | 2 | I²C pull-ups (SDA/SCL to the ADXL345) |
-| R9 | 6.8kΩ | 1 | TP4056 PROG — sets ~176mA charge, 0.5C for a 350mAh cell. **Re-size if you change cells**, see below |
+| R9 | 1.2kΩ | 1 | TP4056 PROG — ~1A, i.e. 0.40C for a 2500mAh 18650. **Re-size if you change cells**, see below |
 | R10 | 10kΩ | 1 | Q2 base resistor |
 | R11, R12 | 5.1kΩ **1%** | 2 | **USB-C CC1/CC2 pull-downs — required, see below** |
 | R13, R14 | 2kΩ | 2 | D1/D2 LED current limit |
@@ -95,16 +95,16 @@ with all of the above populated, at 15–25 unit quantity.
 | Part | Qty | Unit cost | Notes |
 |---|---|---|---|
 | DS18B20, **bare TO-92** | 1 | $1–2 | Not the cabled waterproof probe — this one is potted against the inside of the housing wall |
-| Slim Li-ion cell, **~350mAh** (10440, or LiPo pouch) | 1 | $1.50–3 | **Choose the housing first** — capacity is constrained by tube diameter, not the reverse. R9 is sized for 350mAh; a different capacity means a different R9 |
-| Sealed floating housing (tube + top cap) | 1 | $3–6 | The real cost and schedule risk. See below |
-| Ballast — lead-free shot, stainless nuts, or tungsten putty | ~10–30g | $0.30–1 | **Required.** Sets the float angle; without it the unit floats flat and reads nothing useful |
+| **18650 Li-ion cell** (~2500mAh) + holder or solder tabs | 1 | $2–4 | Fits the 37mm housing with room to spare. R9 is sized for this; a different capacity means a different R9 |
+| Sealed floating housing, **~37mm × 125mm** (tube + top cap) | 1 | $3–7 | The real cost and schedule risk. Sized against the commercial precedent — see below |
+| Ballast — lead-free shot, stainless nuts, or tungsten putty | ~20–50g | $0.30–1.50 | **Required.** Sets the float angle; without it the unit floats flat and reads nothing useful. A bigger body displaces more, so it needs more ballast |
 | Thermal epoxy / potting compound | ~2g | $0.50–1 | Bonds the DS18B20 to the housing wall. Thermally conductive, electrically insulating |
 | O-ring or silicone gasket for the cap | 1 | $0.10–0.30 | Size to the housing |
 | Desiccant sachet (silica gel) | 1 | $0.05–0.15 | Stops internal condensation as the unit cycles between fermenter and room temperature |
 | Closed-cell foam spacer / double-sided tape | 1 | $0.10–0.20 | Stops the pack shifting, which would change the float angle mid-batch |
 | USB-C port plug | 1 | $0.10–0.30 | Keeps wort out of the connector while submerged |
 
-**Off-board subtotal: ~$6.65–14.  Optional:** silicone conformal coating on
+**Off-board subtotal: ~$7.15–16.45.  Optional:** silicone conformal coating on
 the assembled board (~$0.20/unit amortized) — cheap insurance in a device
 whose failure mode is water ingress.
 
@@ -115,10 +115,10 @@ whose failure mode is water ingress.
 | | USD | ZAR (landed) |
 |---|---|---|
 | PCB fab + SMT assembly (all on-board parts) | $6–8 | R165–R220 |
-| Off-board parts | $6.65–14 | R180–R385 |
-| **Per unit** | **~$13–22** | **~R360–R600** |
+| Off-board parts | $7.15–16.45 | R195–R450 |
+| **Per unit** | **~$13–25** | **~R360–R690** |
 
-For a 15–25 unit batch: roughly **R5,400–R15,000**. Order and leak-test
+For a 15–25 unit batch: roughly **R5,400–R17,250**. Order and leak-test
 housings *before* committing to a PCB run — the board is proven
 architecture reused from the Hub, the housing is not.
 
@@ -160,45 +160,59 @@ gasket, desiccant, foam spacer, and a port plug.**
 
 ## Before you order
 
-**R9 is set for a 350mAh cell.** The TP4056's charge current is
-`I_charge ≈ 1200 / R_prog` (amps, ohms). A 350mAh cell at a conservative
-0.5C wants 175mA, so R_prog ≈ 6857Ω — and the nearest E24 standard value,
-**6.8kΩ, gives 176mA (0.504C)**. That is the value in the BOM.
-
-The earlier 1.2kΩ would have driven ~1A into this cell: **roughly 2.9C, about
-three times any 10440's rated charge current.** That is a cell-damage and
-vent/fire risk, not just poor cycle life. It was correct only for the 18650
-the Hub uses.
-
-What this gives you:
+**R9 is set for a 2500mAh 18650.** The TP4056's charge current is
+`I_charge ≈ 1200 / R_prog` (amps, ohms), so **1.2kΩ gives ~1A** — a
+comfortable 0.40C for a 2500mAh cell, and the same value the Hub uses.
 
 | | |
 |---|---|
-| Charge current | ~176mA (0.50C) |
-| Charge time | ~2h constant-current, ~2.5–3h including the CV tail |
-| Termination | ~18mA (the TP4056 stops at ~1/10 of the programmed current) |
+| Charge current | ~1A (0.40C on 2500mAh) |
+| Charge time | ~2.5h constant-current, ~3–4h including the CV tail |
+| Termination | ~100mA (the TP4056 stops at ~1/10 of the programmed current) |
 
-One caveat: the TP4056 datasheet's own current table runs a few percent above
-the formula at higher R_prog values (it lists 10kΩ as 130mA where the formula
-gives 120mA). So expect perhaps 180–190mA in practice — still at or under
-0.55C, with margin.
-
-**If you change cells, change R9.** Some useful points on the curve:
+**If you change cells, change R9.** A smaller cell needs a smaller current or
+you exceed its safe charge rate — 1A into a 350mAh 10440 would be ~2.9C,
+roughly triple its rating, which is a cell-damage and venting risk rather
+than merely poor cycle life. Points on the curve, at a conservative 0.5C:
 
 | Cell capacity | 0.5C target | R9 (E24) | Actual |
 |---|---|---|---|
-| 320mAh | 160mA | 7.5kΩ | 160mA |
-| 350mAh | 175mA | **6.8kΩ** | **176mA** |
+| 350mAh (10440) | 175mA | 6.8kΩ | 176mA |
 | 500mAh | 250mA | 4.7kΩ | 255mA |
 | 800mAh | 400mA | 3.0kΩ | 400mA |
-| 2000mAh+ (18650) | 1000mA | 1.2kΩ | 1000mA |
+| 2000mAh (18650) | 1000mA | 1.2kΩ | 1000mA (0.50C) |
+| **2500mAh (18650)** | — | **1.2kΩ** | **1000mA (0.40C)** |
+| 3400mAh (18650) | — | 1.2kΩ | 1000mA (0.29C) |
 
-Going faster than 0.5C is possible if the cell's datasheet allows 1C, but on
-a sealed unit that is only ever charged overnight there is nothing to gain by
-it, and cycle life is better at the lower rate.
+**Why 37mm, and why that matters more than it sounds.** An earlier revision
+of this BOM assumed a 25–32mm test-tube-style housing, which forced a slim
+10440 or pouch cell of ~350mAh and gave an estimated **~3 weeks** of battery
+life at the firmware's 15-minute interval. The commercial precedent is wider:
+KegLand's RAPT Pill is 37 × 125mm and runs an 18650. At 37mm an 18650 (18mm
+diameter) fits easily, and ~2500mAh takes the same duty cycle to an estimated
+**~5 months** — matching the "months between charges" a shipping product
+claims, which is a useful sanity check on the estimate.
 
-**The housing decides several other parts.** Diameter sets which cell fits;
-length and total mass set how much ballast you need; the cap sets the
+That single dimension change is the difference between charging between every
+batch and charging twice a year. It also leaves room for a ~33mm Qi receiver
+coil, close to standard wearable-class parts, if the port-free charging route
+is taken later.
+
+Estimated runtime at 2500mAh usable-2200mAh, by reporting interval:
+
+| Interval | Per day | Runtime |
+|---|---|---|
+| 10 min | 20.5mAh | ~3.6 months |
+| **15 min (firmware default)** | **13.8mAh** | **~5.3 months** |
+| 30 min | 7.1mAh | ~10 months |
+
+These are estimates from the firmware's `SLEEP_INTERVAL_SECONDS = 900` and
+typical ESP32 WiFi draw, not measurements. A marginal WiFi link makes them
+much worse — a failed connect burns the full 15-second timeout instead of
+~5 seconds, roughly tripling wake energy.
+
+**The housing still decides several other parts.** Diameter sets which cell
+fits; length and total mass set how much ballast you need; the cap sets the
 gasket. Don't order cells or ballast before you have a housing in hand.
 
 **Two things remain unvalidated on hardware**, both flagged in

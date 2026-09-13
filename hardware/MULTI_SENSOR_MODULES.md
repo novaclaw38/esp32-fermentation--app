@@ -110,11 +110,16 @@ no accelerometer) or when humidity is wanted instead.
 - **USB-C sits on the top cap, above the waterline, like the Tilt
   Hydrometer and RAPT Pill do it.** The body floats with only this cap
   exposed; charge without opening the housing.
-- **Battery format is constrained by tube diameter, not capacity.** Most
-  floating housings are built from a test-tube-diameter vial (25-32mm) —
-  a standard 18650 (18mm dia., but long) may or may not fit depending on
-  housing length; a slim 10440 or a small LiPo pouch cell is the more
-  common choice. Pick the cell *after* the housing is chosen, not before.
+- **Housing diameter is ~37mm, and that choice sets the battery.** An
+  earlier revision of this doc assumed a 25-32mm test-tube vial, which
+  forces a slim 10440 or pouch cell around 350mAh and gives roughly three
+  weeks per charge. The commercial precedent is wider — KegLand's RAPT Pill
+  is 37 × 125mm on an 18650 — and at 37mm an 18650 fits easily, taking the
+  same duty cycle to an estimated ~5 months. That one dimension is the
+  difference between charging between every batch and charging twice a
+  year, so it is specified here rather than left to the housing search.
+  It also leaves room for a ~33mm Qi receiver coil if the port-free
+  charging route is taken later.
 - **No off-board probe connector (J2) at all** — see the DS18B20 point
   above. One fewer sealed penetration than the Hub design.
 
@@ -135,7 +140,7 @@ no accelerometer) or when humidity is wanted instead.
 | R4,R5 | 10kΩ | 0603 | 2 | ~$0.01 ea | EN / IO0 pull-ups |
 | R6 | 100kΩ | 0603 | 1 | ~$0.01 | Q1 gate pull-up to BAT+ |
 | R7,R8 | 4.7kΩ | 0603 | 2 | ~$0.01 ea | I²C pull-ups (ADXL345) |
-| R9 | 6.8kΩ | 0603 | 1 | ~$0.01 | TP4056 PROG — ~176mA, i.e. 0.5C for the 350mAh cell this housing takes. **Not** the Hub's 1.2kΩ/1A, which would be ~2.9C here |
+| R9 | 1.2kΩ | 0603 | 1 | ~$0.01 | TP4056 PROG — ~1A, 0.40C for the 2500mAh 18650 the 37mm housing takes. Same as the Hub |
 | R10 | 10kΩ | 0603 | 1 | ~$0.01 | Q2 base resistor |
 | C1 | 1µF | 0603 | 1 | ~$0.02 | EN RC delay |
 | C2,C3 | 0.1µF | 0603 | 2 | ~$0.02 ea | Module VDD decoupling |
@@ -145,8 +150,8 @@ no accelerometer) or when humidity is wanted instead.
 | C8 | 0.1µF | 0603 | 1 | ~$0.02 | ADXL345 decoupling |
 | J1 | USB-C 16-pin | SMD | 1 | ~$0.15 | Top-mounted, above waterline |
 | J4 | 2.54mm 6-pin header | THT | 1 | ~$0.05 | Assembly-time programming only |
-| — | Slim Li-ion cell (10440 or LiPo pouch) | — | 1 | ~$1.50-3 | Pick after housing diameter is fixed |
-| — | Sealed floating housing | — | 1 | ~$3-6 | The real unknown cost — mechanical, not electrical |
+| — | 18650 Li-ion cell (~2500mAh) | — | 1 | ~$2-4 | Fits the 37mm housing; ~5 months per charge at the 15-min default |
+| — | Sealed floating housing, ~37mm × 125mm | — | 1 | ~$3-7 | The real unknown cost — mechanical, not electrical |
 
 > **The table above is the board-level sketch, not the order list.** The
 > complete, reconciled parts list — including the USB-C CC resistors that
