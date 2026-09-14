@@ -133,6 +133,31 @@ no accelerometer) or when humidity is wanted instead.
   charging route is taken later.
 - **No off-board probe connector (J2) at all** — see the DS18B20 point
   above. One fewer sealed penetration than the Hub design.
+- **The internal stack budget is ~14mm, and it rules out any dev board.**
+  A 37mm housing with a 2mm wall has a 33mm *internal* diameter. An 18650 is
+  18.6mm across, so it alone consumes 56% of that, leaving **14.4mm** along
+  the diameter for the board and everything on it — before ballast, potting
+  or the sensor.
+
+  For scale, socketing an ESP32 DevKit V1 onto a carrier costs roughly
+  8mm of header + 1.6mm carrier + 1.6mm board + 3.5mm module = **14.7mm**,
+  which is already over budget with nothing else fitted. This is the concrete
+  reason the float needs the bare-module SMD design rather than a dev board
+  on a carrier, however convenient the carrier would be on the bench.
+
+  Usable board width, with the cell sitting low in the tube:
+
+  | Height above centre | Chord width | Headroom above |
+  |---|---|---|
+  | 2mm | 32.8mm | 14.5mm |
+  | 4mm | 32.0mm | 12.5mm |
+  | 6mm | 30.7mm | 10.5mm |
+  | 8mm | 28.9mm | 8.5mm |
+
+  Width is not the binding constraint — **stack height is**. Design the float
+  PCB to sit low and flat with short components, and confirm the wall
+  thickness of the actual housing before committing, since a thicker wall
+  takes the budget down fast.
 
 ### BOM
 
