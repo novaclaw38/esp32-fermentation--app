@@ -1,5 +1,11 @@
 # Fermentation Monitor — Multi-Sensor Module Line
 
+> **Want to build one today?** This document specifies custom SMD boards,
+> which need a fab run. For the same four functions assembled from
+> off-the-shelf breakout modules on a dev board you already own, see
+> [`PROTOTYPE_MODULES.md`](PROTOTYPE_MODULES.md) — about $8–17 answers the
+> tilt-axis and calibration questions that currently block everything else.
+
 Extends the single-board design in `PCB_DESIGN.md` to cover humidity,
 gravity/density, and CO₂. The four sensors don't belong on one board —
 each has a physical placement constraint that decides its form factor
