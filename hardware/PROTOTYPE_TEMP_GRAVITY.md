@@ -27,7 +27,8 @@ scope here.)*
 | DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
 | 100 kΩ resistors | 2 | ~$0.02 | Battery divider |
-| TP4056 module **with protection** | 1 | $0.50–1 | The 6-pad version with DW01A + FS8205. The 4-pad ones have no protection, and an over-discharged 18650 is a dead 18650 |
+| TP4056 module **with protection** | 1 | $0.50–1 | **Count the ICs to tell them apart: protected boards have three** (TP4056 + DW01A + FS8205), unprotected have one. An over-discharged 18650 is a dead 18650 |
+| HT7333 or MCP1700 3.3 V LDO + 2× 1 µF | 1 | ~$0.30 | **DevKit V1 only** — see Power. The D1 Mini's own regulator is fine |
 | 18650 holder | 1 | ~$0.50 | |
 | 18650 cell (~2500 mAh) | 1 | $2–4 | |
 | Breadboard or D1 Mini proto shield | 1 | $1–3 | |
@@ -104,6 +105,26 @@ than a power fault. Two ways round it:
   drops ~0.1 V with a few µA of quiescent draw.
 - **Boost the cell to 5 V** (MT3608-class) into `VIN`. Simpler to buy,
   wasteful, and noisier.
+
+The full chain on a DevKit V1, with the divider tapping the cell side so it
+measures battery voltage rather than the regulated rail:
+
+```
+  18650 ──┬── TP4056 B+/B-  ──► OUT+ ──┬──► HT7333 ──► 3V3 pin
+          │   (charge + protection)    │   (+1uF in, 1uF out)
+          │                            │
+          │                            └──► 100k ──┬── IO34
+          │                                        │
+          │                                      100k
+          └────────────────── GND ────────────────┴── GND
+```
+
+A bare LDO can oscillate without its input and output capacitors — fit both,
+1 µF ceramic each is fine.
+
+> **The TP4056 alone is not enough on this board.** Its `OUT+` is the cell
+> voltage, 3.0–4.2 V, so feeding it to `VIN` still browns out. The LDO is the
+> part that makes it work.
 
 > **Never feed the raw cell into `3V3`.** 4.2 V against the ESP32's 3.6 V
 > absolute maximum kills the chip. Feeding `3V3` is only safe from something
