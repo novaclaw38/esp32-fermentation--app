@@ -108,11 +108,16 @@ no accelerometer) or when humidity is wanted instead.
 
 ### Key differences from the Hub, and why
 
-- **DS18B20 is potted inside the housing, not on an external probe.** The
-  whole module is already submerged — a cable penetration through the
-  housing to an external probe would be a seal to fail. Glue/pot the
-  sensor against the inside of the housing wall for thermal contact with
-  the liquid instead.
+- **Temperature is an on-board component, not an external probe.** The
+  whole module is already submerged, so a cable penetration for a probe
+  would be a seal to fail for nothing. The board carries an MCP9808 on the
+  accelerometer's I²C bus: more accurate than a DS18B20, cheaper, and it
+  costs no extra GPIO or pull-up. What it *does* cost is a mechanical
+  requirement — the board has to be thermally bonded to the housing wall at
+  the sensor, because a sensor reading still internal air is wrong no matter
+  how good its datasheet is. Where that isn't practical, a discrete DS18B20
+  glued to the wall on two short wires is the fallback, and the firmware
+  detects which is fitted.
 - **USB-C sits on the top cap, above the waterline, like the Tilt
   Hydrometer and RAPT Pill do it.** The body floats with only this cap
   exposed; charge without opening the housing.
@@ -142,7 +147,8 @@ no accelerometer) or when humidity is wanted instead.
 | Q1 | AO3401 PMOS | SOT-23 | 1 | ~$0.02 | Battery-divider gate |
 | Q2 | MMBT3904 NPN | SOT-23 | 1 | ~$0.02 | Low-side switch for Q1 — see `PCB_DESIGN.md`'s DFM note, same fix applies here |
 | R1,R2 | 100kΩ | 0603 | 2 | ~$0.01 ea | Battery divider |
-| R3 | 4.7kΩ | 0603 | 1 | ~$0.01 | DS18B20 pull-up (potted sensor, same net) |
+| R3 | 4.7kΩ | 0603 | 1 | ~$0.01 | DS18B20 pull-up — only if a DS18B20 is fitted instead of U7 |
+| U7 | MCP9808 | DFN-8 | 1 | ~$0.50-1 | Temperature, on U6's I²C bus (addr 0x18). ±0.25 °C vs the DS18B20's ±0.5 °C, cheaper, no extra GPIO |
 | R4,R5 | 10kΩ | 0603 | 2 | ~$0.01 ea | EN / IO0 pull-ups |
 | R6 | 100kΩ | 0603 | 1 | ~$0.01 | Q1 gate pull-up to BAT+ |
 | R7,R8 | 4.7kΩ | 0603 | 2 | ~$0.01 ea | I²C pull-ups (ADXL345) |

@@ -506,6 +506,16 @@
 
   <div class="notes">
     <div class="callout">
+      <strong>Temperature is now an on-board MCP9808 (U7), not the DS18B20 this drawing shows.</strong>
+      Since the unit is submerged anyway, the sensor never needed to be a probe. The MCP9808 sits on
+      U6's existing I²C bus at address 0x18: ±0.25&nbsp;°C against the DS18B20's ±0.5&nbsp;°C, cheaper,
+      and it frees GPIO4 and R3. The catch is mechanical — the board must be thermally bonded to the
+      housing wall at the sensor, because a part reading still internal air is wrong however good its
+      datasheet. Where that isn't practical, a discrete DS18B20 glued to the wall is the fallback and
+      the firmware detects which is fitted. This figure has not been redrawn yet.
+    </div>
+
+    <div class="callout">
       <strong>Order from <code>BOM_TEMP_GRAVITY.md</code>, not from this drawing.</strong>
       The BOM is the authoritative parts list and includes components this figure doesn't
       draw: the TP4056 input/output caps (C5, C6), the 3V3 bulk cap (C4), and the ADXL345

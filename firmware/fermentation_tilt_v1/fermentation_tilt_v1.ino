@@ -85,6 +85,22 @@ const uint8_t ADXL345_REG_FORMAT  = 0x31;
 const uint8_t ADXL345_REG_DATAX0  = 0x32;
 const uint8_t ADXL345_DEVID_VALUE = 0xE5;
 
+// MCP9808 temperature sensor -- the preferred part on the production board.
+// It shares the ADXL345's I2C bus, so it costs no extra GPIO and no 1-Wire
+// pull-up, and at +-0.25 C it is twice as accurate as a DS18B20 for less
+// money. A0/A1/A2 tied low gives 0x18.
+//
+// Placement decides accuracy far more than the datasheet does: a +-0.25 C part
+// reading the enclosure's internal air is worse than a +-0.5 C part bonded to
+// the housing wall. Whichever sensor is fitted has to be thermally coupled to
+// the wall, not left sitting in still air on the board.
+const uint8_t MCP9808_ADDR         = 0x18;
+const uint8_t MCP9808_REG_CONFIG   = 0x01;
+const uint8_t MCP9808_REG_AMBIENT  = 0x05;
+const uint8_t MCP9808_REG_MANUF_ID = 0x06;
+const uint16_t MCP9808_MANUF_ID    = 0x0054;
+const uint8_t MCP9808_REG_RESOLUTION = 0x08;
+
 // Full-resolution mode is 3.9 mg per LSB regardless of range (256 LSB/g).
 const float ADXL345_G_PER_LSB = 0.0039;
 
@@ -97,6 +113,12 @@ const int TILT_SAMPLE_DELAY_MS = 10;
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
+// Which temperature sensor was actually found this boot. The production board
+// carries an MCP9808; bench rigs are usually wired with a DS18B20 probe. Rather
+// than a compile-time switch that someone will forget to flip, probe for the
+// MCP9808 and fall back -- so one binary runs on both.
+bool mcp9808Present = false;
 
 RTC_DATA_ATTR int consecutiveBreaches = 0;
 RTC_DATA_ATTR bool alertActive = false;
@@ -132,15 +154,96 @@ bool connectWiFi() {
   return true;
 }
 
-float readTemperature() {
+// --- MCP9808 -------------------------------------------------------------
+
+void mcp9808Write16(uint8_t reg, uint16_t value) {
+  Wire.beginTransmission(MCP9808_ADDR);
+  Wire.write(reg);
+  Wire.write((uint8_t)(value >> 8));
+  Wire.write((uint8_t)(value & 0xFF));
+  Wire.endTransmission();
+}
+
+bool mcp9808Read16(uint8_t reg, uint16_t* out) {
+  Wire.beginTransmission(MCP9808_ADDR);
+  Wire.write(reg);
+  if (Wire.endTransmission() != 0) return false;
+  Wire.requestFrom((uint8_t)MCP9808_ADDR, (uint8_t)2);
+  if (Wire.available() < 2) return false;
+  uint8_t hi = Wire.read();
+  uint8_t lo = Wire.read();
+  *out = ((uint16_t)hi << 8) | lo;
+  return true;
+}
+
+// Returns true if a real MCP9808 answered. The manufacturer ID is checked
+// rather than just the ACK, so another device sitting at 0x18 can't be
+// mistaken for one.
+bool mcp9808Begin() {
+  Wire.begin(I2C_SDA, I2C_SCL);
+
+  uint16_t manuf;
+  if (!mcp9808Read16(MCP9808_REG_MANUF_ID, &manuf)) return false;
+  if (manuf != MCP9808_MANUF_ID) {
+    Serial.println("Device at 0x18 is not an MCP9808 (manuf 0x" + String(manuf, HEX) + ")");
+    return false;
+  }
+
+  // 0x03 = 0.0625 C resolution. The slowest setting at ~250 ms, which is
+  // irrelevant once per wake and gives the part's full accuracy.
+  Wire.beginTransmission(MCP9808_ADDR);
+  Wire.write(MCP9808_REG_RESOLUTION);
+  Wire.write(0x03);
+  Wire.endTransmission();
+
+  mcp9808Write16(MCP9808_REG_CONFIG, 0x0000); // continuous conversion
+  return true;
+}
+
+// ~200 uA running vs ~0.1 uA shut down. Trivial while awake, but this board is
+// asleep 99.5% of the time, so leaving it converting would cost more over a
+// day than every reading it takes.
+void mcp9808Sleep() {
+  mcp9808Write16(MCP9808_REG_CONFIG, 0x0100); // SHDN
+}
+
+float mcp9808ReadC() {
+  delay(260); // one full conversion at 0.0625 C resolution
+
+  uint16_t raw;
+  if (!mcp9808Read16(MCP9808_REG_AMBIENT, &raw)) {
+    Serial.println("Error: MCP9808 ambient read failed");
+    return NAN;
+  }
+
+  // 13-bit two's complement in bits 12:0; bits 15:13 are alert flags.
+  float tempC = (raw & 0x0FFF) / 16.0;
+  if (raw & 0x1000) tempC -= 256.0;
+  return tempC;
+}
+
+// --- DS18B20 fallback ----------------------------------------------------
+
+float ds18b20ReadC() {
   sensors.requestTemperatures();
   float tempC = sensors.getTempCByIndex(0);
 
   if (tempC == DEVICE_DISCONNECTED_C) {
-    Serial.println("Error: could not read DS18B20 (check the potted sensor's solder joints)");
+    Serial.println("Error: could not read DS18B20 (check the sensor's solder joints)");
     return NAN;
   }
   return tempC;
+}
+
+// Prefers the MCP9808 when one is fitted; falls back to a DS18B20 otherwise.
+// `mcp9808Present` is set during setup().
+float readTemperature() {
+  if (mcp9808Present) {
+    float tempC = mcp9808ReadC();
+    mcp9808Sleep();
+    return tempC;
+  }
+  return ds18b20ReadC();
 }
 
 // Reads battery voltage through the gated 100k/100k divider. The divider is
@@ -457,6 +560,13 @@ void setup() {
   digitalWrite(BATTERY_EN_PIN, LOW);
 
   sensors.begin();
+
+  // Probe for the MCP9808 before reading. Wire.begin() is called inside both
+  // mcp9808Begin() and adxlBegin(); calling it twice is harmless.
+  mcp9808Present = mcp9808Begin();
+  Serial.println(mcp9808Present ? "Temperature sensor: MCP9808 (I2C)"
+                                : "Temperature sensor: DS18B20 (1-Wire fallback)");
+
   float tempC = readTemperature();
 
   float tiltDeg = NAN;

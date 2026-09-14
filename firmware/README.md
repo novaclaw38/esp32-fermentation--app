@@ -160,6 +160,31 @@ using per-device calibration coefficients on the `devices` row, so
 recalibrating a device fixes its entire history instead of leaving wrong
 values baked into stored rows.
 
+### Temperature sensor: MCP9808 or DS18B20
+
+The sketch supports both and picks at boot, so one binary runs on the bench
+rig and the production board:
+
+- **MCP9808** (production) — I²C at `0x18`, sharing the ADXL345's bus.
+  ±0.25 °C, cheaper than a DS18B20, no extra GPIO and no 1-Wire pull-up.
+  Read at full 0.0625 °C resolution, then shut down between wakes (~200 µA
+  running vs ~0.1 µA asleep — trivial while awake, but this board sleeps
+  99.5% of the time).
+- **DS18B20** (fallback) — used when no MCP9808 answers. Bench rigs are
+  usually wired with a probe, and some housings suit a discrete sensor glued
+  to the wall better than a thermally bonded PCB.
+
+Detection checks the MCP9808's manufacturer ID (`0x0054`), not just an I²C
+ACK, so another device at `0x18` can't be mistaken for one. The serial log
+says which was found on every boot.
+
+**Whichever is fitted, thermal coupling to the housing wall decides the
+accuracy** — by far more than the part's datasheet. A ±0.25 °C sensor reading
+the enclosure's still internal air is worse than a ±0.5 °C one bonded to the
+wall. That matters for the customer-facing reading; for gravity itself the
+sensitivity is only ~0.21 points per °C, so even ±0.5 °C costs ±0.11 gravity
+points against a ±2 point target.
+
 ### Calibrating a unit
 
 1. Flash it, seal it, and confirm the serial log prints a sane tilt angle:

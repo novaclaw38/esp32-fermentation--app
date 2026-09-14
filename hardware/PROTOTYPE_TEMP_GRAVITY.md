@@ -24,7 +24,7 @@ scope here.)*
 |---|---|---|---|
 | D1 Mini ESP32 board | 1 | — | You have this |
 | ADXL345 breakout (GY-291) | 1 | $2–3 | Tilt sensing |
-| DS18B20 waterproof probe | 1 | $2–3 | Cabled probe is right for bench work; the bare TO-92 is for the potted production build |
+| DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
 | 100 kΩ resistors | 2 | ~$0.02 | Battery divider |
 | TP4056 module **with protection** | 1 | $0.50–1 | The 6-pad version with DW01A + FS8205. The 4-pad ones have no protection, and an over-discharged 18650 is a dead 18650 |

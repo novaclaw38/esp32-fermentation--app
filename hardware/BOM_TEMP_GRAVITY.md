@@ -34,6 +34,7 @@ imported electronics), not the raw FX rate.
 | U4 | FS8205A | SOT-23-6 | 1 | LCSC (search FS8205A) | ~$0.08 | Dual MOSFET pair driven by U3 |
 | U5 | XC6206P332MR (3.3V LDO) | SOT-23-3 | 1 | LCSC C5446 | ~$0.03 | **Not AMS1117** — quiescent current must stay in single-digit µA or deep sleep is pointless |
 | U6 | ADXL345 | LGA-14 | 1 | LCSC (search ADXL345BCCZ) | ~$1.80 | Tilt sensing. I²C mode: SDO→GND (addr 0x53), CS→3V3 |
+| U7 | **MCP9808** | DFN-8 | 1 | LCSC (search MCP9808T) | ~$0.50–1 | Temperature. Same I²C bus as U6; A0/A1/A2→GND gives 0x18. **Must be thermally bonded to the housing wall** — see below |
 | Q1 | AO3401 PMOS | SOT-23 | 1 | LCSC C15127 | ~$0.02 | Gates the battery divider so it draws nothing in sleep |
 | Q2 | MMBT3904 NPN | SOT-23 | 1 | LCSC C8598 | ~$0.02 | Low-side switch for Q1's gate — a GPIO **cannot** drive the PMOS gate directly, see `PCB_DESIGN.md` |
 | D1 | LED, red | 0603 | 1 | — | ~$0.02 | TP4056 CHRG. Optional, but the only charge feedback on a sealed unit |
@@ -46,7 +47,7 @@ imported electronics), not the raw FX rate.
 | Ref | Value | Qty | Purpose |
 |---|---|---|---|
 | R1, R2 | 100kΩ **1%** | 2 | Battery divider. 1% matters — the firmware assumes an exact 1:1 ratio |
-| R3 | 4.7kΩ | 1 | DS18B20 1-Wire pull-up |
+| R3 | 4.7kΩ | 1 | DS18B20 1-Wire pull-up. **Only needed if you fit a DS18B20 instead of the MCP9808** — omit otherwise, along with the GPIO4 net |
 | R4 | 10kΩ | 1 | EN pull-up |
 | R5 | 10kΩ | 1 | IO0 pull-up |
 | R6 | 100kΩ | 1 | Q1 gate pull-up to BAT+ — this, not the GPIO, defines the solidly-off state |
@@ -98,7 +99,7 @@ with all of the above populated, at 15–25 unit quantity.
 
 | Part | Qty | Unit cost | Notes |
 |---|---|---|---|
-| DS18B20, **bare TO-92** | 1 | $1–2 | Not the cabled waterproof probe — this one is potted against the inside of the housing wall |
+| DS18B20, bare TO-92 — *fallback only* | 0–1 | $1–2 | Superseded by the on-board MCP9808 (U7). Keep this option if you'd rather glue a discrete sensor exactly where you want it than thermally bond the PCB to the wall. Not the cabled probe — that's for the bench rig |
 | **18650 Li-ion cell** (~2500mAh) + holder or solder tabs | 1 | $2–4 | Fits the 37mm housing with room to spare. R9 is sized for this; a different capacity means a different R9 |
 | Sealed floating housing, **~37mm × 125mm** (tube + top cap) | 1 | $3–7 | The real cost and schedule risk. Sized against the commercial precedent — see below |
 | Ballast — lead-free shot, stainless nuts, or tungsten putty | ~20–50g | $0.30–1.50 | **Required.** Sets the float angle; without it the unit floats flat and reads nothing useful. A bigger body displaces more, so it needs more ballast |
@@ -187,6 +188,26 @@ than merely poor cycle life. Points on the curve, at a conservative 0.5C:
 | 2000mAh (18650) | 1000mA | 1.2kΩ | 1000mA (0.50C) |
 | **2500mAh (18650)** | — | **1.2kΩ** | **1000mA (0.40C)** |
 | 3400mAh (18650) | — | 1.2kΩ | 1000mA (0.29C) |
+
+**Temperature sensor: on the board, not on a probe — but coupling decides it.**
+Because the whole unit is submerged, the sensor never needed to be a cabled
+probe. The board carries an **MCP9808** on the ADXL345's existing I²C bus:
+±0.25 °C against the DS18B20's ±0.5 °C, cheaper, no extra GPIO, no 1-Wire
+pull-up, and no exposure to the counterfeit DS18B20 problem. (For reference,
+KegLand's RAPT Pill claims ±0.2 °C.)
+
+**Placement dominates the datasheet by an order of magnitude.** A ±0.25 °C
+part reading the enclosure's still internal air is far worse than a ±0.5 °C
+part bonded to the housing wall. So the board must sit against the wall with
+thermal gap filler at the sensor, and the layout needs copper relief keeping
+U7 away from the ESP32 and the LDO. If your housing makes that impractical,
+fit a discrete DS18B20 on two short wires and glue it to the wall instead —
+the firmware auto-detects which sensor is present and runs either way.
+
+For gravity specifically the sensor grade barely matters: sensitivity is
+~0.21 gravity points per °C, so even ±0.5 °C costs only ±0.11 points against
+a ±2 point target. The case for the MCP9808 is the customer-facing
+temperature spec, not the compensation.
 
 **Why 37mm, and why that matters more than it sounds.** An earlier revision
 of this BOM assumed a 25–32mm test-tube-style housing, which forced a slim
