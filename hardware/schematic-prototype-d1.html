@@ -1,0 +1,203 @@
+<title>Prototype Wiring — D1 Mini ESP32</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#fffdf9;--fg:#292217;--muted:#7d7161;--line:#ddd3c0;--panel:#fff;--accent:#a8631c;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    color-scheme:light}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#201c16;--fg:#f2ede4;--muted:#b8ada0;--line:#4a4136;--panel:#2a251d;--accent:#e6b25c}}
+  :root[data-theme="dark"]{--bg:#201c16;--fg:#f2ede4;--muted:#b8ada0;--line:#4a4136;--panel:#2a251d;--accent:#e6b25c}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);margin:0}
+  main{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:2.2rem 3rem}
+  h1{font-size:1.5rem;font-weight:600;margin:0 0 .3rem;letter-spacing:-.01em;text-wrap:balance}
+  .sub{color:var(--muted);font-size:.92rem;max-width:64ch;line-height:1.55;margin:0 0 1.5rem}
+  svg text,svg tspan{font-family:var(--mono)}
+  code{font-family:var(--mono);background:var(--line);border-radius:4px;padding:.1rem .35rem;font-size:.85em}
+  .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:12px}
+  figure{margin:0}
+  svg{display:block;width:100%;height:auto;max-width:100%}
+  figcaption{margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.5}
+  h2{font-size:1.05rem;margin:2rem 0 .5rem}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  td:first-child{font-family:var(--mono);white-space:nowrap}
+  .callout{border:1px solid var(--accent);border-left-width:4px;border-radius:6px;padding:.75rem 1rem;
+    margin:1.2rem 0;font-size:.88rem;line-height:1.55}
+  .callout strong{color:var(--accent)}
+  @media print{body{background:#fff;color:#000}.wrap{border:1px solid #ccc}}
+</style>
+
+<main>
+  <h1>Prototype wiring — D1 Mini ESP32 + ADXL345 + INR18650</h1>
+  <p class="sub">The bench rig, drawn at module level. This is <em>not</em> the custom PCB
+  schematic (<code>schematic-gravity-module.html</code>) — that one shows bare SMD parts you
+  can't breadboard. Every line below is a wire you physically run.</p>
+
+  <div class="wrap"><figure>
+  <svg viewBox="0 266 1240 576" role="img"
+       aria-label="Wiring diagram: an INR18650 cell feeds a TP4056 charging module, whose OUT+ supplies the D1 Mini ESP32's 5V pin and a 100k/100k divider read by GPIO34. The board's GPIO21 and GPIO22 drive an ADXL345 breakout whose SDO is tied to ground for address 0x53, and GPIO4 drives a DS18B20 with a 4.7k pull-up to 3V3.">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+    <g font-size="12" fill="currentColor" stroke="none" font-family="monospace">
+
+    <!-- ================= POWER ================= -->
+    <rect x="60" y="380" width="200" height="120" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="160" y="425" text-anchor="middle" font-weight="600">TP4056</text>
+    <text x="160" y="444" text-anchor="middle" font-size="11">charge + protection</text>
+    <text x="112" y="492" font-size="10">B+</text>
+    <text x="196" y="492" font-size="10">B−</text>
+    <text x="266" y="403" font-size="10">OUT+</text>
+    <text x="266" y="453" font-size="10">OUT−</text>
+
+    <rect x="60" y="580" width="200" height="72" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="160" y="612" text-anchor="middle" font-weight="600">INR18650</text>
+    <text x="160" y="630" text-anchor="middle" font-size="11">+ holder</text>
+    <text x="118" y="598" font-size="11">+</text>
+    <text x="202" y="598" font-size="11">−</text>
+
+    <line x1="110" y1="580" x2="110" y2="500" stroke="currentColor" stroke-width="2"/>
+    <line x1="210" y1="580" x2="210" y2="500" stroke="currentColor" stroke-width="2"/>
+
+    <!-- OUT+ bus -->
+    <line x1="260" y1="410" x2="400" y2="410" stroke="currentColor" stroke-width="2.4"/>
+    <circle cx="320" cy="410" r="4.5" fill="currentColor" stroke="none"/>
+    <polyline points="320,410 320,330 520,330" stroke="currentColor" stroke-width="2.4" fill="none"/>
+    <text x="330" y="322" font-size="11" font-weight="600">BAT+ 3.0–4.2 V</text>
+
+    <!-- OUT- to ground bus -->
+    <polyline points="260,460 300,460 300,780" stroke="currentColor" stroke-width="2" fill="none"/>
+
+    <!-- ================= DIVIDER ================= -->
+    <line x1="400" y1="410" x2="400" y2="430" stroke="currentColor" stroke-width="2"/>
+    <rect x="382" y="430" width="36" height="50" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="428" y="460" font-size="11">100 k</text>
+    <line x1="400" y1="480" x2="400" y2="530" stroke="currentColor" stroke-width="2"/>
+    <circle cx="400" cy="505" r="4.5" fill="currentColor" stroke="none"/>
+    <rect x="382" y="530" width="36" height="50" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="428" y="560" font-size="11">100 k</text>
+    <line x1="400" y1="580" x2="400" y2="780" stroke="currentColor" stroke-width="2"/>
+    <line x1="400" y1="505" x2="520" y2="505" stroke="currentColor" stroke-width="2"/>
+    <text x="420" y="496" font-size="9" opacity="0.75">2.10 V @ 4.2 V</text>
+
+    <!-- ================= BOARD ================= -->
+    <rect x="520" y="280" width="220" height="380" rx="5" stroke="currentColor" stroke-width="2.5" fill="none"/>
+    <text x="630" y="452" text-anchor="middle" font-weight="600" font-size="14">D1 Mini ESP32</text>
+    <text x="630" y="472" text-anchor="middle" font-size="11">(DevKit V1 also works —</text>
+    <text x="630" y="488" text-anchor="middle" font-size="11">see note below)</text>
+    <text x="528" y="326" font-size="11">5V</text>
+    <text x="528" y="501" font-size="11">GPIO34</text>
+    <text x="576" y="652" font-size="11">GND</text>
+    <text x="732" y="316" font-size="11" text-anchor="end">3V3</text>
+    <text x="732" y="376" font-size="11" text-anchor="end">GPIO21</text>
+    <text x="732" y="426" font-size="11" text-anchor="end">GPIO22</text>
+    <text x="732" y="486" font-size="11" text-anchor="end">GPIO4</text>
+    <text x="732" y="586" font-size="11" text-anchor="end">GPIO25</text>
+
+    <line x1="600" y1="660" x2="600" y2="780" stroke="currentColor" stroke-width="2"/>
+
+    <!-- GPIO25 unconnected -->
+    <line x1="740" y1="590" x2="790" y2="590" stroke="currentColor" stroke-width="2"/>
+    <circle cx="796" cy="590" r="5" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="808" y="576" font-size="10" opacity="0.75">unconnected</text>
+
+    <!-- ================= 3V3 RAIL ================= -->
+    <line x1="740" y1="320" x2="1180" y2="320" stroke="currentColor" stroke-width="2.4"/>
+    <text x="880" y="312" font-size="11" font-weight="600">3V3</text>
+    <line x1="1040" y1="320" x2="1040" y2="400" stroke="currentColor" stroke-width="2"/>
+    <circle cx="1040" cy="320" r="4.5" fill="currentColor" stroke="none"/>
+    <line x1="1180" y1="320" x2="1180" y2="665" stroke="currentColor" stroke-width="2"/>
+    <line x1="1180" y1="665" x2="1140" y2="665" stroke="currentColor" stroke-width="2"/>
+    <circle cx="1180" cy="600" r="4.5" fill="currentColor" stroke="none"/>
+
+    <!-- ================= ADXL345 ================= -->
+    <rect x="940" y="400" width="200" height="160" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="1040" y="452" text-anchor="middle" font-weight="600">ADXL345</text>
+    <text x="1040" y="470" text-anchor="middle" font-size="11">GY-291 breakout</text>
+    <text x="1052" y="394" font-size="10">VCC</text>
+    <text x="948" y="426" font-size="10">SDA</text>
+    <text x="948" y="466" font-size="10">SCL</text>
+    <text x="948" y="516" font-size="10">SDO</text>
+    <text x="948" y="546" font-size="10">GND</text>
+
+    <polyline points="740,380 900,380 900,430 940,430" stroke="currentColor" stroke-width="2" fill="none"/>
+    <polyline points="740,430 880,430 880,470 940,470" stroke="currentColor" stroke-width="2" fill="none"/>
+    <polyline points="940,520 910,520 910,780" stroke="currentColor" stroke-width="2" fill="none"/>
+    <line x1="940" y1="550" x2="910" y2="550" stroke="currentColor" stroke-width="2"/>
+    <circle cx="910" cy="550" r="4.5" fill="currentColor" stroke="none"/>
+
+    <!-- ================= DS18B20 ================= -->
+    <rect x="940" y="640" width="200" height="110" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+    <text x="1040" y="682" text-anchor="middle" font-weight="600">DS18B20</text>
+    <text x="1040" y="700" text-anchor="middle" font-size="11">probe</text>
+    <text x="1146" y="657" font-size="10">red</text>
+    <text x="948" y="691" font-size="10">yellow</text>
+    <text x="948" y="731" font-size="10">black</text>
+
+    <polyline points="740,490 840,490 840,695 940,695" stroke="currentColor" stroke-width="2" fill="none"/>
+    <circle cx="840" cy="600" r="4.5" fill="currentColor" stroke="none"/>
+    <polyline points="940,725 880,725 880,780" stroke="currentColor" stroke-width="2" fill="none"/>
+
+    <!-- 4.7k pull-up: DATA net to 3V3 rail. Crosses the ADXL ground drop
+         at x=910 with NO junction dot -- crossing, not a connection. -->
+    <line x1="840" y1="600" x2="1048" y2="600" stroke="currentColor" stroke-width="2"/>
+    <rect x="1048" y="582" width="50" height="36" stroke="currentColor" stroke-width="2" fill="none"/>
+    <line x1="1098" y1="600" x2="1180" y2="600" stroke="currentColor" stroke-width="2"/>
+    <text x="1073" y="574" font-size="11" text-anchor="middle">4.7 k</text>
+
+    <!-- ================= GROUND BUS ================= -->
+    <line x1="300" y1="780" x2="910" y2="780" stroke="currentColor" stroke-width="2.6"/>
+    <circle cx="400" cy="780" r="4.5" fill="currentColor" stroke="none"/>
+    <circle cx="600" cy="780" r="4.5" fill="currentColor" stroke="none"/>
+    <circle cx="880" cy="780" r="4.5" fill="currentColor" stroke="none"/>
+    <line x1="605" y1="800" x2="655" y2="800" stroke="currentColor" stroke-width="2"/>
+    <line x1="613" y1="808" x2="647" y2="808" stroke="currentColor" stroke-width="2"/>
+    <line x1="623" y1="816" x2="637" y2="816" stroke="currentColor" stroke-width="2"/>
+    <line x1="630" y1="780" x2="630" y2="800" stroke="currentColor" stroke-width="2"/>
+    <text x="668" y="806" font-size="11">GND</text>
+
+    </g>
+    </g>
+  </svg>
+  <figcaption>Every line is a wire. A filled dot is a junction; lines crossing without a dot are
+  not connected (the 4.7&nbsp;kΩ pull-up crosses the ADXL345's ground drop at one point).
+  <strong>SDO is tied to GND</strong> — that is what puts the ADXL345 at address <code>0x53</code>,
+  which is the address the firmware expects.</figcaption>
+  </figure></div>
+
+  <div class="callout">
+    <strong>GPIO numbers, not silkscreen labels.</strong> Board revisions and clones print these
+    pins differently (<code>IO4</code>, <code>D4</code>, plain <code>4</code>). The firmware
+    addresses GPIO numbers; match those. Both the D1 Mini ESP32 and the DevKit V1 break out all five.
+  </div>
+
+  <div class="callout">
+    <strong>On a DevKit V1 this power chain does not work.</strong> Its AMS1117 regulator needs
+    &gt;4.4&nbsp;V in to hold 3.3&nbsp;V out, and a cell is 4.2&nbsp;V falling — you get brownouts
+    during WiFi transmit that look like random resets. Either regulate the cell to 3.3&nbsp;V with an
+    HT7333/MCP1700 and feed <code>3V3</code> directly, or use the D1 Mini, whose regulator runs from a
+    cell as drawn. <strong>Never feed the raw cell into <code>3V3</code></strong> (4.2&nbsp;V against a
+    3.6&nbsp;V maximum), and never have USB connected at the same time as an external 3V3 feed.
+  </div>
+
+  <h2>Connections</h2>
+  <table>
+    <tr><th>From</th><th>To</th><th>Why</th></tr>
+    <tr><td>18650 + / −</td><td>TP4056 <code>B+</code> / <code>B−</code></td><td>Cell into the charger</td></tr>
+    <tr><td>TP4056 <code>OUT+</code></td><td>Board <code>5V</code></td><td>Through the board's own regulator — not <code>3V3</code></td></tr>
+    <tr><td>TP4056 <code>OUT+</code></td><td>100 k → GPIO34 → 100 k → GND</td><td>Battery sense. 2.10 V at a 4.2 V cell, matching the firmware's ×2</td></tr>
+    <tr><td>TP4056 <code>OUT−</code></td><td>GND bus</td><td>Common ground</td></tr>
+    <tr><td>GPIO21 / GPIO22</td><td>ADXL345 <code>SDA</code> / <code>SCL</code></td><td>I²C</td></tr>
+    <tr><td>ADXL345 <code>VCC</code></td><td>Board <code>3V3</code></td><td></td></tr>
+    <tr><td>ADXL345 <code>SDO</code></td><td>GND</td><td><strong>Sets address 0x53.</strong> Floating or high gives 0x1D and the sketch reports no samples</td></tr>
+    <tr><td>GPIO4</td><td>DS18B20 yellow</td><td>1-Wire data</td></tr>
+    <tr><td>GPIO4</td><td>4.7 kΩ → <code>3V3</code></td><td>Bus pull-up. Some probe modules already have one — don't fit two</td></tr>
+    <tr><td>DS18B20 red / black</td><td><code>3V3</code> / GND</td><td></td></tr>
+    <tr><td>GPIO25</td><td>— nothing</td><td>Divider gating isn't fitted on a breadboard; the firmware toggles it harmlessly</td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>None of this is needed for the axis test.</strong> Board + ADXL345 + USB cable is enough
+    to confirm the sketch prints ~0° upright and ~90° flat — the assumption the whole firmware rests
+    on. Wire the battery and DS18B20 afterwards.
+  </div>
+</main>

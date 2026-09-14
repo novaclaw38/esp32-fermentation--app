@@ -45,6 +45,10 @@ the stages after it.
 
 ## Wiring
 
+Full module-level schematic:
+[`schematic-prototype-d1.html`](schematic-prototype-d1.html) — every line on it
+is a wire you physically run.
+
 The firmware's pin map works **unchanged on both boards** — all five pins are
 broken out on each, with identical silkscreen labels, so
 `firmware/fermentation_tilt_v1/` flashes and runs as-is.
