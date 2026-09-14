@@ -94,13 +94,30 @@ checklist before a real pre-sold batch.
 
 ## Status / what's implemented vs. still open
 
-Implemented: firmware read/post/alert/deep-sleep cycle, remote-configurable
-thresholds, optional OTA update path, per-device secret auth, Postgres
-schema + RLS, alert email via Edge Function, dashboard auth/device list/
-chart/alerts/threshold editor, landing page waitlist.
+**Software is complete end to end and deployed.** Firmware
+read/post/alert/deep-sleep cycle for both the Hub and the floating Temp +
+Gravity unit, remote-configurable thresholds, optional OTA path, per-device
+secret auth, Postgres schema + RLS, alert email via Edge Function, dashboard
+with auth, device list, temperature chart, gravity chart and calibration
+editor, and the landing page waitlist. Gravity is stored as raw tilt and
+converted to SG on read, corrected to a 20 °C reference from each device's
+recorded calibration temperature.
 
-Still open (see the "Known Gaps" sections in `firmware/README.md` and
-`supabase/README.md`): OTA has not been validated on real hardware, no
-per-device rate limiting on the ingest RPCs yet, no device-secret rotation
-flow, and the ingest RPCs' OTA TLS check uses `setInsecure()` rather than a
-pinned certificate.
+**No hardware has ever been built.** Every hardware document in this repo is
+a design on paper. Two things in particular are assumptions, not results:
+which accelerometer axis runs along the housing, and whether the float angle
+sweeps usefully across 1.000–1.080. Both are answered by a ~$8–17 breadboard
+rig — see [`hardware/PROTOTYPE_TEMP_GRAVITY.md`](hardware/PROTOTYPE_TEMP_GRAVITY.md).
+Until then the temperature correction is verified as maths, not against real
+liquid, and no accuracy figure can be quoted.
+
+**Still open elsewhere** (see the "Known Gaps" sections in
+`firmware/README.md` and `supabase/README.md`): CO₂ module firmware and its
+schema/dashboard support; OTA unvalidated on real hardware; no per-device
+rate limiting on the ingest RPCs; no device-secret rotation flow; and the OTA
+TLS check uses `setInsecure()` rather than a pinned certificate.
+
+**Commercially, read `docs/IMPLEMENTATION_PLAN.md` before pricing anything.**
+KegLand's RAPT Pill ships at roughly $50 with both radios, a 5 bar pressure
+rating and years of field-proven firmware. The plan's original $99–129 target
+does not survive that, and the landing page no longer quotes a price.
