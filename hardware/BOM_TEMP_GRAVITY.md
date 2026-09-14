@@ -6,7 +6,7 @@ Firmware: `firmware/fermentation_tilt_v1/`.
 
 > **This is the production BOM — SMD parts for a fabbed board.** To build a
 > working float on a breadboard first, see
-> [`PROTOTYPE_MODULES.md`](PROTOTYPE_MODULES.md).
+> [`PROTOTYPE_TEMP_GRAVITY.md`](PROTOTYPE_TEMP_GRAVITY.md).
 
 Also published as a checkable order list:
 <https://claude.ai/code/artifact/30287fa3-41c6-4aa6-bf64-7ca5688c4331>
