@@ -1,4 +1,4 @@
-# Bench prototype — Temp + Gravity on a D1 Mini ESP32
+# Bench prototype — Temp + Gravity on an ESP32 dev board
 
 The one build worth doing next. Everything else in `hardware/` specifies
 custom SMD boards that need a fab run, so nothing in this repo has ever been
@@ -22,7 +22,7 @@ scope here.)*
 
 | Part | Qty | Cost | Notes |
 |---|---|---|---|
-| D1 Mini ESP32 board | 1 | — | You have this |
+| ESP32 dev board | 1 | — | D1 Mini ESP32 **or** DevKit V1 — both work, and both use the same pin labels. They differ only in power; see below |
 | ADXL345 breakout (GY-291) | 1 | $2–3 | Tilt sensing |
 | DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
@@ -36,12 +36,17 @@ scope here.)*
 **Total: ~$9–17.** For the gravity sweep you'll also want a hydrometer, table
 sugar, and a tall container — see [Calibrating](#2-calibrating-the-curve).
 
+**You don't need most of this to start.** The axis test needs only the board,
+the ADXL345 and a USB cable. The DS18B20, battery, TP4056 and divider are for
+the stages after it.
+
 ---
 
 ## Wiring
 
-The firmware's pin map works on this board **unchanged** — all five pins are
-broken out, so `firmware/fermentation_tilt_v1/` flashes and runs as-is.
+The firmware's pin map works **unchanged on both boards** — all five pins are
+broken out on each, with identical silkscreen labels, so
+`firmware/fermentation_tilt_v1/` flashes and runs as-is.
 
 | Firmware | Board label | Connect to |
 |---|---|---|
@@ -78,20 +83,38 @@ and leave `IO25` unconnected. The firmware still toggles that pin and waits
 30 ms before reading — harmless, and it means **the same sketch runs on both
 the prototype and the real board**.
 
-### Power
+### Power — this is where the two boards differ
 
-Cell → TP4056 `B+`/`B-`. TP4056 `OUT+` → the board's **`5V` pin**.
+**For the axis test (below), just use USB.** No battery, no regulator
+question, nothing to get wrong. Only the float test needs a battery, because
+a tethered float can't tilt freely.
 
-> **Never feed the cell into `3V3`.** A charged cell is 4.2 V; the ESP32's
-> absolute maximum is 3.6 V. That kills the chip. The `5V` pin routes through
-> the board's own regulator, which is what you want.
+**D1 Mini ESP32** — cell → TP4056 `B+`/`B-`, TP4056 `OUT+` → the board's `5V`
+pin. Its ME6211-class LDO drops only ~0.1–0.3 V, so it runs down to a
+~3.4–3.6 V cell.
 
-The cost is headroom: an ME6211-class LDO drops ~0.1–0.3 V under WiFi load,
-so the rig browns out around a 3.4–3.6 V cell — you get the top 70–80% of
-capacity. Fine for bench work.
+**DevKit V1 — a single Li-ion cell will not power it through `VIN`.** The
+board carries an AMS1117, whose dropout is around **1.1 V**: it needs >4.4 V
+in to hold 3.3 V out, and a Li-ion cell is 4.2 V at full charge and falling.
+You get brownouts during WiFi transmit, which look like random resets rather
+than a power fault. Two ways round it:
+
+- **Regulate the cell to 3.3 V yourself** and feed the board's `3V3` pin
+  directly, bypassing the AMS1117. An HT7333 or MCP1700 costs ~$0.30 and
+  drops ~0.1 V with a few µA of quiescent draw.
+- **Boost the cell to 5 V** (MT3608-class) into `VIN`. Simpler to buy,
+  wasteful, and noisier.
+
+> **Never feed the raw cell into `3V3`.** 4.2 V against the ESP32's 3.6 V
+> absolute maximum kills the chip. Feeding `3V3` is only safe from something
+> already regulated to 3.3 V.
+
+> **Never have USB connected at the same time as an external 3V3 feed.** You
+> backfeed the onboard regulator and can damage the regulator, your supply, or
+> both. Unplug USB first.
 
 **Charge through the TP4056's USB port, not the board's.** Both feed the same
-rail and will fight each other. Disconnect the battery before flashing.
+rail and will fight. Disconnect the battery before flashing.
 
 ---
 
@@ -167,16 +190,18 @@ housings.
 
 ## What this rig will not tell you
 
-**Battery life.** The D1 Mini ESP32 keeps its CH340C USB-serial chip and
-regulator powered in deep sleep, so board-level sleep current sits in the
-**milliamp** range rather than a bare module's ~20 µA. On the same 18650:
+**Battery life.** Dev boards keep their USB-serial chip, regulator and power
+LED powered in deep sleep, so board-level sleep current sits in the
+**milliamp** range rather than a bare module's ~20 µA. The DevKit V1 is the
+worse of the two — the AMS1117's quiescent draw alone is ~5 mA, which is why
+the production design specifies an XC6206 instead. On the same 18650:
 
 | Sleep current | Runtime |
 |---|---|
 | ~20 µA (bare module — the PCB design) | ~5 months |
-| ~500 µA (dev board, optimistic) | ~12 weeks |
-| ~1.5 mA (dev board, typical) | ~6 weeks |
-| ~3 mA (dev board, pessimistic) | ~4 weeks |
+| ~1.5 mA (D1 Mini ESP32, typical) | ~6 weeks |
+| ~5 mA (DevKit V1 — AMS1117 quiescent alone) | ~2.5 weeks |
+| ~10 mA (DevKit V1, with USB-serial chip and LED) | ~9 days |
 
 Add the LDO headroom loss and prototype runtime could be an order of
 magnitude short of the product figure. That's a property of the dev board,
@@ -193,6 +218,7 @@ remains the largest unknown in the project.
 |---|---|
 | `Error: no usable ADXL345 samples` | **I²C address.** The firmware expects `0x53`, which the ADXL345 reports with `SDO` tied **low**. Many GY-291 boards float or pull `SDO` high, giving `0x1D`. Tie `SDO` to GND, or change `ADXL345_ADDR` |
 | Tilt pinned near 90° in every orientation | Wrong axis — see the axis test above |
+| Random resets during WiFi transmit, on a DevKit V1 from battery | AMS1117 dropout — see Power above. It is not a code fault |
 | `Discarding tilt: \|a\| = …g` | Working as intended: the rig rejects readings whose acceleration isn't 0.8–1.2 g, meaning it was being handled. Put it down and wait a cycle |
 | Erratic or CRC-failing temperatures | Counterfeit DS18B20 — widespread. Suspect the sensor before the code |
 | Device never appears in the dashboard | Check the device ID and secret match the row you created, and that the board is on 2.4 GHz WiFi — the ESP32 has no 5 GHz radio |
