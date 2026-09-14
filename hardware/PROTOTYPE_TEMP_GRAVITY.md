@@ -41,13 +41,13 @@ scope here.)*
 
 | Part | Qty | Cost | Notes |
 |---|---|---|---|
-| ESP32 dev board | 1 | — | **DevKit V1 or D1 Mini ESP32.** Must be an ESP32 — see the warning below |
+| **ESP32 DevKit V1** | 1 | — | Or a D1 Mini **ESP32**. Must be an ESP32 — see the warning below |
 | ADXL345 breakout (GY-291) | 1 | $2–3 | Tilt sensing |
 | DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
 | 100 kΩ resistors | 2 | ~$0.02 | Battery divider |
 | TP4056 module **with protection** | 1 | $0.50–1 | **Count the ICs to tell them apart: protected boards have three** (TP4056 + DW01A + FS8205), unprotected have one. An over-discharged 18650 is a dead 18650 |
-| HT7333 or MCP1700 3.3 V LDO + 2× 1 µF | 0–1 | ~$0.30 | **DevKit V1 only.** Not needed on a D1 Mini — its own regulator has low enough dropout to run from a cell |
+| HT7333 or MCP1700 3.3 V LDO + 2× 1 µF | 1 | ~$0.30 | **Required on a DevKit V1** — see Power. A D1 Mini ESP32 doesn't need it; its own regulator runs from a cell |
 | 18650 holder | 1 | ~$0.50 | |
 | 18650 cell (~2500 mAh) | 1 | $2–4 | |
 | Breadboard or D1 Mini proto shield | 1 | $1–3 | |
@@ -117,10 +117,14 @@ the prototype and the real board**.
 question, nothing to get wrong. Only the float test needs a battery, because
 a tethered float can't tilt freely.
 
-**Which board for the float?** A D1 Mini **ESP32** is the easier one — its
-regulator runs directly from a cell, so the chain is just
-`cell → TP4056 → OUT+ → 5V pin`. On a DevKit V1 you need the HT7333 below.
-Either works; the DevKit V1 just needs one more part.
+**On a DevKit V1 you need the HT7333.** Its AMS1117 has ~1.1 V dropout and
+needs >4.4 V in to hold 3.3 V out — a cell is 4.2 V falling, so powering it
+through `VIN` browns out during WiFi transmit, which presents as random
+resets rather than as a power fault. The LDO replaces that regulator: feed
+`3V3` directly and leave `VIN` unused.
+
+A D1 Mini **ESP32** skips the LDO — its own regulator runs from a cell, so
+the chain is just `cell → TP4056 → OUT+ → 5V pin`.
 
 **D1 Mini ESP32** — cell → TP4056 `B+`/`B-`, TP4056 `OUT+` → the board's `5V`
 pin. Its ME6211-class LDO drops only ~0.1–0.3 V, so it runs down to a

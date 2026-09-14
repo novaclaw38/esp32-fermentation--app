@@ -1,4 +1,4 @@
-<title>Prototype Wiring — D1 Mini ESP32</title>
+<title>Prototype Wiring — ESP32 DevKit V1</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{--bg:#fffdf9;--fg:#292217;--muted:#7d7161;--line:#ddd3c0;--panel:#fff;--accent:#a8631c;
@@ -29,13 +29,13 @@
 </style>
 
 <main>
-  <h1>Prototype wiring — D1 Mini ESP32 + ADXL345 + INR18650</h1>
+  <h1>Prototype wiring — ESP32 DevKit V1 + ADXL345 + INR18650</h1>
   <p class="sub">The bench rig, drawn at module level. This is <em>not</em> the custom PCB
   schematic (<code>schematic-gravity-module.html</code>) — that one shows bare SMD parts you
   can't breadboard. Every line below is a wire you physically run.</p>
 
   <div class="wrap"><figure>
-  <svg viewBox="0 266 1240 576" role="img"
+  <svg viewBox="0 228 1240 614" role="img"
        aria-label="Wiring diagram: an INR18650 cell feeds a TP4056 charging module, whose OUT+ supplies the D1 Mini ESP32's 5V pin and a 100k/100k divider read by GPIO34. The board's GPIO21 and GPIO22 drive an ADXL345 breakout whose SDO is tied to ground for address 0x53, and GPIO4 drives a DS18B20 with a 4.7k pull-up to 3V3.">
     <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
     <g font-size="12" fill="currentColor" stroke="none" font-family="monospace">
@@ -60,9 +60,19 @@
 
     <!-- OUT+ bus -->
     <line x1="260" y1="410" x2="400" y2="410" stroke="currentColor" stroke-width="2.4"/>
-    <circle cx="320" cy="410" r="4.5" fill="currentColor" stroke="none"/>
-    <polyline points="320,410 320,330 520,330" stroke="currentColor" stroke-width="2.4" fill="none"/>
-    <text x="330" y="322" font-size="11" font-weight="600">BAT+ 3.0–4.2 V</text>
+    <circle cx="260" cy="410" r="4.5" fill="currentColor" stroke="none"/>
+    <polyline points="260,410 260,325 330,325" stroke="currentColor" stroke-width="2.4" fill="none"/>
+    <text x="166" y="352" font-size="10" font-weight="600">BAT+ 3.0–4.2 V</text>
+
+    <!-- LDO: required on a DevKit V1, whose AMS1117 cannot hold 3V3 from a cell -->
+    <rect x="330" y="290" width="140" height="70" rx="4" stroke="currentColor" stroke-width="2.5" fill="none"/>
+    <text x="400" y="317" text-anchor="middle" font-weight="600" font-size="12">HT7333</text>
+    <text x="400" y="334" text-anchor="middle" font-size="10">3.3 V LDO</text>
+    <text x="400" y="350" text-anchor="middle" font-size="9" opacity="0.75">+ 1µF in / 1µF out</text>
+    <line x1="470" y1="325" x2="520" y2="325" stroke="currentColor" stroke-width="2.4"/>
+    <circle cx="500" cy="325" r="4.5" fill="currentColor" stroke="none"/>
+    <polyline points="500,325 500,250 1180,250" stroke="currentColor" stroke-width="2.4" fill="none"/>
+    <text x="700" y="242" font-size="11" font-weight="600">3V3</text>
 
     <!-- OUT- to ground bus -->
     <polyline points="260,460 300,460 300,780" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -81,13 +91,12 @@
 
     <!-- ================= BOARD ================= -->
     <rect x="520" y="280" width="220" height="380" rx="5" stroke="currentColor" stroke-width="2.5" fill="none"/>
-    <text x="630" y="452" text-anchor="middle" font-weight="600" font-size="14">ESP32 dev board</text>
-    <text x="630" y="472" text-anchor="middle" font-size="11">DevKit V1 or D1 Mini ESP32</text>
-    <text x="630" y="488" text-anchor="middle" font-size="11">— not an ESP8266</text>
-    <text x="528" y="326" font-size="11">5V</text>
+    <text x="630" y="452" text-anchor="middle" font-weight="600" font-size="14">ESP32 DevKit V1</text>
+    <text x="630" y="472" text-anchor="middle" font-size="11">powered via 3V3,</text>
+    <text x="630" y="488" text-anchor="middle" font-size="11">VIN unused</text>
+    <text x="528" y="321" font-size="11">3V3</text>
     <text x="528" y="501" font-size="11">GPIO34</text>
     <text x="576" y="652" font-size="11">GND</text>
-    <text x="732" y="316" font-size="11" text-anchor="end">3V3</text>
     <text x="732" y="376" font-size="11" text-anchor="end">GPIO21</text>
     <text x="732" y="426" font-size="11" text-anchor="end">GPIO22</text>
     <text x="732" y="486" font-size="11" text-anchor="end">GPIO4</text>
@@ -101,11 +110,9 @@
     <text x="808" y="576" font-size="10" opacity="0.75">unconnected</text>
 
     <!-- ================= 3V3 RAIL ================= -->
-    <line x1="740" y1="320" x2="1180" y2="320" stroke="currentColor" stroke-width="2.4"/>
-    <text x="880" y="312" font-size="11" font-weight="600">3V3</text>
-    <line x1="1040" y1="320" x2="1040" y2="400" stroke="currentColor" stroke-width="2"/>
-    <circle cx="1040" cy="320" r="4.5" fill="currentColor" stroke="none"/>
-    <line x1="1180" y1="320" x2="1180" y2="665" stroke="currentColor" stroke-width="2"/>
+    <line x1="1040" y1="250" x2="1040" y2="400" stroke="currentColor" stroke-width="2"/>
+    <circle cx="1040" cy="250" r="4.5" fill="currentColor" stroke="none"/>
+    <line x1="1180" y1="250" x2="1180" y2="665" stroke="currentColor" stroke-width="2"/>
     <line x1="1180" y1="665" x2="1140" y2="665" stroke="currentColor" stroke-width="2"/>
     <circle cx="1180" cy="600" r="4.5" fill="currentColor" stroke="none"/>
 
@@ -192,7 +199,8 @@
   <table>
     <tr><th>From</th><th>To</th><th>Why</th></tr>
     <tr><td>18650 + / −</td><td>TP4056 <code>B+</code> / <code>B−</code></td><td>Cell into the charger</td></tr>
-    <tr><td>TP4056 <code>OUT+</code></td><td>Board <code>5V</code></td><td>Through the board's own regulator — not <code>3V3</code></td></tr>
+    <tr><td>TP4056 <code>OUT+</code></td><td>HT7333 input</td><td>The DevKit V1's own AMS1117 can't hold 3.3 V from a cell — this LDO replaces it</td></tr>
+    <tr><td>HT7333 output</td><td>Board <code>3V3</code> + sensor rail</td><td>Regulated 3.3 V. <code>VIN</code>/<code>5V</code> stays unused. <strong>Never connect USB at the same time</strong></td></tr>
     <tr><td>TP4056 <code>OUT+</code></td><td>100 k → GPIO34 → 100 k → GND</td><td>Battery sense. 2.10 V at a 4.2 V cell, matching the firmware's ×2</td></tr>
     <tr><td>TP4056 <code>OUT−</code></td><td>GND bus</td><td>Common ground</td></tr>
     <tr><td>GPIO21 / GPIO22</td><td>ADXL345 <code>SDA</code> / <code>SCL</code></td><td>I²C</td></tr>
