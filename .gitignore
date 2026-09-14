@@ -28,4 +28,3 @@ supabase/.temp/
 .DS_Store
 *.log
 
-# Rendered PDFs — regenerate from the HTML/markdown sources
