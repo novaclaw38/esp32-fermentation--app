@@ -12,6 +12,25 @@ assembled — and two questions block every other number in the project:
 Neither is answerable on paper. Both are answerable on a breadboard, for
 about **$8–17** on top of the board you already own.
 
+> ### ⚠ "D1 Mini" is sold as two different boards
+>
+> The D1 Mini form factor exists in an **ESP8266** version (the original, far
+> more common) and an **ESP32** version. They look nearly identical and are
+> often listed under the same name. **Only the ESP32 one runs this firmware.**
+>
+> `fermentation_tilt_v1.ino` uses `<WiFi.h>`, `<HTTPUpdate.h>`,
+> `RTC_DATA_ATTR`, `esp_sleep_enable_timer_wakeup()` and a 12-bit 3.3 V ADC —
+> all ESP32-only. On an ESP8266 it does not compile, and porting it means a
+> different sleep API, manual RTC memory with a CRC, a 10-bit 1.0 V ADC
+> needing a different divider ratio, and a much tighter TLS stack. See
+> "Can I use the ESP8266?" reasoning in the project history — the short answer
+> is that it saves ~$0.60 on a $19 BOM and costs a third of the battery life.
+>
+> **How to tell:** an ESP8266 D1 Mini has the ESP-12 module's shield with a
+> visible PCB antenna and is marked `ESP-12F`/`ESP8266`; the ESP32 version is
+> marked `ESP32` on the module can. If in doubt, the Arduino IDE board it
+> flashes as is the definitive answer.
+
 *(Humidity and CO₂ modules are described in
 [`MULTI_SENSOR_MODULES.md`](MULTI_SENSOR_MODULES.md) — deliberately out of
 scope here.)*
@@ -22,7 +41,7 @@ scope here.)*
 
 | Part | Qty | Cost | Notes |
 |---|---|---|---|
-| ESP32 dev board | 1 | — | **D1 Mini ESP32 preferred**; DevKit V1 works but needs an extra regulator, see Power |
+| ESP32 dev board | 1 | — | **DevKit V1 or D1 Mini ESP32.** Must be an ESP32 — see the warning below |
 | ADXL345 breakout (GY-291) | 1 | $2–3 | Tilt sensing |
 | DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
@@ -98,11 +117,10 @@ the prototype and the real board**.
 question, nothing to get wrong. Only the float test needs a battery, because
 a tethered float can't tilt freely.
 
-**If you have both boards, use the D1 Mini for the float.** Its regulator
-runs directly from a cell, so the power chain is just
-`cell → TP4056 → OUT+ → 5V pin`, with no extra LDO and nothing to oscillate.
-The DevKit V1 makes a good second rig for the Hub (temperature only), where
-it can stay on USB and its sleep current doesn't matter.
+**Which board for the float?** A D1 Mini **ESP32** is the easier one — its
+regulator runs directly from a cell, so the chain is just
+`cell → TP4056 → OUT+ → 5V pin`. On a DevKit V1 you need the HT7333 below.
+Either works; the DevKit V1 just needs one more part.
 
 **D1 Mini ESP32** — cell → TP4056 `B+`/`B-`, TP4056 `OUT+` → the board's `5V`
 pin. Its ME6211-class LDO drops only ~0.1–0.3 V, so it runs down to a
