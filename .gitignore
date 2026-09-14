@@ -29,4 +29,3 @@ supabase/.temp/
 *.log
 
 # Rendered PDFs — regenerate from the HTML/markdown sources
-pdf/
