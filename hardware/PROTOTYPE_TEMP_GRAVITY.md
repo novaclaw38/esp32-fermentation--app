@@ -22,13 +22,13 @@ scope here.)*
 
 | Part | Qty | Cost | Notes |
 |---|---|---|---|
-| ESP32 dev board | 1 | — | D1 Mini ESP32 **or** DevKit V1 — both work, and both use the same pin labels. They differ only in power; see below |
+| ESP32 dev board | 1 | — | **D1 Mini ESP32 preferred**; DevKit V1 works but needs an extra regulator, see Power |
 | ADXL345 breakout (GY-291) | 1 | $2–3 | Tilt sensing |
 | DS18B20 waterproof probe | 1 | $2–3 | Right for bench work. The production board uses an on-board MCP9808 instead — the sketch detects which is present, so no code change when you switch |
 | 4.7 kΩ resistor | 1 | ~$0.01 | DS18B20 1-Wire pull-up |
 | 100 kΩ resistors | 2 | ~$0.02 | Battery divider |
 | TP4056 module **with protection** | 1 | $0.50–1 | **Count the ICs to tell them apart: protected boards have three** (TP4056 + DW01A + FS8205), unprotected have one. An over-discharged 18650 is a dead 18650 |
-| HT7333 or MCP1700 3.3 V LDO + 2× 1 µF | 1 | ~$0.30 | **DevKit V1 only** — see Power. The D1 Mini's own regulator is fine |
+| HT7333 or MCP1700 3.3 V LDO + 2× 1 µF | 0–1 | ~$0.30 | **DevKit V1 only.** Not needed on a D1 Mini — its own regulator has low enough dropout to run from a cell |
 | 18650 holder | 1 | ~$0.50 | |
 | 18650 cell (~2500 mAh) | 1 | $2–4 | |
 | Breadboard or D1 Mini proto shield | 1 | $1–3 | |
@@ -49,13 +49,17 @@ The firmware's pin map works **unchanged on both boards** — all five pins are
 broken out on each, with identical silkscreen labels, so
 `firmware/fermentation_tilt_v1/` flashes and runs as-is.
 
-| Firmware | Board label | Connect to |
+| Firmware | Typical silkscreen | Connect to |
 |---|---|---|
-| `GPIO4` | `IO4` | DS18B20 data (yellow), **plus 4.7 kΩ to 3V3** |
-| `GPIO21` | `SDA` | ADXL345 `SDA` |
-| `GPIO22` | `SCL` | ADXL345 `SCL` |
-| `GPIO34` | `IO34` | Battery divider midpoint |
-| `GPIO25` | `IO25` | Divider enable — leave unconnected, see below |
+| `GPIO4` | `IO4` / `D4` / `4` | DS18B20 data (yellow), **plus 4.7 kΩ to 3V3** |
+| `GPIO21` | `SDA` / `IO21` | ADXL345 `SDA` |
+| `GPIO22` | `SCL` / `IO22` | ADXL345 `SCL` |
+| `GPIO34` | `IO34` / `34` | Battery divider midpoint |
+| `GPIO25` | `IO25` / `25` | Divider enable — leave unconnected, see below |
+
+**Go by GPIO number, not by the label.** Silkscreen wording differs between
+board revisions and clones; the GPIO numbers are what the firmware addresses.
+Both boards break out all five.
 
 ```
   cell+ ──┬── TP4056 B+
@@ -89,6 +93,12 @@ the prototype and the real board**.
 **For the axis test (below), just use USB.** No battery, no regulator
 question, nothing to get wrong. Only the float test needs a battery, because
 a tethered float can't tilt freely.
+
+**If you have both boards, use the D1 Mini for the float.** Its regulator
+runs directly from a cell, so the power chain is just
+`cell → TP4056 → OUT+ → 5V pin`, with no extra LDO and nothing to oscillate.
+The DevKit V1 makes a good second rig for the Hub (temperature only), where
+it can stay on USB and its sleep current doesn't matter.
 
 **D1 Mini ESP32** — cell → TP4056 `B+`/`B-`, TP4056 `OUT+` → the board's `5V`
 pin. Its ME6211-class LDO drops only ~0.1–0.3 V, so it runs down to a
