@@ -37,11 +37,36 @@
 #include <HTTPUpdate.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <WebServer.h>
+#include <DNSServer.h>
+#include <Preferences.h>
 
 // ---------------------- CONFIG: EDIT BEFORE FLASHING ----------------------
 
+// Compile-time WiFi is a FALLBACK, not the normal path. A customer can't edit
+// and re-flash a sketch, so credentials normally arrive through the setup
+// portal below and live in NVS flash. Filling these in is a bench convenience:
+// they're used only when nothing is stored yet, which keeps a dev rig working
+// exactly as before while a shipped unit starts its portal instead.
 const char* WIFI_SSID     = "YOUR_WIFI_SSID";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+
+// --- Setup portal -----------------------------------------------------------
+// How long the portal stays up before giving up and sleeping. It runs the radio
+// continuously, so an unbounded portal would flatten the cell on a unit that's
+// sealed in a fermenter and simply out of WiFi range.
+const unsigned long PORTAL_TIMEOUT_MS = 5UL * 60UL * 1000UL;
+
+// Optional: a pin that reads HIGH while the unit is on its charger. Putting a
+// sealed float on charge is the natural "I'm setting this up" moment and needs
+// no button or housing penetration. -1 disables it (the bench rig has no such
+// wiring). Wire it to the TP4056's charge indication if you fit one.
+const int CHARGE_DETECT_PIN = -1;
+
+// Consecutive failed connections before falling back to the portal, so a
+// customer who changes router isn't stranded. Deliberately not 1 or 2: a brief
+// outage shouldn't drop a mid-batch unit into AP mode.
+const int WIFI_FAILURES_BEFORE_PORTAL = 12;
 
 const char* SUPABASE_URL      = "https://YOUR_PROJECT.supabase.co";
 const char* SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
@@ -123,6 +148,10 @@ bool mcp9808Present = false;
 RTC_DATA_ATTR int consecutiveBreaches = 0;
 RTC_DATA_ATTR bool alertActive = false;
 RTC_DATA_ATTR uint32_t cycleCount = 0;
+RTC_DATA_ATTR int wifiFailures = 0;
+
+Preferences prefs;
+String storedSsid, storedPass;
 
 void goToSleep() {
   // Leave the battery divider disabled. R6 pulls Q1's gate to BAT+ whenever
@@ -138,19 +167,21 @@ void goToSleep() {
 
 bool connectWiFi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(storedSsid.c_str(), storedPass.c_str());
 
   unsigned long start = millis();
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     if (millis() - start > WIFI_TIMEOUT_MS) {
       Serial.println("\nWiFi connect timed out");
+      wifiFailures++;
       return false;
     }
     delay(250);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
+  wifiFailures = 0;
   return true;
 }
 
@@ -549,6 +580,171 @@ void checkForOTAUpdate() {
   // On success the device reboots on its own.
 }
 
+// ---------------------------------------------------------------------------
+// WiFi credential storage + setup portal
+// ---------------------------------------------------------------------------
+
+// A shipped unit has no keyboard, no screen and (once sealed) no button, so
+// credentials can't be compiled in. They live in NVS and are entered once, from
+// a phone, through a captive portal the device hosts itself.
+
+void loadCredentials() {
+  prefs.begin("ferm", true);            // read-only
+  storedSsid = prefs.getString("ssid", "");
+  storedPass = prefs.getString("pass", "");
+  prefs.end();
+
+  // Fall back to compile-time values only if they've actually been filled in.
+  if (storedSsid.length() == 0 && String(WIFI_SSID) != "YOUR_WIFI_SSID") {
+    storedSsid = WIFI_SSID;
+    storedPass = WIFI_PASSWORD;
+    Serial.println("Using compile-time WiFi credentials (bench fallback)");
+  }
+}
+
+void saveCredentials(const String& ssid, const String& pass) {
+  prefs.begin("ferm", false);
+  prefs.putString("ssid", ssid);
+  prefs.putString("pass", pass);
+  prefs.end();
+}
+
+// AP name carries the last 3 bytes of the MAC so several units in one room
+// stay distinguishable, and so a support conversation can identify a unit.
+String portalApName() {
+  uint8_t mac[6];
+  WiFi.macAddress(mac);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "FermentationMonitor-%02X%02X%02X", mac[3], mac[4], mac[5]);
+  return String(buf);
+}
+
+// SSIDs are arbitrary user-chosen text and routinely contain apostrophes and
+// ampersands ("Bob's WiFi", "Tom & Jerry"). Interpolated raw, those break the
+// option attribute and the network becomes unselectable -- so escape them.
+String htmlEscape(const String& in) {
+  String out;
+  out.reserve(in.length() + 8);
+  for (size_t i = 0; i < in.length(); i++) {
+    char c = in[i];
+    if      (c == '&')  out += "&amp;";
+    else if (c == '<')  out += "&lt;";
+    else if (c == '>')  out += "&gt;";
+    else if (c == '"')  out += "&quot;";
+    else if (c == '\'') out += "&#39;";
+    else                out += c;
+  }
+  return out;
+}
+
+String portalPage(const String& networks, const String& note) {
+  // Inlined rather than served from flash: it's one small page, and a captive
+  // portal has to work before the device has any network access at all.
+  String h = "<!doctype html><meta charset=utf-8>"
+             "<meta name=viewport content='width=device-width,initial-scale=1'>"
+             "<title>Fermentation Monitor setup</title><style>"
+             "body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:24px 18px;"
+             "background:#f6f8fa;color:#14171c}h1{font-size:20px;margin:0 0 4px}"
+             "p{color:#5c6472;margin:.4em 0}label{display:block;margin-top:14px;font-size:14px}"
+             "input,select{width:100%;box-sizing:border-box;padding:10px;margin-top:4px;"
+             "border:1px solid #c3cbd6;border-radius:6px;font-size:16px}"
+             "button{width:100%;margin-top:18px;padding:12px;border:0;border-radius:6px;"
+             "background:#9a6212;color:#fff;font-size:16px;font-weight:600}"
+             ".note{background:#f4e6cc;border:1px solid #d9b372;border-radius:6px;"
+             "padding:10px 12px;font-size:14px;margin-top:16px}</style>";
+  h += "<h1>Fermentation Monitor</h1><p>Connect this unit to your WiFi.</p>";
+  if (note.length()) h += "<div class=note>" + note + "</div>";
+  h += "<form method=POST action=/save>";
+  h += "<label>Network<select name=ssid>" + networks + "</select></label>";
+  h += "<label>Password<input name=pass type=password autocomplete=off></label>";
+  h += "<button type=submit>Save and connect</button></form>";
+  // The single most common support question, answered before it's asked.
+  h += "<div class=note><b>Don't see your network?</b> This device can only use "
+       "<b>2.4&nbsp;GHz</b> WiFi &mdash; it has no 5&nbsp;GHz radio, so 5&nbsp;GHz "
+       "networks never appear here. Many routers publish both under the same name; "
+       "if yours splits them, pick the 2.4&nbsp;GHz one.</div>";
+  return h;
+}
+
+void runSetupPortal() {
+  WebServer server(80);
+  DNSServer dns;
+
+  // AP_STA, not AP: scanning requires the station interface, and in pure AP
+  // mode WiFi.scanNetworks() returns nothing -- the list would always be empty.
+  WiFi.mode(WIFI_AP_STA);
+  String ap = portalApName();
+  WiFi.softAP(ap.c_str());           // deliberately open: no password to convey
+  IPAddress ip = WiFi.softAPIP();
+  Serial.println("Setup portal started. Join WiFi \"" + ap + "\" then open http://" + ip.toString());
+
+  // Answering every DNS query with our own IP is what makes phones pop the
+  // "sign in to network" sheet instead of silently failing.
+  dns.start(53, "*", ip);
+
+  int n = WiFi.scanNetworks();
+  String opts;
+  for (int i = 0; i < n; i++) {
+    String ssid = WiFi.SSID(i);
+    if (ssid.length() == 0) continue;
+    String esc = htmlEscape(ssid);
+    opts += "<option value='" + esc + "'>" + esc + " (" + String(WiFi.RSSI(i)) + " dBm)</option>";
+  }
+  if (opts.length() == 0) opts = "<option value=''>No 2.4 GHz networks found</option>";
+  Serial.println("Scan found " + String(n) + " network(s)");
+
+  bool saved = false;
+  server.on("/save", HTTP_POST, [&]() {
+    String ssid = server.arg("ssid");
+    String pass = server.arg("pass");
+    if (ssid.length() == 0) {
+      server.send(200, "text/html", portalPage(opts, "Pick a network first."));
+      return;
+    }
+    saveCredentials(ssid, pass);
+    saved = true;
+    server.send(200, "text/html",
+      "<!doctype html><meta charset=utf-8>"
+      "<meta name=viewport content='width=device-width,initial-scale=1'>"
+      "<body style=\"font:16px/1.5 system-ui,sans-serif;padding:24px\">"
+      "<h1 style=font-size:20px>Saved</h1><p>Connecting to <b>" + htmlEscape(ssid) + "</b>. "
+      "This page will stop working as the unit leaves its own network &mdash; that's expected. "
+      "Readings should appear on your dashboard within one wake cycle.</p>");
+  });
+
+  server.on("/", HTTP_GET, [&]() { server.send(200, "text/html", portalPage(opts, "")); });
+  // Captive-portal probes hit vendor-specific URLs; send them all to the form.
+  server.onNotFound([&]() { server.send(200, "text/html", portalPage(opts, "")); });
+  server.begin();
+
+  unsigned long start = millis();
+  while (millis() - start < PORTAL_TIMEOUT_MS) {
+    dns.processNextRequest();
+    server.handleClient();
+    if (saved) {
+      delay(1500);                    // let the browser collect the response
+      Serial.println("Credentials saved, restarting");
+      server.stop();
+      dns.stop();
+      WiFi.softAPdisconnect(true);
+      ESP.restart();
+    }
+    delay(5);
+  }
+
+  Serial.println("Portal timed out with nothing saved; sleeping");
+  server.stop();
+  dns.stop();
+  WiFi.softAPdisconnect(true);
+  WiFi.mode(WIFI_OFF);
+}
+
+bool chargerConnected() {
+  if (CHARGE_DETECT_PIN < 0) return false;
+  pinMode(CHARGE_DETECT_PIN, INPUT);
+  return digitalRead(CHARGE_DETECT_PIN) == HIGH;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(200);
@@ -558,6 +754,27 @@ void setup() {
 
   pinMode(BATTERY_EN_PIN, OUTPUT);
   digitalWrite(BATTERY_EN_PIN, LOW);
+
+  loadCredentials();
+
+  // Three ways into the portal. No stored credentials covers a brand-new unit;
+  // the charger covers a customer who changed router (a deliberate act, on a
+  // unit with no button); the failure count covers the same case on hardware
+  // without charge detection. A plain outage must NOT trigger it, which is why
+  // the threshold is a dozen cycles rather than two.
+  bool noCreds  = storedSsid.length() == 0;
+  bool onCharge = chargerConnected();
+  bool stranded = wifiFailures >= WIFI_FAILURES_BEFORE_PORTAL;
+
+  if (noCreds || onCharge || stranded) {
+    Serial.println(noCreds  ? "No WiFi credentials stored -- starting setup portal"
+                 : onCharge ? "Charger detected -- starting setup portal"
+                            : "WiFi unreachable for many cycles -- starting setup portal");
+    wifiFailures = 0;
+    runSetupPortal();
+    goToSleep();                      // portal either restarted us or timed out
+    return;
+  }
 
   sensors.begin();
 

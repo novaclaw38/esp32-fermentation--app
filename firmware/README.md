@@ -38,6 +38,51 @@ ship with the ESP32 core, no extra install needed.
 - Battery voltage divider: BAT+ → 100kΩ → GPIO34 → 100kΩ → GND (GPIO34 is
   input-only/ADC1, safe to read during WiFi TX)
 
+## WiFi setup portal
+
+A customer can't edit a sketch, so WiFi credentials don't live in the code.
+On boot the device loads them from NVS flash; if there are none it starts its
+own open access point named `FermentationMonitor-XXXXXX` (last three bytes of
+the MAC, so several units in a room stay distinguishable). Join it from a
+phone, the captive portal appears, pick a network and enter the password. The
+device stores them and restarts onto the customer's WiFi.
+
+**Three ways in, deliberately different:**
+
+| Trigger | Covers |
+|---|---|
+| No credentials stored | A brand-new unit |
+| Charger detected (`CHARGE_DETECT_PIN`) | A router change on a sealed unit with no button — putting it on charge *is* the setup gesture |
+| 12 consecutive WiFi failures | The same case on hardware without charge detection |
+
+The failure threshold is a dozen cycles, not two, on purpose: a brief outage
+must not drop a mid-batch unit into AP mode. And the portal times out after
+`PORTAL_TIMEOUT_MS` (5 min) and sleeps — it runs the radio continuously, so an
+unbounded portal would flatten the cell on a unit that's simply out of range.
+
+`CHARGE_DETECT_PIN` defaults to `-1` (disabled); the bench rig has no such
+wiring. Set it if you fit charge indication.
+
+**The compile-time `WIFI_SSID`/`WIFI_PASSWORD` still work** as a bench
+fallback — they're used only when nothing is stored, so a dev rig behaves
+exactly as before while a shipped unit starts its portal.
+
+### The 2.4 GHz question, answered before it's asked
+
+The portal says outright that only 2.4 GHz networks appear, because the ESP32
+has no 5 GHz radio. Customers otherwise look for their network, don't see it,
+and conclude the device is broken. It's the single most predictable support
+ticket in the product.
+
+### Still missing for a real product
+
+The portal solves WiFi. It does **not** solve identity: `DEVICE_ID` and
+`DEVICE_SECRET` are still compile-time, and the dashboard still generates the
+secret for you to paste in. For a shipped unit that has to reverse — the
+factory flashes a unique identity, the ID is printed on the unit, and the
+customer claims it in the dashboard. That's a schema and UI change, not done
+yet.
+
 ## Before Flashing — Edit the CONFIG Section
 
 Open `fermentation_monitor_v1/fermentation_monitor_v1.ino` and fill in:
