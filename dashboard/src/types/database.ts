@@ -11,6 +11,9 @@ export interface Device {
   sleep_interval_seconds: number;
   last_seen_at: string | null;
   created_at: string;
+  /** Single-use code printed on the unit. Null once claimed, and on any device the dashboard can see. */
+  claim_code: string | null;
+  claimed_at: string | null;
   // Gravity calibration: SG = a*tilt^3 + b*tilt^2 + c*tilt + d.
   // All null on a device that hasn't been calibrated yet.
   calibration_a: number | null;

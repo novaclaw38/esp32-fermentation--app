@@ -74,14 +74,24 @@ has no 5 GHz radio. Customers otherwise look for their network, don't see it,
 and conclude the device is broken. It's the single most predictable support
 ticket in the product.
 
-### Still missing for a real product
+### Identity is factory-set, not customer-set
 
-The portal solves WiFi. It does **not** solve identity: `DEVICE_ID` and
-`DEVICE_SECRET` are still compile-time, and the dashboard still generates the
-secret for you to paste in. For a shipped unit that has to reverse — the
-factory flashes a unique identity, the ID is printed on the unit, and the
-customer claims it in the dashboard. That's a schema and UI change, not done
-yet.
+`DEVICE_ID` and `DEVICE_SECRET` stay compile-time — that's correct, and it is
+what "factory-flashed" means. What changed is where they come from:
+
+```sql
+-- with the service_role key, once per physical unit
+select * from provision_device('tilt', 'Fermentation Monitor');
+--  device_id | device_secret | claim_code
+```
+
+Flash the id and secret into the sketch, print the **claim code** on the unit,
+and the customer enters that code in the dashboard to take ownership. The
+secret never reaches them. See `supabase/README.md` for the claim flow and
+its verified security properties.
+
+For your own bench units nothing changes: the dashboard's **Add manually**
+path still creates a device and shows you a secret to paste in.
 
 ## Before Flashing — Edit the CONFIG Section
 

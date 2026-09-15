@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
 import type { Device, DeviceType } from "../types/database";
+import ClaimDeviceForm from "../components/ClaimDeviceForm";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -15,6 +16,7 @@ export default function Devices() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showClaimForm, setShowClaimForm] = useState(false);
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<DeviceType>("hub");
@@ -67,10 +69,16 @@ export default function Devices() {
         <h1 className="text-2xl font-semibold text-brew-800">Your devices</h1>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowAddForm((v) => !v)}
+            onClick={() => { setShowClaimForm((v) => !v); setShowAddForm(false); }}
             className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700"
           >
-            {showAddForm ? "Cancel" : "Add device"}
+            {showClaimForm ? "Cancel" : "Claim device"}
+          </button>
+          <button
+            onClick={() => { setShowAddForm((v) => !v); setShowClaimForm(false); }}
+            className="rounded-md border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100"
+          >
+            {showAddForm ? "Cancel" : "Add manually"}
           </button>
           <button
             onClick={() => supabase.auth.signOut()}
@@ -81,8 +89,21 @@ export default function Devices() {
         </div>
       </div>
 
+      {showClaimForm && (
+        <ClaimDeviceForm
+          onClaimed={() => {
+            setShowClaimForm(false);
+            loadDevices();
+          }}
+        />
+      )}
+
       {showAddForm && (
         <form onSubmit={handleAddDevice} className="mb-6 space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+          <p className="text-xs text-stone-600">
+            For a unit you flashed yourself. Shipped devices arrive already
+            provisioned — use <strong>Claim device</strong> instead.
+          </p>
           <label className="block text-sm">
             Device ID (matches DEVICE_ID in the firmware, e.g. ferm-monitor-002)
             <input

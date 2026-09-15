@@ -91,6 +91,54 @@ write another customer's device.
    Put the same `id` and `device_secret` into the firmware's `DEVICE_ID` /
    `DEVICE_SECRET` constants before flashing.
 
+## Device identity and claiming
+
+A shipped unit can't have its secret typed in by the customer, so the flow
+runs the other way round from the manual one:
+
+1. **Factory** calls `provision_device(device_type, name)` with the
+   **service_role** key. It returns `device_id`, `device_secret` and a
+   single-use `claim_code`, and inserts the row with `user_id = null`.
+2. The unit is flashed with the id + secret. The **claim code is printed on
+   the unit**; the secret never leaves the factory.
+3. **Customer** enters the code in the dashboard, which calls
+   `claim_device(code)`. That sets `user_id = auth.uid()`, stamps
+   `claimed_at`, and **clears the code** so it can't be replayed.
+
+### Why an unclaimed device needs no new policy
+
+All four RLS policies on `devices` test `user_id = auth.uid()`. NULL never
+equals a uuid, so an unclaimed row is invisible to every user automatically —
+and so are its readings, since `readings` is scoped through `devices.user_id`.
+A provisioned-but-unclaimed unit can still post (the ingest RPCs check only
+the device secret), and those readings simply become visible the moment
+someone claims it.
+
+### Security properties, all verified against the live project
+
+| Property | Result |
+|---|---|
+| Unclaimed device visible to a signed-in user | 0 rows |
+| Claim with messy input (`t9x9-b5n6`) | accepted — normalised server-side |
+| Replay the same code from another user | rejected, device not stolen |
+| Code that never existed | **identical** error — no enumeration signal |
+| `provision_device` as a normal user | permission denied |
+| `claim_device` as anon | permission denied |
+
+The identical error for "wrong code", "already claimed" and "malformed" is
+deliberate: distinguishing them would tell an attacker which guesses were real
+device codes.
+
+Claim codes are 8 characters from a 30-symbol alphabet (~39 bits) that omits
+`0/O`, `1/I/L` and `U`, because the code gets read off a label and typed by
+hand. Generation rejects byte values ≥ 240 so the modulo is unbiased; 2000
+draws produced 2000 distinct well-formed codes using all 30 symbols.
+
+**Not yet done: rate limiting.** Nothing stops a client hammering
+`claim_device` with guesses. 39 bits makes that impractical at any sane
+request rate, but before a real batch ships this wants a per-user attempt
+limit.
+
 ## Alert emails (Edge Function)
 
 `functions/alert-notify` sends an email via [Resend](https://resend.com)
