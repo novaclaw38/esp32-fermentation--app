@@ -96,8 +96,8 @@ write another customer's device.
 A shipped unit can't have its secret typed in by the customer, so the flow
 runs the other way round from the manual one:
 
-1. **Factory** calls `provision_device(device_type, name)` with the
-   **service_role** key. It returns `device_id`, `device_secret` and a
+1. **Factory** runs [`tools/provision.mjs`](../tools/README.md), which calls
+   `provision_device(device_type, name)` with the **service_role** key. It returns `device_id`, `device_secret` and a
    single-use `claim_code`, and inserts the row with `user_id = null`.
 2. The unit is flashed with the id + secret. The **claim code is printed on
    the unit**; the secret never leaves the factory.
