@@ -113,3 +113,23 @@ live — it's off by default on new projects.
 ```bash
 npm run build   # tsc + vite build, outputs dashboard/dist
 ```
+
+## Deploying: the SPA rewrite is required
+
+`vercel.json` rewrites every unmatched path to `/index.html`:
+
+```json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
+
+Without it the site 404s on every route except `/`. React Router resolves
+`/login`, `/devices` and `/devices/:id` in the browser, but no file of that
+name exists in `dist/`, so a direct visit or a page refresh asks the host for
+a path it cannot serve. The root works, which makes the app look deployed
+while every deep link is broken.
+
+Vercel checks the filesystem *before* applying rewrites, so real files —
+`/assets/index-*.js`, `/assets/index-*.css` — are still served normally and
+only genuinely missing paths fall through to `index.html`. Any static host
+needs the equivalent: `try_files $uri /index.html` on nginx, a 404-to-
+index.html fallback on S3/CloudFront.
