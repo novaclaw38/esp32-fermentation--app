@@ -150,6 +150,10 @@ RTC_DATA_ATTR bool alertActive = false;
 RTC_DATA_ATTR uint32_t cycleCount = 0;
 RTC_DATA_ATTR int wifiFailures = 0;
 
+// Latches a reported sensor fault so a broken sensor doesn't post an alert
+// every single wake. Cleared by the first good read -- see reportSensorFault().
+RTC_DATA_ATTR bool sensorFaultAlerted = false;
+
 Preferences prefs;
 String storedSsid, storedPass;
 
@@ -493,7 +497,12 @@ bool postAlert(float tempC, const char* reason) {
 
   String payload = "{\"p_device_id\":\"" + String(DEVICE_ID) +
                     "\",\"p_device_secret\":\"" + String(DEVICE_SECRET) +
-                    "\",\"p_temperature_c\":" + String(tempC, 2) +
+                    "\",\"p_temperature_c\":" +
+                      // NAN would serialise as "nan", which isn't valid JSON.
+                      // A sensor fault genuinely has no temperature, and the
+                      // column is nullable precisely so we don't have to
+                      // invent one -- a sentinel would plot as real data.
+                      (isnan(tempC) ? String("null") : String(tempC, 2)) +
                     ",\"p_reason\":\"" + String(reason) + "\"}";
 
   int httpCode = http.POST(payload);
@@ -504,6 +513,38 @@ bool postAlert(float tempC, const char* reason) {
 
   http.end();
   return success;
+}
+
+// A failed sensor read used to end the cycle right here, before WiFi. That
+// made a unit with a disconnected sensor look exactly like a unit that was
+// flat, out of range, or never flashed -- all silent, with no way to tell them
+// apart short of a serial cable. So the device now spends the power to come up
+// and say so.
+//
+// Latched, because the fault will still be there next wake and an alert every
+// 15 minutes is noise. Re-announced once a day so a unit whose first alert was
+// missed doesn't stay quiet forever.
+void reportSensorFault() {
+  const uint32_t REANNOUNCE_EVERY_N_CYCLES = 96; // ~24h at a 15 min interval
+
+  bool shouldReport = !sensorFaultAlerted ||
+                      (cycleCount % REANNOUNCE_EVERY_N_CYCLES == 0);
+  if (!shouldReport) {
+    Serial.println("Sensor still faulty (already reported)");
+    return;
+  }
+
+  if (!connectWiFi()) {
+    // Leave the latch alone so the next cycle with WiFi still reports it.
+    Serial.println("Sensor fault, but no WiFi to report it");
+    return;
+  }
+
+  if (postAlert(NAN, "sensor_fault")) {
+    sensorFaultAlerted = true;
+    Serial.println("Reported sensor fault to the dashboard");
+  }
+  WiFi.disconnect(true);
 }
 
 // Temperature alerting is identical to the Hub's -- this module measures
@@ -792,13 +833,19 @@ void setup() {
     adxlSleep();
   }
 
-  // Temperature is this module's primary reading; without it there's nothing
-  // worth posting, so skip the cycle entirely (same failure policy as the Hub).
+  // Temperature is this module's primary reading, so there's no reading to
+  // post without it -- but staying silent would make a broken sensor look
+  // like a dead device. Announce the fault instead, then sleep.
   if (isnan(tempC)) {
-    Serial.println("Skipping cycle due to sensor read failure");
+    Serial.println("Temperature read FAILED -- no reading to post this cycle");
+    reportSensorFault();
     goToSleep();
     return;
   }
+
+  // A good read clears the latch, so a sensor that recovers (or a reseated
+  // connector) will report the next fault rather than staying latched forever.
+  sensorFaultAlerted = false;
 
   Serial.println("Temperature: " + String(tempC, 2) + " C");
   Serial.println("Tilt: " + (isnan(tiltDeg) ? String("unavailable") : String(tiltDeg, 2) + " deg"));

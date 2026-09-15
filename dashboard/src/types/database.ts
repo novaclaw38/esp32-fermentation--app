@@ -60,7 +60,8 @@ export interface ReadingWithGravity extends Reading {
 export interface Alert {
   id: number;
   device_id: string;
-  temperature_c: number;
+  /** NULL when the device is reporting that it has no reading to give, e.g. sensor_fault. */
+  temperature_c: number | null;
   reason: string;
   created_at: string;
   acknowledged: boolean;

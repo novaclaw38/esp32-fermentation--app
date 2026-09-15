@@ -309,3 +309,35 @@ places across 5–35 °C — but no physical unit has ever floated in anything.
   standard correction covers the liquid; `temp_coeff_sg_per_c` exists for the
   housing but stays 0 until someone calibrates at two temperatures and
   measures it.
+
+## Troubleshooting: the device never appears in the dashboard
+
+A unit that has never posted leaves **no trace on the server** — there is
+nothing to read at the Supabase end, so the diagnosis has to come off the
+serial monitor. Connect at **115200 baud** and press EN/RST. Every failure
+below prints a distinct line.
+
+| Serial output | What it means | Fix |
+|---|---|---|
+| *(nothing at all)* | Not running, or wrong baud | Check 115200; on a DevKit V1 press EN. Bad USB cable (charge-only) is the usual culprit |
+| `No WiFi credentials stored -- starting setup portal` | It's sitting in AP mode waiting to be configured | Join `FermentationMonitor-XXXXXX` and set WiFi, **or** fill in `WIFI_SSID`/`WIFI_PASSWORD` for bench work |
+| `Temperature sensor: DS18B20 (1-Wire fallback)` | No MCP9808 — normal if you didn't fit one | None |
+| `Error: could not read DS18B20` | Sensor not responding | **Missing 4.7k pull-up between GPIO4 and 3V3** — by far the most common cause. Then check the data lead is on GPIO4 and that it's 3V3, not 5V |
+| `Temperature read FAILED -- no reading to post` | The cycle has no reading | As above. The device now still connects and posts a `sensor_fault` alert, so it shows up in the dashboard instead of vanishing |
+| `WiFi connection failed` | Radio can't associate | ESP32 is **2.4 GHz only** — it cannot see a 5 GHz-only SSID. Check for a typo and for WPA3-only mode |
+| `Reading POST failed, HTTP code: 401` | Server rejected the credentials | `DEVICE_ID` or `DEVICE_SECRET` doesn't match the row in `devices` |
+| `Reading POST failed, HTTP code: -1` | TLS/connection failure | Check `SUPABASE_URL` has `https://` and no trailing slash |
+| `Reading posted OK` | Working | If the dashboard still looks empty, confirm you're signed in as the account that owns the device |
+
+### The failure that used to hide the device
+
+A failed temperature read originally ended the cycle *before* WiFi, so a
+disconnected sensor and a dead device looked identical — both silent. The
+device now comes up and posts a `sensor_fault` alert (latched, re-announced
+once a day), which shows in the dashboard as **"Sensor not reading"**.
+
+### Checking whether the device ever reached the server
+
+Supabase → Logs → API. Requests from the unit show a `ESP32HTTPClient`
+user-agent hitting `/rest/v1/rpc/ingest_reading`. Only browser traffic means
+the device never got that far, and the fault is on the device side.

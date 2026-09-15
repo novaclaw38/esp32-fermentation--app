@@ -9,6 +9,7 @@ interface Props {
 function reasonLabel(reason: string) {
   if (reason === "below_min") return "Below minimum";
   if (reason === "above_max") return "Above maximum";
+  if (reason === "sensor_fault") return "Sensor not reading";
   return reason;
 }
 
@@ -35,7 +36,9 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
               }
             />
             <span className="ml-2 font-medium">{reasonLabel(alert.reason)}</span>
-            <span className="ml-2 text-stone-500">{alert.temperature_c.toFixed(1)}°C</span>
+            {alert.temperature_c !== null && (
+              <span className="ml-2 text-stone-500">{alert.temperature_c.toFixed(1)}°C</span>
+            )}
             <span className="ml-2 text-stone-400">{new Date(alert.created_at).toLocaleString()}</span>
           </div>
           {!alert.acknowledged && (
