@@ -11,7 +11,25 @@ interface Props {
  * The customer never sees the device secret — it's flashed at the factory and
  * stays there. What's printed on the unit is a single-use claim code, which
  * `claim_device()` exchanges for ownership and then clears.
+ *
+ * The RPC returns a result object rather than throwing on a bad code, because
+ * it is rate limited: raising would abort the transaction and roll back the
+ * very attempt record the limit counts. So failures arrive as `ok: false`
+ * with an `error` of `invalid_code` or `too_many_attempts`, and only genuine
+ * faults (network, auth) come back through `rpcError`.
  */
+interface ClaimResult {
+  ok: boolean;
+  device_id?: string;
+  error?: "invalid_code" | "too_many_attempts";
+  message?: string;
+  retry_after_seconds?: number;
+}
+
+function retryHint(seconds: number): string {
+  const mins = Math.ceil(seconds / 60);
+  return mins <= 1 ? "Try again in about a minute." : `Try again in about ${mins} minutes.`;
+}
 export default function ClaimDeviceForm({ onClaimed }: Props) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -41,7 +59,19 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
       setError(rpcError.message);
       return;
     }
-    setClaimed(data as string);
+
+    const result = data as ClaimResult;
+    if (!result.ok) {
+      const base = result.message ?? "Could not claim that device.";
+      setError(
+        result.error === "too_many_attempts" && result.retry_after_seconds
+          ? `${base} ${retryHint(result.retry_after_seconds)}`
+          : base,
+      );
+      return;
+    }
+
+    setClaimed(result.device_id ?? "");
     setCode("");
     onClaimed();
   }

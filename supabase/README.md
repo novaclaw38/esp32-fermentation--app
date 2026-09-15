@@ -134,10 +134,43 @@ Claim codes are 8 characters from a 30-symbol alphabet (~39 bits) that omits
 hand. Generation rejects byte values ≥ 240 so the modulo is unbiased; 2000
 draws produced 2000 distinct well-formed codes using all 30 symbols.
 
-**Not yet done: rate limiting.** Nothing stops a client hammering
-`claim_device` with guesses. 39 bits makes that impractical at any sane
-request rate, but before a real batch ships this wants a per-user attempt
-limit.
+### Rate limiting
+
+`claim_device` allows **10 failed attempts per user per hour**, backed by the
+`claim_attempts` table. At that rate, 39 bits of code space puts a 50% chance
+of hitting any live code years away even across a thousand throwaway accounts.
+
+**The implementation detail that matters:** the function *returns* failures
+instead of raising them. Raising aborts the transaction, which rolls back the
+attempt row written moments earlier — so a raise-based version counts nothing
+and the limit silently does nothing at all. That is why `claim_device` returns
+`jsonb` (`{ok, error, message, retry_after_seconds}`) rather than a bare text
+id, and why only genuine faults like "not authenticated" still raise.
+
+Two smaller choices:
+
+- **A blocked attempt is not itself recorded**, or a client retrying in a loop
+  would keep extending its own block indefinitely.
+- **The limit is per-user, not global.** A global counter would let one
+  attacker lock every customer out of claiming.
+
+`claim_attempts` has RLS enabled with **no policies**, so no client can read
+the log or forge entries; only the SECURITY DEFINER function, running as the
+owner, touches it. Old rows are pruned inside the function (that user's own
+rows, older than 24h) so it needs no scheduled job.
+
+Verified against the live project: attempts 1–10 returned `invalid_code` and
+the 11th returned `too_many_attempts` — proving the counter actually
+accumulates rather than rolling back; a blocked user was refused even when
+given a **valid** code; a different user claimed successfully at the same
+moment, so the limit is genuinely per-user; the log returned 0 rows to a
+client; and a client `DELETE` against it affected nothing, leaving the block
+in force.
+
+**Still open:** signup is cheap while email confirmation is off, so an
+attacker can mint accounts to multiply their quota. The arithmetic above
+already assumes that. Turning confirmation back on once real SMTP exists is
+the fix, and is tracked in the root README.
 
 ## Alert emails (Edge Function)
 
