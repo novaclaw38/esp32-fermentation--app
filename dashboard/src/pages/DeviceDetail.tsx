@@ -5,6 +5,7 @@ import type { Alert, Device, Reading, ReadingWithGravity } from "../types/databa
 import TemperatureChart from "../components/TemperatureChart";
 import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
+import ConnectionBadge from "../components/ConnectionBadge";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
 import {
@@ -174,6 +175,9 @@ export default function DeviceDetail() {
               </span>
             )}
           </p>
+          <div className="mt-1">
+            <ConnectionBadge device={device} />
+          </div>
         </div>
         {latest && (
           <div className="text-right">

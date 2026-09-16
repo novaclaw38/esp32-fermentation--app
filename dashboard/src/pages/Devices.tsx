@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
 import type { Device, DeviceType } from "../types/database";
 import ClaimDeviceForm from "../components/ClaimDeviceForm";
+import ConnectionBadge from "../components/ConnectionBadge";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -207,9 +208,9 @@ export default function Devices() {
                     <p>
                       {d.temp_min_c}°C – {d.temp_max_c}°C
                     </p>
-                    <p>
-                      {d.last_seen_at ? `Last seen ${new Date(d.last_seen_at).toLocaleString()}` : "Never checked in"}
-                    </p>
+                    <div className="mt-0.5 flex justify-end">
+                      <ConnectionBadge device={d} />
+                    </div>
                   </div>
                 </div>
               </Link>
