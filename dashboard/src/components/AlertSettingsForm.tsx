@@ -54,17 +54,17 @@ export default function AlertSettingsForm({ device, onSaved }: Props) {
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+    <div className="space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-4">
       <div>
-        <p className="text-sm font-medium text-stone-800">Snooze alerts</p>
-        <p className="mt-1 text-xs text-stone-600">
+        <p className="text-sm font-medium text-panel-200">Snooze alerts</p>
+        <p className="mt-1 text-xs text-panel-400">
           Readings keep posting and charting normally -- only new temperature and battery alerts
           are held back. Useful during a cold crash or any deliberate swing you don't want to be
           paged for.
         </p>
 
         {isMuted && mutedUntil && (
-          <p className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-sm text-amber-800">
+          <p className="mt-2 rounded-md border border-approach-500/40 bg-panel-950 px-2 py-1 text-sm text-approach-400">
             Muted until {mutedUntil.toLocaleString()}
           </p>
         )}
@@ -75,7 +75,7 @@ export default function AlertSettingsForm({ device, onSaved }: Props) {
               key={label}
               onClick={() => applyMute(hours)}
               disabled={saving}
-              className="rounded-md border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+              className="rounded-md border border-panel-600 px-2.5 py-1 text-xs font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
             >
               {label}
             </button>
@@ -84,7 +84,7 @@ export default function AlertSettingsForm({ device, onSaved }: Props) {
             <button
               onClick={() => applyMute(null)}
               disabled={saving}
-              className="rounded-md border border-brew-300 bg-brew-50 px-2.5 py-1 text-xs font-medium text-brew-700 hover:bg-brew-100 disabled:opacity-50"
+              className="rounded-md border border-brew-600 bg-panel-800 px-2.5 py-1 text-xs font-medium text-brew-400 hover:bg-panel-700 disabled:opacity-50"
             >
               Unmute now
             </button>
@@ -92,23 +92,23 @@ export default function AlertSettingsForm({ device, onSaved }: Props) {
         </div>
       </div>
 
-      <label className="flex items-start gap-2 border-t border-stone-100 pt-3 text-sm">
+      <label className="flex items-start gap-2 border-t border-panel-700 pt-3 text-sm text-panel-200">
         <input
           type="checkbox"
           checked={device.notify_email}
           onChange={(e) => toggleNotifyEmail(e.target.checked)}
-          className="mt-0.5"
+          className="mt-0.5 accent-brew-500"
         />
         <span>
           Email me when this device alerts
-          <span className="mt-0.5 block text-xs text-stone-500">
+          <span className="mt-0.5 block text-xs text-panel-400">
             Separate from snoozing above -- this only controls the email, not whether the alert
             shows up on this page.
           </span>
         </span>
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-breach-400">{error}</p>}
     </div>
   );
 }

@@ -98,10 +98,10 @@ export default function CalibrationForm({ device, onSaved }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
-      <p className="text-sm text-stone-600">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-4">
+      <p className="text-sm text-panel-400">
         Specific gravity is derived from the tilt angle by this curve:{" "}
-        <code className="rounded bg-stone-100 px-1">SG = a·tilt³ + b·tilt² + c·tilt + d</code>. Fit
+        <code className="rounded bg-panel-800 px-1">SG = a·tilt³ + b·tilt² + c·tilt + d</code>. Fit
         it from a few reference-gravity samples taken with a hydrometer during setup — the
         procedure is in <code>firmware/README.md</code>.
       </p>
@@ -116,16 +116,16 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               value={values[key]}
               onChange={(e) => set(key, e.target.value)}
               placeholder={hint}
-              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-stone-400">{hint}</span>
+            <span className="mt-0.5 block text-xs text-panel-600">{hint}</span>
           </label>
         ))}
       </div>
 
-      <div className="rounded-md border border-stone-200 bg-stone-50 p-3">
-        <p className="text-sm font-medium text-stone-800">Temperature correction</p>
-        <p className="mt-1 text-xs text-stone-600">
+      <div className="rounded-md border border-panel-700 bg-panel-950 p-3">
+        <p className="text-sm font-medium text-panel-200">Temperature correction</p>
+        <p className="mt-1 text-xs text-panel-400">
           Readings are corrected to a 20°C reference using the standard hydrometer curve. The
           correction is measured <em>from the temperature you calibrated at</em>, not from an
           assumed 20°C — so this field has to be right, or every reading is quietly biased. Across
@@ -143,9 +143,9 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setCalTemp(e.target.value);
                 setSaved(false);
               }}
-              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-stone-400">
+            <span className="mt-0.5 block text-xs text-panel-600">
               What the reference solutions were at
             </span>
           </label>
@@ -160,27 +160,27 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setSaved(false);
               }}
               placeholder="0"
-              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-stone-400">
+            <span className="mt-0.5 block text-xs text-panel-600">
               Optional. Leave 0 unless you calibrated at two temperatures
             </span>
           </label>
         </div>
       </div>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-panel-400">
         Gravity is computed when readings are read, not when they're stored — so saving a corrected
         curve here fixes this device's entire history, not just future readings.
       </p>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {saved && !error && <p className="text-sm text-green-700">Calibration saved.</p>}
+      {error && <p className="text-sm text-breach-400">{error}</p>}
+      {saved && !error && <p className="text-sm text-green-400">Calibration saved.</p>}
 
       <button
         type="submit"
         disabled={saving}
-        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
+        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save calibration"}
       </button>

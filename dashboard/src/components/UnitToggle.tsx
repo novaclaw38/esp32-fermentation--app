@@ -8,9 +8,9 @@ export default function UnitToggle() {
     <button
       onClick={toggle}
       title="Display temperatures in °C or °F (readings are always stored in °C)"
-      className="rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100"
+      className="rounded-md border border-panel-600 px-2 py-1 text-xs font-medium text-panel-200 hover:bg-panel-800"
     >
-      °{unit === "C" ? "C" : "F"} <span className="text-stone-400">→ °{unit === "C" ? "F" : "C"}</span>
+      °{unit === "C" ? "C" : "F"} <span className="text-panel-400">→ °{unit === "C" ? "F" : "C"}</span>
     </button>
   );
 }

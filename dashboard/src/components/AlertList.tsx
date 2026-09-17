@@ -25,31 +25,31 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
   }
 
   if (alerts.length === 0) {
-    return <p className="text-sm text-stone-500">No alerts yet — good sign.</p>;
+    return <p className="text-sm text-panel-400">No alerts yet — good sign.</p>;
   }
 
   return (
-    <ul className="divide-y divide-stone-200 rounded-lg border border-stone-200 bg-white">
+    <ul className="divide-y divide-panel-700 rounded-lg border border-panel-700 bg-panel-900">
       {alerts.map((alert) => (
         <li key={alert.id} className="flex items-center justify-between gap-4 p-3 text-sm">
           <div>
             <span
               className={
                 alert.acknowledged
-                  ? "inline-block h-2 w-2 rounded-full bg-stone-300"
-                  : "inline-block h-2 w-2 rounded-full bg-red-500"
+                  ? "inline-block h-2 w-2 rounded-full bg-panel-600"
+                  : "inline-block h-2 w-2 rounded-full bg-breach-400 shadow-[0_0_6px_2px_rgba(248,113,113,0.6)]"
               }
             />
-            <span className="ml-2 font-medium">{reasonLabel(alert.reason)}</span>
+            <span className="ml-2 font-medium text-panel-200">{reasonLabel(alert.reason)}</span>
             {alert.temperature_c !== null && (
-              <span className="ml-2 text-stone-500">{formatTemp(alert.temperature_c, unit)}</span>
+              <span className="ml-2 font-gauge tabular text-panel-400">{formatTemp(alert.temperature_c, unit)}</span>
             )}
-            <span className="ml-2 text-stone-400">{new Date(alert.created_at).toLocaleString()}</span>
+            <span className="ml-2 text-panel-600">{new Date(alert.created_at).toLocaleString()}</span>
           </div>
           {!alert.acknowledged && (
             <button
               onClick={() => acknowledge(alert.id)}
-              className="rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100"
+              className="rounded-md border border-panel-600 px-2 py-1 text-xs font-medium text-panel-200 hover:bg-panel-800"
             >
               Acknowledge
             </button>

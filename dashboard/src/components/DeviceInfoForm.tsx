@@ -100,9 +100,9 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+      <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="text-sm">
+          <label className="text-sm text-panel-200">
             Name
             <input
               value={name}
@@ -110,38 +110,38 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
                 setName(e.target.value);
                 setSaved(false);
               }}
-              className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
           </label>
-          <label className="text-sm text-stone-500">
+          <label className="text-sm text-panel-400">
             Device ID
             <input
               value={device.id}
               disabled
-              className="mt-1 w-full cursor-not-allowed rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-stone-500"
+              className="mt-1 w-full cursor-not-allowed rounded-md border border-panel-700 bg-panel-950 px-2 py-1 text-panel-400"
             />
           </label>
         </div>
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-panel-400">
           {TYPE_LABEL[device.device_type]} · claimed{" "}
           {device.claimed_at ? new Date(device.claimed_at).toLocaleDateString() : new Date(device.created_at).toLocaleDateString()}
         </p>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {saved && !error && <p className="text-sm text-green-700">Saved.</p>}
+        {error && <p className="text-sm text-breach-400">{error}</p>}
+        {saved && !error && <p className="text-sm text-green-400">Saved.</p>}
 
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
+          className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save name"}
         </button>
       </form>
 
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-        <p className="text-sm font-medium text-amber-900">Unclaim / transfer</p>
-        <p className="mt-1 text-xs text-amber-800">
+      <div className="rounded-lg border border-approach-500/40 bg-panel-900 p-4">
+        <p className="text-sm font-medium text-approach-400">Unclaim / transfer</p>
+        <p className="mt-1 text-xs text-panel-400">
           Releases this device from your account and mints a fresh claim code -- its whole reading
           and alert history stays intact, just waiting for whoever claims it next. Use this to hand
           a unit to someone else, or to move it to a different account of your own.
@@ -149,15 +149,15 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
 
         {newClaimCode ? (
           <div className="mt-3 space-y-2">
-            <p className="text-xs text-amber-800">
+            <p className="text-xs text-panel-400">
               New claim code -- write it down or print it now, it won't be shown again:
             </p>
-            <code className="block rounded-md border border-amber-300 bg-white px-3 py-2 text-center font-mono text-lg uppercase tracking-widest text-amber-900">
+            <code className="block rounded-md border border-approach-500 bg-panel-950 px-3 py-2 text-center font-gauge tabular text-lg uppercase tracking-widest text-approach-400">
               {newClaimCode.slice(0, 4)}-{newClaimCode.slice(4)}
             </code>
             <button
               onClick={onDeleted}
-              className="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+              className="rounded-md bg-approach-500 px-3 py-1.5 text-sm font-medium text-panel-950 hover:bg-approach-400"
             >
               Done
             </button>
@@ -165,18 +165,18 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
         ) : !confirmingUnclaim ? (
           <button
             onClick={() => setConfirmingUnclaim(true)}
-            className="mt-3 rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+            className="mt-3 rounded-md border border-approach-500/50 px-3 py-1.5 text-sm font-medium text-approach-400 hover:bg-panel-800"
           >
             Unclaim device…
           </button>
         ) : (
           <div className="mt-3 space-y-2">
-            {unclaimError && <p className="text-sm text-red-700">{unclaimError}</p>}
+            {unclaimError && <p className="text-sm text-breach-400">{unclaimError}</p>}
             <div className="flex gap-2">
               <button
                 onClick={handleUnclaim}
                 disabled={unclaiming}
-                className="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-40"
+                className="rounded-md bg-approach-500 px-3 py-1.5 text-sm font-medium text-panel-950 hover:bg-approach-400 disabled:opacity-40"
               >
                 {unclaiming ? "Releasing…" : "Yes, release it"}
               </button>
@@ -185,7 +185,7 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
                   setConfirmingUnclaim(false);
                   setUnclaimError(null);
                 }}
-                className="rounded-md border border-stone-300 px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-100"
+                className="rounded-md border border-panel-600 px-3 py-1.5 text-sm text-panel-200 hover:bg-panel-800"
               >
                 Cancel
               </button>
@@ -194,9 +194,9 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
         )}
       </div>
 
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm font-medium text-red-900">Remove this device</p>
-        <p className="mt-1 text-xs text-red-800">
+      <div className="rounded-lg border border-breach-500/40 bg-panel-900 p-4">
+        <p className="text-sm font-medium text-breach-400">Remove this device</p>
+        <p className="mt-1 text-xs text-panel-400">
           Deletes it and every reading and alert it has ever posted. The physical unit keeps
           running and posting — it just has nowhere to land, and will need re-provisioning to
           claim again. This cannot be undone.
@@ -205,27 +205,27 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
         {!confirming ? (
           <button
             onClick={() => setConfirming(true)}
-            className="mt-3 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+            className="mt-3 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Remove device…
           </button>
         ) : (
           <div className="mt-3 space-y-2">
-            <label className="block text-xs text-red-800">
-              Type <code className="rounded bg-white px-1">{device.id}</code> to confirm
+            <label className="block text-xs text-panel-400">
+              Type <code className="rounded bg-panel-950 px-1 text-panel-200">{device.id}</code> to confirm
               <input
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                className="mt-1 w-full rounded-md border border-red-300 px-2 py-1 text-sm"
+                className="mt-1 w-full rounded-md border border-breach-500/50 bg-panel-950 px-2 py-1 text-sm text-panel-200"
                 autoFocus
               />
             </label>
-            {deleteError && <p className="text-sm text-red-700">{deleteError}</p>}
+            {deleteError && <p className="text-sm text-breach-400">{deleteError}</p>}
             <div className="flex gap-2">
               <button
                 onClick={handleDelete}
                 disabled={confirmText.trim() !== device.id || deleting}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40"
+                className="rounded-md bg-breach-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
               >
                 {deleting ? "Removing…" : "Permanently remove"}
               </button>
@@ -235,7 +235,7 @@ export default function DeviceInfoForm({ device, onSaved, onDeleted }: Props) {
                   setConfirmText("");
                   setDeleteError(null);
                 }}
-                className="rounded-md border border-stone-300 px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-100"
+                className="rounded-md border border-panel-600 px-3 py-1.5 text-sm text-panel-200 hover:bg-panel-800"
               >
                 Cancel
               </button>

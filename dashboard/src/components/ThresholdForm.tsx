@@ -62,49 +62,49 @@ export default function ThresholdForm({ device, onSaved }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-4">
       <div className="grid grid-cols-2 gap-3">
-        <label className="text-sm">
+        <label className="text-sm text-panel-200">
           Min °C
           <input
             type="number"
             step="0.1"
             value={tempMinC}
             onChange={(e) => setTempMinC(e.target.value)}
-            className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular text-panel-200"
           />
         </label>
-        <label className="text-sm">
+        <label className="text-sm text-panel-200">
           Max °C
           <input
             type="number"
             step="0.1"
             value={tempMaxC}
             onChange={(e) => setTempMaxC(e.target.value)}
-            className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular text-panel-200"
           />
         </label>
-        <label className="text-sm">
+        <label className="text-sm text-panel-200">
           Consecutive breaches before alert
           <input
             type="number"
             min="1"
             value={breachLimit}
             onChange={(e) => setBreachLimit(e.target.value)}
-            className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular text-panel-200"
           />
         </label>
-        <label className="text-sm">
+        <label className="text-sm text-panel-200">
           Sleep interval (seconds)
           <input
             type="number"
             min="60"
             value={sleepSeconds}
             onChange={(e) => setSleepSeconds(e.target.value)}
-            className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular text-panel-200"
           />
         </label>
-        <label className="text-sm sm:col-span-2">
+        <label className="text-sm text-panel-200 sm:col-span-2">
           Low-battery alert (volts)
           <input
             type="number"
@@ -112,22 +112,22 @@ export default function ThresholdForm({ device, onSaved }: Props) {
             placeholder="disabled"
             value={batteryMinV}
             onChange={(e) => setBatteryMinV(e.target.value)}
-            className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1 sm:w-1/2"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular text-panel-200 sm:w-1/2"
           />
-          <span className="mt-0.5 block text-xs text-stone-400">
+          <span className="mt-0.5 block text-xs text-panel-600">
             Leave blank to disable. Leave blank on bench/USB power too -- with no cell attached the
             reading is noise (0-1.2V observed), not a real voltage
           </span>
         </label>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {savedAt && !error && <p className="text-sm text-green-700">Saved — the device will pick this up on its next wake cycle.</p>}
+      {error && <p className="text-sm text-breach-400">{error}</p>}
+      {savedAt && !error && <p className="text-sm text-green-400">Saved — the device will pick this up on its next wake cycle.</p>}
 
       <button
         type="submit"
         disabled={saving}
-        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
+        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save thresholds"}
       </button>

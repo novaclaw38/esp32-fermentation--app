@@ -77,10 +77,10 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+    <form onSubmit={handleSubmit} className="mb-6 space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-4">
       <div>
-        <p className="text-sm font-medium text-stone-800">Claim a device</p>
-        <p className="mt-1 text-xs text-stone-600">
+        <p className="text-sm font-medium text-panel-200">Claim a device</p>
+        <p className="mt-1 text-xs text-panel-400">
           Enter the code printed on your unit. Hyphens and capitals don't matter.
         </p>
       </div>
@@ -93,13 +93,13 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
           placeholder="ABCD-EFGH"
           autoComplete="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1 font-mono uppercase tracking-widest"
+          className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular uppercase tracking-widest text-panel-200"
         />
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-breach-400">{error}</p>}
       {claimed && (
-        <p className="text-sm text-green-700">
+        <p className="text-sm text-green-400">
           Claimed <code>{claimed}</code>. Readings appear after its next wake cycle.
         </p>
       )}
@@ -107,7 +107,7 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
       <button
         type="submit"
         disabled={busy}
-        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
+        className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
       >
         {busy ? "Claiming…" : "Claim device"}
       </button>

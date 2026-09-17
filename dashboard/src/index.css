@@ -3,5 +3,45 @@
 @tailwind utilities;
 
 body {
-  @apply bg-stone-50 text-stone-900;
+  @apply bg-panel-950 text-panel-200;
+}
+
+/* Every live numeral on a gauge or reading uses this -- digits must not
+   jitter in width as a value updates. font-variant-numeric is the real
+   mechanism; the gauge font stack (ui-monospace, ...) makes it redundant
+   but explicit, since a fallback face may not honor tabular-nums by default. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Browser surfaces the design doesn't draw still ship with a design if left
+   alone -- theme them from the panel/amber palette rather than leaving
+   default blue selection and scrollbars on a dark instrument ground. */
+::selection {
+  background-color: theme("colors.brew.700");
+  color: theme("colors.panel.200");
+}
+
+* {
+  scrollbar-color: theme("colors.panel.600") theme("colors.panel.900");
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme("colors.panel.900");
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme("colors.panel.600");
+  border-radius: 6px;
+}
+
+:focus-visible {
+  outline: 2px solid theme("colors.brew.400");
+  outline-offset: 2px;
 }

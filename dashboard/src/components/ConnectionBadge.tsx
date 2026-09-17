@@ -9,10 +9,10 @@ interface Props {
 }
 
 const STYLES: Record<ConnectionStatus, { dot: string; text: string; label: string }> = {
-  online: { dot: "bg-green-500", text: "text-green-700", label: "Online" },
-  stale: { dot: "bg-amber-500", text: "text-amber-700", label: "Stale" },
-  offline: { dot: "bg-red-500", text: "text-red-700", label: "Offline" },
-  never: { dot: "bg-stone-300", text: "text-stone-500", label: "Never checked in" },
+  online: { dot: "bg-green-400", text: "text-green-400", label: "Online" },
+  stale: { dot: "bg-approach-400", text: "text-approach-400", label: "Stale" },
+  offline: { dot: "bg-breach-400", text: "text-breach-400", label: "Offline" },
+  never: { dot: "bg-panel-600", text: "text-panel-400", label: "Never checked in" },
 };
 
 /**

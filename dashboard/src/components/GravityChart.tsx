@@ -35,7 +35,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
 
   if (points.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-stone-200 bg-white px-6 text-center text-stone-400">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-panel-700 bg-panel-900 px-6 text-center text-panel-400">
         No tilt readings yet — the module will appear here after its first wake cycle.
       </div>
     );
@@ -57,7 +57,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
 
   if (plotted.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-stone-200 bg-white px-6 text-center text-stone-400">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-panel-700 bg-panel-900 px-6 text-center text-panel-400">
         Tilt readings exist but none have a gravity value yet.
       </div>
     );
@@ -90,7 +90,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
   return (
     <div className="space-y-2">
       {showingTilt && (
-        <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="rounded-md border border-approach-500/40 bg-panel-900 p-3 text-sm text-approach-400">
           <span className="font-medium">Showing raw tilt angle, not gravity.</span> This device has
           no calibration curve yet, so there's no way to convert its tilt angle into a specific
           gravity. The trend below is still real — tilt falls as the wort thins out — but the
@@ -99,25 +99,29 @@ export default function GravityChart({ readings, calibrated }: Props) {
         </p>
       )}
 
-      <div className="h-64 rounded-lg border border-stone-200 bg-white p-4">
+      <div className="h-64 rounded-lg border border-panel-700 bg-panel-900 p-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={plotted} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-            <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={40} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#262019" />
+            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#8a7a63" }} minTickGap={40} stroke="#453829" />
             <YAxis
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: "#8a7a63" }}
               unit={unit}
               width={showingTilt ? 44 : 56}
               domain={[min - pad, max + pad]}
               tickFormatter={(v: number) => (showingTilt ? v.toFixed(0) : formatSg(v))}
+              stroke="#453829"
             />
             <Tooltip
               formatter={(value: number) => [format(value), showingTilt ? "Tilt" : "Gravity"]}
+              contentStyle={{ background: "#1c1712", border: "1px solid #332a20", borderRadius: 6 }}
+              labelStyle={{ color: "#d9cbb0" }}
+              itemStyle={{ color: "#4ade80" }}
             />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#2f6f4e"
+              stroke="#4ade80"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}
@@ -127,21 +131,21 @@ export default function GravityChart({ readings, calibrated }: Props) {
       </div>
 
       {!showingTilt && correction != null && (
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-panel-400">
           Latest reading corrected to 20°C: {formatSg(latestRow.gravity_sg_raw as number)} raw →{" "}
-          <span className="text-stone-700">{formatSg(latestRow.gravity_sg as number)}</span> (
+          <span className="text-panel-200">{formatSg(latestRow.gravity_sg as number)}</span> (
           {formatPoints(correction)} points at {(latestRow.temperature_c ?? 0).toFixed(1)}°C).
         </p>
       )}
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-panel-400">
         Now {format(latest)} · {delta >= 0 ? "+" : "−"}
         {format(Math.abs(delta))} across the readings shown.{" "}
         {/* Deliberately no ABV or attenuation figure: both need the batch's true
             original gravity, and the first point in a 48h window is not that
             unless the batch happens to be under two days old. Showing one
             anyway would be confidently wrong for every established batch. */}
-        <span className="text-stone-400">
+        <span className="text-panel-600">
           Change is measured over this window only, not from the batch's original gravity.
         </span>
       </p>

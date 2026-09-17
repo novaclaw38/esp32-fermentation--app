@@ -41,26 +41,31 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
 
   if (data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-400">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-panel-700 bg-panel-900 text-panel-400">
         No readings yet — the device will appear here after its first wake cycle.
       </div>
     );
   }
 
   return (
-    <div className="h-64 rounded-lg border border-stone-200 bg-white p-4">
+    <div className="h-64 rounded-lg border border-panel-700 bg-panel-900 p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-          <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={40} />
-          <YAxis tick={{ fontSize: 11 }} unit={`°${unit}`} domain={["auto", "auto"]} />
-          <Tooltip formatter={(value: number) => [`${value.toFixed(1)}°${unit}`, "Temperature"]} />
-          <ReferenceLine y={displayMin} stroke="#c97f22" strokeDasharray="4 4" />
-          <ReferenceLine y={displayMax} stroke="#c97f22" strokeDasharray="4 4" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#262019" />
+          <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#8a7a63" }} minTickGap={40} stroke="#453829" />
+          <YAxis tick={{ fontSize: 11, fill: "#8a7a63" }} unit={`°${unit}`} domain={["auto", "auto"]} stroke="#453829" />
+          <Tooltip
+            formatter={(value: number) => [`${value.toFixed(1)}°${unit}`, "Temperature"]}
+            contentStyle={{ background: "#1c1712", border: "1px solid #332a20", borderRadius: 6 }}
+            labelStyle={{ color: "#d9cbb0" }}
+            itemStyle={{ color: "#dd9834" }}
+          />
+          <ReferenceLine y={displayMin} stroke="#f87171" strokeDasharray="4 4" />
+          <ReferenceLine y={displayMax} stroke="#f87171" strokeDasharray="4 4" />
           <Line
             type="monotone"
             dataKey="temperature"
-            stroke="#a8631c"
+            stroke="#dd9834"
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}
