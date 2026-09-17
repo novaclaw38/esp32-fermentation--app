@@ -122,7 +122,7 @@ export default function ThresholdForm({ device, onSaved }: Props) {
       </div>
 
       {error && <p className="text-sm text-breach-400">{error}</p>}
-      {savedAt && !error && <p className="text-sm text-green-400">Saved — the device will pick this up on its next wake cycle.</p>}
+      {savedAt && !error && <p className="text-sm text-brew-400">Saved — the device will pick this up on its next wake cycle.</p>}
 
       <button
         type="submit"

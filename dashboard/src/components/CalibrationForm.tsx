@@ -175,7 +175,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
       </p>
 
       {error && <p className="text-sm text-breach-400">{error}</p>}
-      {saved && !error && <p className="text-sm text-green-400">Calibration saved.</p>}
+      {saved && !error && <p className="text-sm text-brew-400">Calibration saved.</p>}
 
       <button
         type="submit"

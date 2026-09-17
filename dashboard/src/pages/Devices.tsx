@@ -4,12 +4,11 @@ import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
 import type { Device, DeviceType, Reading } from "../types/database";
 import ClaimDeviceForm from "../components/ClaimDeviceForm";
-import ConnectionBadge from "../components/ConnectionBadge";
 import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
-import { getConnectionInfo } from "../lib/connection";
+import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState } from "../lib/gaugeState";
 
 function randomSecret(): string {
@@ -248,6 +247,8 @@ export default function Devices() {
                   displayValue={formatTemp(reading?.temperature_c, unit)}
                   label="TEMP"
                   state={state}
+                  stale={connection.status === "stale"}
+                  subLabel={connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined}
                   size="sm"
                 />
                 <div className="min-w-0 flex-1">
@@ -263,9 +264,6 @@ export default function Devices() {
                   <p className="mt-1 text-xs text-panel-400">
                     {formatTemp(d.temp_min_c, unit)} – {formatTemp(d.temp_max_c, unit)}
                   </p>
-                  <div className="mt-1.5">
-                    <ConnectionBadge device={d} />
-                  </div>
                 </div>
               </Link>
             );

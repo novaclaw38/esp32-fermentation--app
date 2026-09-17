@@ -5,7 +5,6 @@ import type { Alert, Device, Reading, ReadingWithGravity } from "../types/databa
 import TemperatureChart from "../components/TemperatureChart";
 import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
-import ConnectionBadge from "../components/ConnectionBadge";
 import DeviceInfoForm from "../components/DeviceInfoForm";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
@@ -14,7 +13,7 @@ import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
-import { getConnectionInfo } from "../lib/connection";
+import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState, type GaugeState } from "../lib/gaugeState";
 import {
   computeGravitySg,
@@ -214,9 +213,6 @@ export default function DeviceDetail() {
             </span>
           )}
         </p>
-        <div className="mt-1">
-          <ConnectionBadge device={device} />
-        </div>
       </div>
 
       <section className="mb-8 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-panel-700 bg-panel-900 p-6 sm:justify-start">
@@ -227,6 +223,8 @@ export default function DeviceDetail() {
           displayValue={formatTemp(latest?.temperature_c, unit)}
           label="Temp"
           state={tempState}
+          stale={connection.status === "stale"}
+          subLabel={connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined}
           size="lg"
         />
         {showGravity && latest && (
@@ -250,11 +248,6 @@ export default function DeviceDetail() {
             state={batteryState}
             size="sm"
           />
-        )}
-        {latest && (
-          <p className="w-full text-center text-xs text-panel-400 sm:w-auto sm:text-left">
-            as of {new Date(latest.created_at).toLocaleTimeString()}
-          </p>
         )}
       </section>
 

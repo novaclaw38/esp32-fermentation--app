@@ -10,6 +10,19 @@ interface Props {
   /** Instrument name, e.g. "TEMP", "GRAVITY", "BATTERY". */
   label: string;
   state: GaugeState;
+  /**
+   * Freshness, folded into the instrument itself rather than a separate
+   * status badge sitting outside it -- e.g. "3m ago", "12m ago". Omit when
+   * the gauge has never reported (state is already "offline" then, which
+   * says everything a badge would have).
+   */
+  subLabel?: string;
+  /**
+   * A device that's overdue to check in but not yet counted offline reads
+   * as a slightly duller instrument, not a fully dark one -- same vocabulary
+   * as the state glow (intensity carries the signal, no new hue).
+   */
+  stale?: boolean;
   size?: "sm" | "lg";
 }
 
@@ -53,7 +66,7 @@ const CX = 100;
 const CY = 108;
 const TRACK_R = 78;
 
-export default function Gauge({ value, min, max, displayValue, label, state, size = "sm" }: Props) {
+export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, size = "sm" }: Props) {
   const range = max - min;
   const rawFraction = value == null ? 0 : (value - min) / range;
   // A real needle pins at its travel limit rather than flying off-scale.
@@ -63,6 +76,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, siz
   const color = STATE_COLOR[state];
   const glow = STATE_GLOW_PX[state];
   const dim = state === "offline";
+  const svgOpacity = dim ? "opacity-40" : stale ? "opacity-75" : "opacity-100";
 
   const ticks = Array.from({ length: 6 }, (_, i) => START_ANGLE + (SWEEP / 5) * i);
   const approachSpan = SWEEP * APPROACH_FRACTION;
@@ -72,8 +86,12 @@ export default function Gauge({ value, min, max, displayValue, label, state, siz
   const labelClass = size === "lg" ? "text-xs" : "text-[10px]";
 
   return (
-    <div className={`relative ${dims} shrink-0`} role="img" aria-label={`${label}: ${dim ? "offline" : displayValue}`}>
-      <svg viewBox="0 0 200 200" className={`h-full w-full transition-opacity duration-500 ${dim ? "opacity-40" : "opacity-100"}`}>
+    <div
+      className={`relative ${dims} shrink-0`}
+      role="img"
+      aria-label={`${label}: ${dim ? "offline" : displayValue}${subLabel ? `, ${subLabel}` : ""}`}
+    >
+      <svg viewBox="0 0 200 200" className={`h-full w-full transition-opacity duration-500 ${svgOpacity}`}>
         {/* Track */}
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + SWEEP)}
@@ -138,6 +156,9 @@ export default function Gauge({ value, min, max, displayValue, label, state, siz
           {dim ? "—" : displayValue}
         </span>
         <span className={`mt-0.5 font-medium uppercase tracking-widest text-panel-400 ${labelClass}`}>{label}</span>
+        {subLabel && (
+          <span className={`font-gauge tabular text-panel-600 ${size === "lg" ? "text-xs" : "text-[9px]"}`}>{subLabel}</span>
+        )}
       </div>
     </div>
   );

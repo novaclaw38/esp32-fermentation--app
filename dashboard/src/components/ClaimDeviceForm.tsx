@@ -99,7 +99,7 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
 
       {error && <p className="text-sm text-breach-400">{error}</p>}
       {claimed && (
-        <p className="text-sm text-green-400">
+        <p className="text-sm text-brew-400">
           Claimed <code>{claimed}</code>. Readings appear after its next wake cycle.
         </p>
       )}
