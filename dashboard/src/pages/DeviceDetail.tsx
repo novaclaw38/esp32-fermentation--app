@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import type { Alert, Device, Reading, ReadingWithGravity } from "../types/database";
 import TemperatureChart from "../components/TemperatureChart";
 import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
 import ConnectionBadge from "../components/ConnectionBadge";
+import DeviceInfoForm from "../components/DeviceInfoForm";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
 import {
@@ -20,6 +21,7 @@ const HISTORY_HOURS = 48;
 
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
+  const navigate = useNavigate();
   const [device, setDevice] = useState<Device | null>(null);
   const [readings, setReadings] = useState<ReadingWithGravity[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -117,7 +119,7 @@ export default function DeviceDetail() {
     setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
   }
 
-  function handleThresholdSaved(updates: Partial<Device>) {
+  function handleDeviceFieldSaved(updates: Partial<Device>) {
     setDevice((prev) => (prev ? { ...prev, ...updates } : prev));
   }
 
@@ -217,19 +219,39 @@ export default function DeviceDetail() {
         <AlertList alerts={alerts} onAcknowledged={handleAcknowledged} />
       </section>
 
-      <section className={showGravity ? "mb-6" : undefined}>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">Thresholds</h2>
-        <ThresholdForm device={device} onSaved={handleThresholdSaved} />
-      </section>
+      <details className="rounded-lg border border-stone-200 bg-stone-50" open>
+        <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+          Settings
+        </summary>
+        <div className="space-y-6 border-t border-stone-200 p-4">
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+              Device info
+            </h3>
+            <DeviceInfoForm
+              device={device}
+              onSaved={handleDeviceFieldSaved}
+              onDeleted={() => navigate("/devices")}
+            />
+          </section>
 
-      {showGravity && (
-        <section>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Gravity calibration
-          </h2>
-          <CalibrationForm device={device} onSaved={handleCalibrationSaved} />
-        </section>
-      )}
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+              Alert thresholds
+            </h3>
+            <ThresholdForm device={device} onSaved={handleDeviceFieldSaved} />
+          </section>
+
+          {showGravity && (
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                Gravity calibration
+              </h3>
+              <CalibrationForm device={device} onSaved={handleCalibrationSaved} />
+            </section>
+          )}
+        </div>
+      </details>
     </div>
   );
 }
