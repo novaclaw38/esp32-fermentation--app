@@ -31,6 +31,13 @@ export default function Devices() {
   const [newType, setNewType] = useState<DeviceType>("hub");
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Distinct from `error` above (the add-device form's own submit error) --
+  // this tracks whether the device list itself failed to load, so a failed
+  // fetch never renders identically to a genuinely empty account. That
+  // ambiguity is exactly the wrong moment to be silent: this product exists
+  // to answer "is my batch okay" without the owner checking manually, and a
+  // calm "No devices yet" during an outage is the opposite of that.
+  const [loadError, setLoadError] = useState<string | null>(null);
   // Focus-dim: hovering/focusing one tile dims the rest of the panel so the
   // one you're reading pops, the way a lit instrument recedes its neighbors.
   const [focusedId, setFocusedId] = useState<string | null>(null);
@@ -41,11 +48,18 @@ export default function Devices() {
 
   async function loadDevices() {
     setLoading(true);
-    const { data, error: loadError } = await supabase
+    setLoadError(null);
+    const { data, error: devicesError } = await supabase
       .from("devices")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!loadError && data) setDevices(data as Device[]);
+
+    if (devicesError) {
+      setLoadError(devicesError.message);
+      setLoading(false);
+      return;
+    }
+    setDevices((data as Device[]) ?? []);
 
     // Latest reading per device: RLS already scopes rows to owned devices,
     // so pull a recent batch and reduce to one row per device_id client-side
@@ -214,6 +228,17 @@ export default function Devices() {
 
       {loading ? (
         <p className="text-panel-400">Loading…</p>
+      ) : loadError ? (
+        <div className="rounded-lg border border-breach-500/40 bg-panel-900 p-4 text-sm">
+          <p className="font-medium text-breach-400">Couldn't load your devices</p>
+          <p className="mt-1 text-panel-400">{loadError}</p>
+          <button
+            onClick={loadDevices}
+            className="mt-3 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+          >
+            Retry
+          </button>
+        </div>
       ) : devices.length === 0 ? (
         <p className="text-panel-400">No devices yet. Add one above once you've flashed a unit.</p>
       ) : (

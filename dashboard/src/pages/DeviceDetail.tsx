@@ -43,6 +43,11 @@ export default function DeviceDetail() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  // Distinct from notFound -- a genuine fetch failure must never look like
+  // "no rows" (which reads as "not your device" and sends the owner away)
+  // or, for the readings/alerts fetch, like "nothing happened yet" (which
+  // reads as reassurance). Both are the wrong lie to tell during an outage.
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // The Realtime subscription below is set up once per deviceId, so its
   // callback closes over whatever `device` was at that moment — null, on the
@@ -97,6 +102,8 @@ export default function DeviceDetail() {
   async function load() {
     if (!deviceId) return;
     setLoading(true);
+    setNotFound(false);
+    setLoadError(null);
 
     const { data: deviceData, error: deviceError } = await supabase
       .from("devices")
@@ -104,6 +111,16 @@ export default function DeviceDetail() {
       .eq("id", deviceId)
       .single();
 
+    // PGRST116 ("no rows") from .single() means genuinely not found -- no
+    // such device, or RLS makes it invisible, same thing from here. Any
+    // other error is a real fetch failure and must not be told as "not
+    // found": that reads as "not your device" and sends the owner away from
+    // a device that's actually still theirs.
+    if (deviceError && deviceError.code !== "PGRST116") {
+      setLoadError(deviceError.message);
+      setLoading(false);
+      return;
+    }
     if (deviceError || !deviceData) {
       setNotFound(true);
       setLoading(false);
@@ -116,7 +133,7 @@ export default function DeviceDetail() {
     // Read through the view rather than the table: it carries the same columns
     // plus `gravity_sg`, computed server-side from this device's calibration
     // curve. It's `security_invoker`, so RLS still scopes rows to the owner.
-    const [{ data: readingsData }, { data: alertsData }] = await Promise.all([
+    const [{ data: readingsData, error: readingsError }, { data: alertsData, error: alertsError }] = await Promise.all([
       supabase
         .from("readings_with_gravity")
         .select("*")
@@ -125,6 +142,16 @@ export default function DeviceDetail() {
         .order("created_at", { ascending: true }),
       supabase.from("alerts").select("*").eq("device_id", deviceId).order("created_at", { ascending: false }).limit(50),
     ]);
+
+    // The device itself loaded, so show its page rather than a full-page
+    // error -- but a failed history/alert fetch must not render as "No
+    // readings yet" / "No alerts yet -- good sign", which is reassurance,
+    // exactly backwards for a fetch that actually failed.
+    if (readingsError || alertsError) {
+      setLoadError((readingsError ?? alertsError)!.message);
+      setLoading(false);
+      return;
+    }
 
     setReadings((readingsData as ReadingWithGravity[]) ?? []);
     setAlerts((alertsData as Alert[]) ?? []);
@@ -159,6 +186,30 @@ export default function DeviceDetail() {
 
   if (loading) {
     return <div className="p-8 text-panel-400">Loading…</div>;
+  }
+
+  // Checked before notFound/!device: a load failure on the device fetch
+  // itself also leaves `device` null, and without this ordering it would
+  // fall through to "Device not found" -- exactly the wrong message for a
+  // fetch that failed rather than a device that isn't there.
+  if (loadError) {
+    return (
+      <div className="p-8">
+        <p className="font-medium text-breach-400">Couldn't load this device</p>
+        <p className="mt-1 text-sm text-panel-400">{loadError}</p>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={load}
+            className="rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+          >
+            Retry
+          </button>
+          <Link to="/devices" className="text-sm text-brew-400 underline">
+            Back to devices
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (notFound || !device) {
