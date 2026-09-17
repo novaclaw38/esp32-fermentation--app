@@ -24,8 +24,8 @@ export default {
           900: "#1c1712", // tile / card surface
           800: "#262019", // raised bezel, hover surface
           700: "#332a20", // border / divider on dark
-          600: "#453829", // lighter edge, focus-adjacent highlight
-          400: "#8a7a63", // secondary text on dark -- tinted, never gray
+          600: "#453829", // lighter edge, focus-adjacent highlight -- NOT a text color (was misused as one; see the audit fix)
+          400: "#9c8a6e", // secondary text on dark -- tinted, never gray. ~5.3:1 on panel-900 (the card surface it's actually used against), ~5.6:1 on panel-950. The original #8a7a63 held only 4.27:1 on panel-900, failing AA at its real usage context despite passing against the page background alone
           200: "#d9cbb0", // primary text on dark
         },
         // Explicit gauge-state hues, named for role rather than left as bare

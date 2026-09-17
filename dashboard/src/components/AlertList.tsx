@@ -44,7 +44,7 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
             {alert.temperature_c !== null && (
               <span className="ml-2 font-gauge tabular text-panel-400">{formatTemp(alert.temperature_c, unit)}</span>
             )}
-            <span className="ml-2 text-panel-600">{new Date(alert.created_at).toLocaleString()}</span>
+            <span className="ml-2 text-panel-400">{new Date(alert.created_at).toLocaleString()}</span>
           </div>
           {!alert.acknowledged && (
             <button

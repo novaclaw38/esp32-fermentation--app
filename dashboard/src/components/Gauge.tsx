@@ -36,7 +36,7 @@ const STATE_COLOR: Record<GaugeState, string> = {
   nominal: "#dd9834", // brew-400
   approaching: "#fb923c", // approach-400
   breached: "#f87171", // breach-400
-  offline: "#8a7a63", // panel-400
+  offline: "#9c8a6e", // panel-400
 };
 
 // The "alert-brightness hierarchy" raise: a breached needle isn't just a
@@ -49,6 +49,23 @@ const STATE_GLOW_PX: Record<GaugeState, number> = {
   breached: 9,
   offline: 0,
 };
+
+// A sighted viewer gets severity for free from hue and glow intensity; a
+// screen-reader user was getting only the number and never the word
+// "above maximum" -- exactly the gap the four-state vocabulary exists to
+// close for everyone else. `state` alone doesn't say which direction a
+// breach ran (an open alert can fire on an in-range value too, if it's the
+// dedup keeping a stale alert open), so check the raw value against the
+// gauge's own range first and fall back to a direction-agnostic word.
+function stateAnnouncement(state: GaugeState, value: number | null, min: number, max: number): string {
+  if (state === "breached") {
+    if (value != null && value > max) return "above maximum";
+    if (value != null && value < min) return "below minimum";
+    return "alert";
+  }
+  if (state === "approaching") return "approaching threshold";
+  return ""; // nominal needs no extra word; the bare number already says "fine"
+}
 
 function pointOnCircle(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -93,11 +110,13 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
   const numeralClass = size === "lg" ? "text-3xl" : "text-lg";
   const labelClass = size === "lg" ? "text-xs" : "text-[10px]";
 
+  const announcement = dim ? "" : stateAnnouncement(state, value, min, max);
+
   return (
     <div
       className={`relative ${dims} shrink-0`}
       role="img"
-      aria-label={`${label}: ${dim ? "offline" : displayValue}${subLabel ? `, ${subLabel}` : ""}`}
+      aria-label={`${label}: ${dim ? "offline" : displayValue}${announcement ? `, ${announcement}` : ""}${subLabel ? `, ${subLabel}` : ""}`}
     >
       <svg viewBox="0 0 200 200" className={`h-full w-full transition-opacity duration-500 ${svgOpacity}`}>
         {/* Track */}
@@ -167,7 +186,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[66%] flex flex-col items-center justify-center text-center">
         <span
           className={`font-gauge tabular font-semibold leading-none ${numeralClass}`}
-          style={{ color: dim ? "#8a7a63" : "#d9cbb0" }}
+          style={{ color: dim ? "#9c8a6e" : "#d9cbb0" }}
         >
           {dim ? "—" : displayValue}
         </span>

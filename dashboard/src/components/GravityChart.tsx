@@ -103,9 +103,9 @@ export default function GravityChart({ readings, calibrated }: Props) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={plotted} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#262019" />
-            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#8a7a63" }} minTickGap={40} stroke="#453829" />
+            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#9c8a6e" }} minTickGap={40} stroke="#453829" />
             <YAxis
-              tick={{ fontSize: 11, fill: "#8a7a63" }}
+              tick={{ fontSize: 11, fill: "#9c8a6e" }}
               unit={unit}
               width={showingTilt ? 44 : 56}
               domain={[min - pad, max + pad]}
@@ -145,7 +145,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
             original gravity, and the first point in a 48h window is not that
             unless the batch happens to be under two days old. Showing one
             anyway would be confidently wrong for every established batch. */}
-        <span className="text-panel-600">
+        <span className="text-panel-400">
           Change is measured over this window only, not from the batch's original gravity.
         </span>
       </p>

@@ -52,8 +52,8 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#262019" />
-          <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#8a7a63" }} minTickGap={40} stroke="#453829" />
-          <YAxis tick={{ fontSize: 11, fill: "#8a7a63" }} unit={`°${unit}`} domain={["auto", "auto"]} stroke="#453829" />
+          <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#9c8a6e" }} minTickGap={40} stroke="#453829" />
+          <YAxis tick={{ fontSize: 11, fill: "#9c8a6e" }} unit={`°${unit}`} domain={["auto", "auto"]} stroke="#453829" />
           <Tooltip
             formatter={(value: number) => [`${value.toFixed(1)}°${unit}`, "Temperature"]}
             contentStyle={{ background: "#1c1712", border: "1px solid #332a20", borderRadius: 6 }}

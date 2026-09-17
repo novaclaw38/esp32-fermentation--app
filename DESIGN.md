@@ -7,7 +7,7 @@ colors:
   panel-raised: "#262019"
   panel-border: "#332a20"
   panel-edge: "#453829"
-  panel-text-secondary: "#8a7a63"
+  panel-text-secondary: "#9c8a6e"
   panel-text-primary: "#d9cbb0"
   brew-glow: "#dd9834"
   brew-accent: "#c97f22"
@@ -124,8 +124,8 @@ A single warm charcoal scale carries the whole interface; amber is the one recur
 - **Panel Surface** (`#1c1712`): tile, card, and form background.
 - **Panel Raised** (`#262019`): hover surface and badge/chip background.
 - **Panel Border** (`#332a20`): default 1px border, divider, gauge track.
-- **Panel Edge** (`#453829`): lighter edge — tick marks, focus-adjacent highlight.
-- **Panel Text Secondary** (`#8a7a63`): secondary text and the offline-state glow color — tinted warm, never plain gray.
+- **Panel Edge** (`#453829`): lighter edge — tick marks, focus-adjacent highlight. Border/edge role only; an audit pass found it in use as real body text (alert timestamps, gauge freshness labels, form hints) at ~1.6:1 contrast, far below WCAG's 3:1 floor for any text size. Corrected to Panel Text Secondary wherever it was carrying text.
+- **Panel Text Secondary** (`#9c8a6e`): secondary text and the offline-state glow color — tinted warm, never plain gray. Lightened from the original `#8a7a63` (4.65:1 on the page background, but only 4.27:1 on the `panel-900` card surface most of this text actually sits against, failing AA there) to hold ≥5.3:1 against every surface it's used on.
 - **Panel Text Primary** (`#d9cbb0`): primary text on dark.
 
 ### Named Rules
@@ -194,7 +194,7 @@ Two radius steps: `6px` (buttons, inputs, chips — the interactive/small scale)
 - Minimal: a "← All devices" text link (`panel-400`, hover `panel-200`) is the only back-navigation; no persistent nav bar. Section headers use Title type; no active/hover state beyond the link's own color shift.
 
 ### Gauge (signature component)
-The one component every surface composes. A 240°-sweep SVG dial: a static track (`panel-700` stroke), two faint red redline zones marking the device's own approach thresholds, six tick marks, an eased needle (700ms cubic-bezier) that pins at its travel limit rather than flying off-scale, and a tabular numeral + uppercase label centered inside via absolute positioning. Color and glow are driven entirely by `GaugeState` (nominal/approaching/breached/offline — see `lib/gaugeState.ts`); an offline gauge renders its numeral as "—" at 40% opacity instead of a stale value. Two sizes only: `sm` (112px, list tiles) and `lg` (224px, detail-page hero). A device that's overdue but not yet offline dims to 75% opacity rather than adopting a new hue — staleness is intensity, not a new signal.
+The one component every surface composes. A 240°-sweep SVG dial: a static track (`panel-700` stroke), two faint red redline zones marking the device's own approach thresholds, six tick marks, an eased needle (700ms cubic-bezier) that pins at its travel limit rather than flying off-scale, and a tabular numeral + uppercase label positioned in the dial's actual clear zone below the arc's lower gap (not a naive full-box overlay — the hub sits at a fixed point regardless of needle angle, and the text has to stay clear of it in every state, not just the ones a screenshot happens to catch). Color and glow are driven entirely by `GaugeState` (nominal/approaching/breached/offline — see `lib/gaugeState.ts`); an offline gauge renders its numeral as "—" at 40% opacity instead of a stale value. Two sizes only: `sm` (112px, list tiles) and `lg` (224px, detail-page hero) — the freshness sub-label ("3m ago") only renders at `lg`, since the clear zone at `sm` holds the numeral and its label legibly but not a third line; staleness still reads through the gauge's own opacity at either size. A device that's overdue but not yet offline dims to 75% opacity rather than adopting a new hue — staleness is intensity, not a new signal. The `aria-label` states severity in words ("above maximum," "approaching threshold") alongside the number, not just the raw value, so the state the glow communicates to a sighted viewer also reaches a screen reader.
 
 ## Do's and Don'ts
 

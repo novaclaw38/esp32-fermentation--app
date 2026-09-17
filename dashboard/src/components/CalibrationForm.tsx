@@ -118,7 +118,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               placeholder={hint}
               className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-panel-600">{hint}</span>
+            <span className="mt-0.5 block text-xs text-panel-400">{hint}</span>
           </label>
         ))}
       </div>
@@ -145,7 +145,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               }}
               className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-panel-600">
+            <span className="mt-0.5 block text-xs text-panel-400">
               What the reference solutions were at
             </span>
           </label>
@@ -162,7 +162,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               placeholder="0"
               className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
             />
-            <span className="mt-0.5 block text-xs text-panel-600">
+            <span className="mt-0.5 block text-xs text-panel-400">
               Optional. Leave 0 unless you calibrated at two temperatures
             </span>
           </label>
