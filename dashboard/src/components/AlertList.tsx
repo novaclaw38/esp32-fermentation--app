@@ -1,5 +1,7 @@
 import type { Alert } from "../types/database";
 import { supabase } from "../lib/supabaseClient";
+import { useTempUnit } from "../lib/tempUnitContext";
+import { formatTemp } from "../lib/units";
 
 interface Props {
   alerts: Alert[];
@@ -10,10 +12,13 @@ function reasonLabel(reason: string) {
   if (reason === "below_min") return "Below minimum";
   if (reason === "above_max") return "Above maximum";
   if (reason === "sensor_fault") return "Sensor not reading";
+  if (reason === "battery_low") return "Battery low";
   return reason;
 }
 
 export default function AlertList({ alerts, onAcknowledged }: Props) {
+  const { unit } = useTempUnit();
+
   async function acknowledge(id: number) {
     const { error } = await supabase.from("alerts").update({ acknowledged: true }).eq("id", id);
     if (!error) onAcknowledged(id);
@@ -37,7 +42,7 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
             />
             <span className="ml-2 font-medium">{reasonLabel(alert.reason)}</span>
             {alert.temperature_c !== null && (
-              <span className="ml-2 text-stone-500">{alert.temperature_c.toFixed(1)}°C</span>
+              <span className="ml-2 text-stone-500">{formatTemp(alert.temperature_c, unit)}</span>
             )}
             <span className="ml-2 text-stone-400">{new Date(alert.created_at).toLocaleString()}</span>
           </div>

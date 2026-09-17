@@ -33,6 +33,20 @@ export interface Device {
    * expansion). 0 = unused. Not nullable; defaults to 0.
    */
   temp_coeff_sg_per_c: number;
+  /**
+   * Optional low-battery alert threshold in volts. NULL = disabled. Leave
+   * unset on bench/USB power, where the reading is noise rather than a real
+   * cell voltage (0-1.2V observed with nothing attached to the divider).
+   */
+  battery_min_v: number | null;
+  /**
+   * While in the future, the device's alerts (including battery_low) are
+   * dropped silently rather than inserted -- readings keep posting normally,
+   * only alerting pauses. NULL or past = not muted.
+   */
+  alerts_muted_until: string | null;
+  /** Per-device opt-out for the alert-notify email. Not nullable; defaults to true. */
+  notify_email: boolean;
 }
 
 export interface Reading {

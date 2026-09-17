@@ -9,6 +9,10 @@ import ConnectionBadge from "../components/ConnectionBadge";
 import DeviceInfoForm from "../components/DeviceInfoForm";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
+import AlertSettingsForm from "../components/AlertSettingsForm";
+import UnitToggle from "../components/UnitToggle";
+import { useTempUnit } from "../lib/tempUnitContext";
+import { formatTemp } from "../lib/units";
 import {
   computeGravitySg,
   computeGravitySgRaw,
@@ -22,6 +26,7 @@ const HISTORY_HOURS = 48;
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
   const navigate = useNavigate();
+  const { unit } = useTempUnit();
   const [device, setDevice] = useState<Device | null>(null);
   const [readings, setReadings] = useState<ReadingWithGravity[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -162,9 +167,12 @@ export default function DeviceDetail() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <Link to="/devices" className="text-sm text-stone-500 hover:text-stone-700">
-        ← All devices
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/devices" className="text-sm text-stone-500 hover:text-stone-700">
+          ← All devices
+        </Link>
+        <UnitToggle />
+      </div>
 
       <div className="mt-2 mb-6 flex items-end justify-between">
         <div>
@@ -183,7 +191,7 @@ export default function DeviceDetail() {
         </div>
         {latest && (
           <div className="text-right">
-            <p className="text-3xl font-semibold text-stone-900">{latest.temperature_c.toFixed(1)}°C</p>
+            <p className="text-3xl font-semibold text-stone-900">{formatTemp(latest.temperature_c, unit)}</p>
             {showGravity && latest.gravity_sg != null && (
               <p className="text-lg font-semibold text-brew-700">{formatSg(latest.gravity_sg)} SG</p>
             )}
@@ -240,6 +248,13 @@ export default function DeviceDetail() {
               Alert thresholds
             </h3>
             <ThresholdForm device={device} onSaved={handleDeviceFieldSaved} />
+          </section>
+
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+              Alerts &amp; notifications
+            </h3>
+            <AlertSettingsForm device={device} onSaved={handleDeviceFieldSaved} />
           </section>
 
           {showGravity && (

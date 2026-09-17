@@ -5,6 +5,9 @@ import { useAuth } from "../lib/auth";
 import type { Device, DeviceType } from "../types/database";
 import ClaimDeviceForm from "../components/ClaimDeviceForm";
 import ConnectionBadge from "../components/ConnectionBadge";
+import UnitToggle from "../components/UnitToggle";
+import { useTempUnit } from "../lib/tempUnitContext";
+import { formatTemp } from "../lib/units";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -14,6 +17,7 @@ function randomSecret(): string {
 
 export default function Devices() {
   const { session } = useAuth();
+  const { unit } = useTempUnit();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -69,6 +73,7 @@ export default function Devices() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-brew-800">Your devices</h1>
         <div className="flex items-center gap-3">
+          <UnitToggle />
           <button
             onClick={() => { setShowClaimForm((v) => !v); setShowAddForm(false); }}
             className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-700"
@@ -206,7 +211,7 @@ export default function Devices() {
                   </div>
                   <div className="text-right text-sm text-stone-500">
                     <p>
-                      {d.temp_min_c}°C – {d.temp_max_c}°C
+                      {formatTemp(d.temp_min_c, unit)} – {formatTemp(d.temp_max_c, unit)}
                     </p>
                     <div className="mt-0.5 flex justify-end">
                       <ConnectionBadge device={d} />
