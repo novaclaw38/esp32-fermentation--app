@@ -63,8 +63,16 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
 }
 
 const CX = 100;
-const CY = 108;
-const TRACK_R = 78;
+// CY/TRACK_R fix a real bug, not a style choice: the hub sits at a fixed
+// point regardless of needle rotation, and the old CY=108/TRACK_R=78 left
+// only ~26.5% of the box height genuinely clear below the arc's lower gap
+// (200 - (CY + TRACK_R*0.5)). The bottom-anchored text overlay claimed far
+// more than that, so the hub -- and the needle segment that always
+// originates right next to it -- overlapped the numeral in every state,
+// not just the ones a screenshot happened to catch. Raising the pivot
+// widens the clear zone to ~34.5%.
+const CY = 94;
+const TRACK_R = 74;
 
 export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, size = "sm" }: Props) {
   const range = max - min;
@@ -148,16 +156,24 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
         <circle cx={CX} cy={CY} r={6} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
       </svg>
 
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end pb-3 text-center">
+      {/* Positioned to the dial's actual clear zone (below the arc's lower
+          gap, top-[66%] ~= (CY + TRACK_R*0.5)/200), not inset-0 -- inset-0
+          let the text claim space the hub and needle also occupy. leading-none
+          on the numeral reclaims the line-height slack a single short value
+          doesn't need. subLabel is lg-only: the clear zone at sm (112px) fits
+          two lines comfortably but not three; freshness still reads through
+          the gauge's own opacity (offline 40%, stale 75%) at that size, and
+          the full subLabel is one tap away on the detail page's lg gauge. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[66%] flex flex-col items-center justify-center text-center">
         <span
-          className={`font-gauge tabular font-semibold ${numeralClass}`}
+          className={`font-gauge tabular font-semibold leading-none ${numeralClass}`}
           style={{ color: dim ? "#8a7a63" : "#d9cbb0" }}
         >
           {dim ? "—" : displayValue}
         </span>
-        <span className={`mt-0.5 font-medium uppercase tracking-widest text-panel-400 ${labelClass}`}>{label}</span>
-        {subLabel && (
-          <span className={`font-gauge tabular text-panel-600 ${size === "lg" ? "text-xs" : "text-[9px]"}`}>{subLabel}</span>
+        <span className={`mt-1 font-medium uppercase tracking-widest text-panel-400 ${labelClass}`}>{label}</span>
+        {subLabel && size === "lg" && (
+          <span className="mt-0.5 font-gauge tabular text-xs text-panel-400">{subLabel}</span>
         )}
       </div>
     </div>
