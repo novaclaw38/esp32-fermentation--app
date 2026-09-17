@@ -89,6 +89,14 @@
       "description": "Category badge distinguishing a Temp + Gravity module from a Hub; not a status indicator.",
       "html": "<span class=\"ds-chip\">TEMP + GRAVITY</span>",
       "css": ".ds-chip { background: #262019; color: #dd9834; border-radius: 6px; padding: 2px 6px; font-size: 0.625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }"
+    },
+    {
+      "name": "Tab Navigation",
+      "kind": "navigation",
+      "refersTo": "tab-nav",
+      "description": "Flat row of uppercase tab buttons sharing one bottom border; active tab gets brew-400 text plus a 2px brew-400 underline, inactive tabs are panel-400 hovering to panel-200. Used on the device settings page to split Profile/Setup/Tools/Data.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab ds-tab-active\">Profile</button><button class=\"ds-tab\">Setup</button><button class=\"ds-tab\">Tools</button><button class=\"ds-tab\">Data</button></div>",
+      "css": ".ds-tabs { display: flex; gap: 4px; border-bottom: 1px solid #332a20; } .ds-tab { padding: 8px 16px; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: #9c8a6e; background: transparent; border: none; border-bottom: 2px solid transparent; transition: color 0.15s; } .ds-tab:hover { color: #d9cbb0; } .ds-tab-active { color: #dd9834; border-bottom-color: #dd9834; }"
     }
   ],
   "narrative": {

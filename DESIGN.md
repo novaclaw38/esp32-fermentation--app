@@ -154,6 +154,8 @@ A single warm charcoal scale carries the whole interface; amber is the one recur
 
 A single centered column (`max-w-3xl`, `mx-auto`, `px-4 py-8`) at every breakpoint — this is a monitoring tool for a handful of devices, not a dense dashboard grid. The device list breaks into instrument tiles: one column on mobile, two columns at `sm` and above. Spacing rhythm runs `gap-3`/`gap-4` between tight sibling elements (tile contents, form fields) and `mb-6`/`mb-8` between major sections; card interiors pad at `p-4` (list tiles, settings) or `p-6` (the detail hero panel).
 
+Device settings live on their own route (`/devices/:id/settings`) rather than inline on the detail page, split across four tabs — Profile, Setup, Tools, Data — grouped by what a visit is actually for (identity, configuration, one-off actions, destructive/data controls) rather than by underlying table. Each tab still stacks its cards in the same single column, `space-y-6` apart; nothing about the tab split changes card styling, only which cards are mounted at once.
+
 **Focus-dim.** On the device grid, hovering or focusing one tile dims every other tile to 50% opacity over a 300ms transition — the raise borrowed from the streaming-catalog challenger. No badge or modal calls the focused tile out; the neighbors simply recede.
 
 ## Elevation & Depth
@@ -191,7 +193,10 @@ Two radius steps: `6px` (buttons, inputs, chips — the interactive/small scale)
 - **Error:** inline `breach-400` text beneath the field; no red border treatment observed.
 
 ### Navigation
-- Minimal: a "← All devices" text link (`panel-400`, hover `panel-200`) is the only back-navigation; no persistent nav bar. Section headers use Title type; no active/hover state beyond the link's own color shift.
+- Minimal: a "← All devices" / "← {device name}" text link (`panel-400`, hover `panel-200`) is the only back-navigation; no persistent nav bar. Section headers use Title type; no active/hover state beyond the link's own color shift.
+
+### Tab Navigation
+Used once, on the device settings page: a flat row of uppercase Title-type buttons sharing a single `panel-700` bottom border. The active tab gets `brew-400` text and a 2px `brew-400` underline (the same "solid accent" color as a primary button, not a new hue); inactive tabs are `panel-400`, hovering to `panel-200` — no background fill or pill treatment on either state. This is the same "flat, color-carries-state" logic as the gauge system applied to wayfinding rather than a live reading.
 
 ### Gauge (signature component)
 The one component every surface composes. A 240°-sweep SVG dial: a static track (`panel-700` stroke), two faint red redline zones marking the device's own approach thresholds, six tick marks, an eased needle (700ms cubic-bezier) that pins at its travel limit rather than flying off-scale, and a tabular numeral + uppercase label positioned in the dial's actual clear zone below the arc's lower gap (not a naive full-box overlay — the hub sits at a fixed point regardless of needle angle, and the text has to stay clear of it in every state, not just the ones a screenshot happens to catch). Color and glow are driven entirely by `GaugeState` (nominal/approaching/breached/offline — see `lib/gaugeState.ts`); an offline gauge renders its numeral as "—" at 40% opacity instead of a stale value. Two sizes only: `sm` (112px, list tiles) and `lg` (224px, detail-page hero) — the freshness sub-label ("3m ago") only renders at `lg`, since the clear zone at `sm` holds the numeral and its label legibly but not a third line; staleness still reads through the gauge's own opacity at either size. A device that's overdue but not yet offline dims to 75% opacity rather than adopting a new hue — staleness is intensity, not a new signal. The `aria-label` states severity in words ("above maximum," "approaching threshold") alongside the number, not just the raw value, so the state the glow communicates to a sighted viewer also reaches a screen reader.

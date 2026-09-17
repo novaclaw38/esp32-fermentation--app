@@ -1,27 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { useDevice } from "../lib/useDevice";
 import type { Alert, Device, Reading, ReadingWithGravity } from "../types/database";
 import TemperatureChart from "../components/TemperatureChart";
 import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
-import DeviceInfoForm from "../components/DeviceInfoForm";
-import ThresholdForm from "../components/ThresholdForm";
-import CalibrationForm from "../components/CalibrationForm";
-import AlertSettingsForm from "../components/AlertSettingsForm";
 import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState, type GaugeState } from "../lib/gaugeState";
-import {
-  computeGravitySg,
-  computeGravitySgRaw,
-  formatSg,
-  isCalibrated,
-  isTiltDevice,
-} from "../lib/gravity";
+import { computeGravitySg, computeGravitySgRaw, formatSg, isCalibrated, isTiltDevice } from "../lib/gravity";
 
 const HISTORY_HOURS = 48;
 
@@ -36,18 +27,16 @@ const BATTERY_GAUGE_MAX = 4.2;
 
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
-  const navigate = useNavigate();
   const { unit } = useTempUnit();
-  const [device, setDevice] = useState<Device | null>(null);
+  const { device, loading: deviceLoading, notFound, loadError: deviceLoadError, reload: reloadDevice } =
+    useDevice(deviceId);
   const [readings, setReadings] = useState<ReadingWithGravity[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  // Distinct from notFound -- a genuine fetch failure must never look like
-  // "no rows" (which reads as "not your device" and sends the owner away)
-  // or, for the readings/alerts fetch, like "nothing happened yet" (which
-  // reads as reassurance). Both are the wrong lie to tell during an outage.
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  // Distinct from the device's own loadError -- a failed history/alert fetch
+  // must not render as "No readings yet" / "No alerts yet -- good sign",
+  // which is reassurance, exactly backwards for a fetch that actually failed.
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   // The Realtime subscription below is set up once per deviceId, so its
   // callback closes over whatever `device` was at that moment — null, on the
@@ -59,7 +48,7 @@ export default function DeviceDetail() {
 
   useEffect(() => {
     if (!deviceId) return;
-    load();
+    loadHistory();
 
     const channel = supabase
       .channel(`device-${deviceId}`)
@@ -99,34 +88,10 @@ export default function DeviceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId]);
 
-  async function load() {
+  async function loadHistory() {
     if (!deviceId) return;
-    setLoading(true);
-    setNotFound(false);
-    setLoadError(null);
-
-    const { data: deviceData, error: deviceError } = await supabase
-      .from("devices")
-      .select("*")
-      .eq("id", deviceId)
-      .single();
-
-    // PGRST116 ("no rows") from .single() means genuinely not found -- no
-    // such device, or RLS makes it invisible, same thing from here. Any
-    // other error is a real fetch failure and must not be told as "not
-    // found": that reads as "not your device" and sends the owner away from
-    // a device that's actually still theirs.
-    if (deviceError && deviceError.code !== "PGRST116") {
-      setLoadError(deviceError.message);
-      setLoading(false);
-      return;
-    }
-    if (deviceError || !deviceData) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-    setDevice(deviceData as Device);
+    setHistoryLoading(true);
+    setHistoryError(null);
 
     const since = new Date(Date.now() - HISTORY_HOURS * 60 * 60 * 1000).toISOString();
 
@@ -143,48 +108,22 @@ export default function DeviceDetail() {
       supabase.from("alerts").select("*").eq("device_id", deviceId).order("created_at", { ascending: false }).limit(50),
     ]);
 
-    // The device itself loaded, so show its page rather than a full-page
-    // error -- but a failed history/alert fetch must not render as "No
-    // readings yet" / "No alerts yet -- good sign", which is reassurance,
-    // exactly backwards for a fetch that actually failed.
     if (readingsError || alertsError) {
-      setLoadError((readingsError ?? alertsError)!.message);
-      setLoading(false);
+      setHistoryError((readingsError ?? alertsError)!.message);
+      setHistoryLoading(false);
       return;
     }
 
     setReadings((readingsData as ReadingWithGravity[]) ?? []);
     setAlerts((alertsData as Alert[]) ?? []);
-    setLoading(false);
+    setHistoryLoading(false);
   }
 
   function handleAcknowledged(id: number) {
     setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
   }
 
-  function handleDeviceFieldSaved(updates: Partial<Device>) {
-    setDevice((prev) => (prev ? { ...prev, ...updates } : prev));
-  }
-
-  function handleCalibrationSaved(updates: Partial<Device>) {
-    // Recomputing here is what makes a new curve apply to the readings already
-    // on screen — matching what a reload would fetch from the view, without
-    // needing one.
-    setDevice((prev) => {
-      if (!prev) return prev;
-      const next = { ...prev, ...updates };
-      setReadings((rows) =>
-        rows.map((r) => ({
-          ...r,
-          gravity_sg: computeGravitySg(next, r.tilt_deg, r.temperature_c),
-          gravity_sg_raw: computeGravitySgRaw(next, r.tilt_deg),
-        })),
-      );
-      return next;
-    });
-  }
-
-  if (loading) {
+  if (deviceLoading) {
     return <div className="p-8 text-panel-400">Loading…</div>;
   }
 
@@ -192,14 +131,14 @@ export default function DeviceDetail() {
   // itself also leaves `device` null, and without this ordering it would
   // fall through to "Device not found" -- exactly the wrong message for a
   // fetch that failed rather than a device that isn't there.
-  if (loadError) {
+  if (deviceLoadError) {
     return (
       <div className="p-8">
         <p className="font-medium text-breach-400">Couldn't load this device</p>
-        <p className="mt-1 text-sm text-panel-400">{loadError}</p>
+        <p className="mt-1 text-sm text-panel-400">{deviceLoadError}</p>
         <div className="mt-3 flex items-center gap-3">
           <button
-            onClick={load}
+            onClick={reloadDevice}
             className="rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
@@ -254,16 +193,24 @@ export default function DeviceDetail() {
         <UnitToggle />
       </div>
 
-      <div className="mt-2 mb-6">
-        <h1 className="text-2xl font-semibold uppercase tracking-wide text-panel-200">{device.name}</h1>
-        <p className="text-sm text-panel-400">
-          {device.id}
-          {showGravity && (
-            <span className="ml-2 rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brew-400">
-              Temp + Gravity
-            </span>
-          )}
-        </p>
+      <div className="mt-2 mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold uppercase tracking-wide text-panel-200">{device.name}</h1>
+          <p className="text-sm text-panel-400">
+            {device.id}
+            {showGravity && (
+              <span className="ml-2 rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brew-400">
+                Temp + Gravity
+              </span>
+            )}
+          </p>
+        </div>
+        <Link
+          to={`/devices/${device.id}/settings`}
+          className="shrink-0 rounded-md border border-panel-600 px-3 py-1.5 text-sm font-medium text-panel-200 hover:bg-panel-800"
+        >
+          Settings
+        </Link>
       </div>
 
       <section className="mb-8 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-panel-700 bg-panel-900 p-6 sm:justify-start">
@@ -307,72 +254,43 @@ export default function DeviceDetail() {
         )}
       </section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-          Temperature · last {HISTORY_HOURS}h
-        </h2>
-        <TemperatureChart readings={readings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
-      </section>
-
-      {showGravity && (
-        <section className="mb-6">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-            {calibrated ? "Gravity" : "Tilt"} · last {HISTORY_HOURS}h
-          </h2>
-          <GravityChart readings={readings} calibrated={calibrated} />
+      {historyError ? (
+        <section className="mb-6 rounded-lg border border-breach-500/40 bg-panel-900 p-4">
+          <p className="text-sm font-medium text-breach-400">Couldn't load history</p>
+          <p className="mt-1 text-sm text-panel-400">{historyError}</p>
+          <button
+            onClick={loadHistory}
+            className="mt-2 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+          >
+            Retry
+          </button>
         </section>
-      )}
-
-      <section className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">Alerts</h2>
-        <AlertList alerts={alerts} onAcknowledged={handleAcknowledged} />
-      </section>
-
-      {/* Closed by default -- checking a batch never needs any of the four
-          forms inside, and defaulting them open failed 2 of the cognitive-
-          load checklist's 8 items (one thing at a time; progressive
-          disclosure) by dumping device info, thresholds, alerts/notify, and
-          calibration into every device page's first view. */}
-      <details className="rounded-lg border border-panel-700 bg-panel-900">
-        <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold uppercase tracking-wide text-panel-400">
-          Settings
-        </summary>
-        <div className="space-y-6 border-t border-panel-700 p-4">
-          <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-panel-400">
-              Device info
-            </h3>
-            <DeviceInfoForm
-              device={device}
-              onSaved={handleDeviceFieldSaved}
-              onDeleted={() => navigate("/devices")}
-            />
-          </section>
-
-          <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-panel-400">
-              Alert thresholds
-            </h3>
-            <ThresholdForm device={device} onSaved={handleDeviceFieldSaved} />
-          </section>
-
-          <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-panel-400">
-              Alerts &amp; notifications
-            </h3>
-            <AlertSettingsForm device={device} onSaved={handleDeviceFieldSaved} />
+      ) : historyLoading ? (
+        <p className="mb-6 text-sm text-panel-400">Loading history…</p>
+      ) : (
+        <>
+          <section className="mb-6">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
+              Temperature · last {HISTORY_HOURS}h
+            </h2>
+            <TemperatureChart readings={readings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
           </section>
 
           {showGravity && (
-            <section>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-panel-400">
-                Gravity calibration
-              </h3>
-              <CalibrationForm device={device} onSaved={handleCalibrationSaved} />
+            <section className="mb-6">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
+                {calibrated ? "Gravity" : "Tilt"} · last {HISTORY_HOURS}h
+              </h2>
+              <GravityChart readings={readings} calibrated={calibrated} />
             </section>
           )}
-        </div>
-      </details>
+
+          <section className="mb-6">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">Alerts</h2>
+            <AlertList alerts={alerts} onAcknowledged={handleAcknowledged} />
+          </section>
+        </>
+      )}
     </div>
   );
 }
