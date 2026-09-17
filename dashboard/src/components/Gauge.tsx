@@ -23,6 +23,18 @@ interface Props {
    * as the state glow (intensity carries the signal, no new hue).
    */
   stale?: boolean;
+  /**
+   * Scale endpoints printed at the dial's two ends, e.g. ["0.990", "1.120"].
+   * Every gauge in this system reads the same generic way (a needle against
+   * a redline) -- swap the label from TEMP to PH and it's an aquarium
+   * controller. Specific-gravity notation on the dial face itself is the
+   * one thing that can't be relabeled into a different instrument: no
+   * unrelated product's gauge shows a decimal scale in this exact
+   * convention. Real hydrometers graduate their whole scale; two endpoints
+   * is the compact-instrument version (a car's temp gauge often prints just
+   * "C" and "H"), sized for a 112px dial without turning it noisy.
+   */
+  endLabels?: [string, string];
   size?: "sm" | "lg";
 }
 
@@ -91,7 +103,7 @@ const CX = 100;
 const CY = 94;
 const TRACK_R = 74;
 
-export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, size = "sm" }: Props) {
+export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, endLabels, size = "sm" }: Props) {
   const range = max - min;
   const rawFraction = value == null ? 0 : (value - min) / range;
   // A real needle pins at its travel limit rather than flying off-scale.
@@ -161,6 +173,31 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
             />
           );
         })}
+        {/* Scale endpoints -- see the endLabels prop doc. */}
+        {endLabels && (
+          <>
+            <text
+              x={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE).x}
+              y={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE).y}
+              textAnchor="middle"
+              fontSize={15}
+              fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+              fill="#9c8a6e"
+            >
+              {endLabels[0]}
+            </text>
+            <text
+              x={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE + SWEEP).x}
+              y={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE + SWEEP).y}
+              textAnchor="middle"
+              fontSize={15}
+              fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+              fill="#9c8a6e"
+            >
+              {endLabels[1]}
+            </text>
+          </>
+        )}
         {/* Needle -- rotated via transform, eased, around the dial center. This is the "moving gauge." */}
         <g
           style={{

@@ -286,6 +286,11 @@ export default function DeviceDetail() {
             displayValue={latest.gravity_sg != null ? `${formatSg(latest.gravity_sg)}` : latest.tilt_deg != null ? `${latest.tilt_deg.toFixed(1)}°` : "—"}
             label={latest.gravity_sg != null ? "Gravity" : "Tilt"}
             state={secondaryOffline}
+            // SG-notation graduation only when the dial is actually reading
+            // gravity -- raw tilt degrees have no such convention, and
+            // printing "0.990"/"1.120" next to a tilt-angle needle would be
+            // an outright wrong reading, not just an inconsistent one.
+            endLabels={latest.gravity_sg != null ? [formatSg(GRAVITY_GAUGE_MIN), formatSg(GRAVITY_GAUGE_MAX)] : undefined}
             size="sm"
           />
         )}
