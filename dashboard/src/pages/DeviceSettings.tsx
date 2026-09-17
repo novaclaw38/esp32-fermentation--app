@@ -6,6 +6,7 @@ import DeviceProfileForm from "../components/settings/DeviceProfileForm";
 import ThresholdForm from "../components/ThresholdForm";
 import CalibrationForm from "../components/CalibrationForm";
 import SnoozeForm from "../components/settings/SnoozeForm";
+import BatchForm from "../components/settings/BatchForm";
 import UnclaimDeviceForm from "../components/settings/UnclaimDeviceForm";
 import NotifyEmailToggle from "../components/settings/NotifyEmailToggle";
 import RemoveDeviceForm from "../components/settings/RemoveDeviceForm";
@@ -113,6 +114,12 @@ export default function DeviceSettings() {
                 Gravity calibration
               </h3>
               <CalibrationForm device={device} onSaved={handleDeviceFieldSaved} />
+            </section>
+          )}
+
+          {showGravity && (
+            <section>
+              <BatchForm device={device} onSaved={handleDeviceFieldSaved} />
             </section>
           )}
         </div>

@@ -47,6 +47,19 @@ export interface Device {
   alerts_muted_until: string | null;
   /** Per-device opt-out for the alert-notify email. Not nullable; defaults to true. */
   notify_email: boolean;
+  /**
+   * Raw tilt + temperature from the reading that started the current batch,
+   * auto-captured by ingest_reading() on the first calibrated reading after
+   * a claim or an explicit "start new batch" reset. Kept raw rather than a
+   * pre-computed SG so recalibrating the device corrects the batch's
+   * original gravity right along with the rest of its history -- run it
+   * through computeGravitySg() like any other reading, don't read it as SG
+   * directly. Both null until a batch has a calibrated reading.
+   */
+  og_tilt_deg: number | null;
+  og_temp_c: number | null;
+  /** Set alongside og_tilt_deg/og_temp_c. Anchors the fermentation-rate and plateau-completion windows. */
+  fermentation_started_at: string | null;
 }
 
 export interface Reading {

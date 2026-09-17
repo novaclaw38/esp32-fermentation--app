@@ -141,10 +141,10 @@ export default function GravityChart({ readings, calibrated }: Props) {
       <p className="text-xs text-panel-400">
         Now {format(latest)} · {delta >= 0 ? "+" : "−"}
         {format(Math.abs(delta))} across the readings shown.{" "}
-        {/* Deliberately no ABV or attenuation figure: both need the batch's true
-            original gravity, and the first point in a 48h window is not that
-            unless the batch happens to be under two days old. Showing one
-            anyway would be confidently wrong for every established batch. */}
+        {/* No ABV/attenuation figure here on purpose: those are measured from
+            the batch's true original gravity (see the Fermentation section
+            above), not from the first point in whatever window this chart
+            happens to be showing -- this line stays scoped to the window. */}
         <span className="text-panel-400">
           Change is measured over this window only, not from the batch's original gravity.
         </span>

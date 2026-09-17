@@ -204,6 +204,15 @@ The one component every surface composes. A 240°-sweep SVG dial: a static track
 
 The dial's generic shape and TEMP/GRAVITY/BATTERY labels alone could belong to any monitored-device product — an audit found this explicitly. `endLabels`, an optional `["min", "max"]` pair printed at the dial's two feet, is the one counter to that: it's used only on the Gravity gauge, printing real specific-gravity notation ("0.990"–"1.120") the way a hydrometer graduates its scale, and never on Temp/Battery/Tilt. No unrelated product's gauge shows a decimal scale in that convention — it's the detail that can't be relabeled into something else.
 
+### Fermentation Summary
+Four stat cards (`grid-cols-2 sm:grid-cols-4`), same card shell as everywhere else (`panel-900`/`panel-700`/8px). Original Gravity, Current SG, and Attenuation sit in `panel-200`; ABV alone gets `brew-400` as the headline figure of the group — the one accent among four cards, not four accents. All four values are tabular numerals.
+
+### Fermentation Stage Bar
+A read-only status version of Tab Navigation's step logic, not a new pattern: five dots (Lag/Active/Slowing/Cleanup/Complete) joined by connecting rules. The active stage gets a `brew-400` dot with the gauge system's own glow treatment (`drop-shadow`, not a box-shadow); stages already passed hold `panel-400`; stages not yet reached hold `panel-700`. A guidance line underneath states what the stage means and, only when it's genuinely worth a caution (cold ambient or a stalled lag phase), renders in `approach-400` instead of `panel-400` — the same vocabulary a gauge uses for "worth a look," not a new alert channel.
+
+### Fermentation charts
+Two additions beside the existing Temperature and Gravity charts: a dual-axis Gravity+Temperature chart (SG on the left axis in the same green already established by GravityChart, temperature on the right axis in `brew-400` dashed, matching TemperatureChart's own line color), and a fermentation-rate area chart (SG points per 24h, same green, filled at 15% opacity) below it. Deliberately two charts and two axes rather than one three-axis chart: a third independently-scaled line on the combo chart was tried and read as noise, not signal, the same legibility call GravityChart itself made when it chose not to plot raw tilt and corrected SG together.
+
 ## Do's and Don'ts
 
 ### Do:

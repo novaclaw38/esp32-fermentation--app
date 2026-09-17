@@ -13,6 +13,11 @@ import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState, type GaugeState } from "../lib/gaugeState";
 import { computeGravitySg, computeGravitySgRaw, formatSg, isCalibrated, isTiltDevice } from "../lib/gravity";
+import { computeFermentationAnalytics } from "../lib/fermentationAnalytics";
+import FermentationSummary from "../components/FermentationSummary";
+import FermentationStageBar from "../components/FermentationStageBar";
+import FermentationChart from "../components/FermentationChart";
+import FermentationRateChart from "../components/FermentationRateChart";
 
 const HISTORY_HOURS = 48;
 
@@ -165,6 +170,7 @@ export default function DeviceDetail() {
   const latest = readings[readings.length - 1];
   const showGravity = isTiltDevice(device);
   const calibrated = isCalibrated(device);
+  const fermentationAnalytics = showGravity && calibrated ? computeFermentationAnalytics(device, readings) : null;
 
   const connection = getConnectionInfo(device, new Date());
   const hasOpenAlert = alerts.some((a) => !a.acknowledged);
@@ -269,6 +275,23 @@ export default function DeviceDetail() {
         <p className="mb-6 text-sm text-panel-400">Loading history…</p>
       ) : (
         <>
+          {showGravity && calibrated && (fermentationAnalytics ? (
+            <section className="mb-6 space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-panel-400">Fermentation</h2>
+              <FermentationSummary analytics={fermentationAnalytics} />
+              <FermentationStageBar
+                analytics={fermentationAnalytics}
+                device={device}
+                latestTempC={latest ? latest.temperature_c : null}
+              />
+            </section>
+          ) : (
+            <section className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4 text-sm text-panel-400">
+              Waiting for the first calibrated reading to set this batch's original gravity — ABV,
+              attenuation, and fermentation stage will appear here once it does.
+            </section>
+          ))}
+
           <section className="mb-6">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
               Temperature · last {HISTORY_HOURS}h
@@ -283,6 +306,24 @@ export default function DeviceDetail() {
               </h2>
               <GravityChart readings={readings} calibrated={calibrated} />
             </section>
+          )}
+
+          {showGravity && calibrated && (
+            <>
+              <section className="mb-6">
+                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
+                  Gravity + Temperature · last {HISTORY_HOURS}h
+                </h2>
+                <FermentationChart readings={readings} />
+              </section>
+
+              <section className="mb-6">
+                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
+                  Fermentation rate · SG per 24h
+                </h2>
+                <FermentationRateChart readings={readings} />
+              </section>
+            </>
           )}
 
           <section className="mb-6">
