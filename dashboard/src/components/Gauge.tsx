@@ -131,11 +131,16 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       aria-label={`${label}: ${dim ? "offline" : displayValue}${announcement ? `, ${announcement}` : ""}${subLabel ? `, ${subLabel}` : ""}`}
     >
       <svg viewBox="0 0 200 200" className={`h-full w-full transition-opacity duration-500 ${svgOpacity}`}>
-        {/* Track */}
+        {/* Track. panel-700 (#332a20), the border-scale token this used to
+            borrow, sits at 1.26:1 against the panel-900/950 surfaces this
+            gauge renders on -- effectively invisible, and with it gone the
+            needle floats with no scale to read it against. This value is
+            gauge-specific (not a shared panel token) chosen to clear
+            WCAG's 3:1 non-text-contrast floor against both surfaces. */}
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + SWEEP)}
           fill="none"
-          stroke="#332a20"
+          stroke="#7a654c"
           strokeWidth={10}
           strokeLinecap="round"
         />
@@ -157,7 +162,11 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
           strokeLinecap="round"
           opacity={0.35}
         />
-        {/* Tick marks */}
+        {/* Tick marks. Was panel-600 (#453829, 1.57:1 against panel-900/950
+            -- the same near-invisible problem as the track). panel-400
+            (#9c8a6e) is the system's own verified-accessible secondary-text
+            color (5.31:1 / 5.62:1), brighter than the track so the ticks
+            still read as discrete marks rather than blending into the ring. */}
         {ticks.map((angle, i) => {
           const inner = pointOnCircle(CX, CY, TRACK_R - 12, angle);
           const outer = pointOnCircle(CX, CY, TRACK_R - 2, angle);
@@ -168,7 +177,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               y1={inner.y}
               x2={outer.x}
               y2={outer.y}
-              stroke="#453829"
+              stroke="#9c8a6e"
               strokeWidth={2}
             />
           );
