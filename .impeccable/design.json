@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-17T00:00:00Z",
+  "title": "Design System: Fermentation Monitor Dashboard",
+  "extensions": {
+    "colorMeta": {
+      "panel-page": { "role": "neutral", "displayName": "Panel Ground", "canonical": "#14110e", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#8a7a63", "#d9cbb0"] },
+      "panel-surface": { "role": "neutral", "displayName": "Panel Surface", "canonical": "#1c1712", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#8a7a63", "#d9cbb0"] },
+      "panel-raised": { "role": "neutral", "displayName": "Panel Raised", "canonical": "#262019", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#8a7a63", "#d9cbb0"] },
+      "panel-border": { "role": "neutral", "displayName": "Panel Border", "canonical": "#332a20", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#8a7a63", "#d9cbb0"] },
+      "panel-edge": { "role": "neutral", "displayName": "Panel Edge", "canonical": "#453829", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#8a7a63", "#d9cbb0"] },
+      "panel-text-secondary": { "role": "neutral", "displayName": "Panel Text Secondary", "canonical": "#8a7a63" },
+      "panel-text-primary": { "role": "neutral", "displayName": "Panel Text Primary", "canonical": "#d9cbb0" },
+      "brew-glow": { "role": "primary", "displayName": "Brew Amber Glow", "canonical": "#dd9834", "tonalRamp": ["#5b331a", "#6c3c1b", "#84491a", "#a8631c", "#c97f22", "#dd9834", "#e6b25c", "#f0d094"] },
+      "brew-accent": { "role": "primary", "displayName": "Brew Amber Solid", "canonical": "#c97f22" },
+      "brew-accent-hover": { "role": "primary", "displayName": "Brew Amber Deep (hover)", "canonical": "#a8631c" },
+      "approach": { "role": "secondary", "displayName": "Approach Orange", "canonical": "#fb923c" },
+      "approach-deep": { "role": "secondary", "displayName": "Approach Orange Deep", "canonical": "#f2751a" },
+      "breach": { "role": "secondary", "displayName": "Breach Red", "canonical": "#f87171" },
+      "breach-deep": { "role": "secondary", "displayName": "Breach Red Deep", "canonical": "#ef4444" }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Page titles: device list heading, device name on the detail page." },
+      "title": { "displayName": "Title", "purpose": "Section headers: Alerts, Settings, chart titles." },
+      "body": { "displayName": "Body", "purpose": "Metadata, form copy, alert reasons." },
+      "label": { "displayName": "Label", "purpose": "Gauge instrument labels and device-type chips, uppercase tracked." },
+      "numeral": { "displayName": "Numeral", "purpose": "Live digit at a gauge's center; tabular monospace so updates never jitter in width." }
+    },
+    "shadows": [
+      { "name": "glow-nominal", "value": "drop-shadow(0 0 3px #dd9834)", "purpose": "Gauge needle/dial glow when the reading is nominal." },
+      { "name": "glow-approaching", "value": "drop-shadow(0 0 5px #fb923c)", "purpose": "Gauge needle/dial glow when the reading is nearing a threshold." },
+      { "name": "glow-breached", "value": "drop-shadow(0 0 9px #f87171)", "purpose": "Gauge needle/dial glow when the reading is out of range or has an open alert — measurably brighter, the alert-brightness raise." },
+      { "name": "alert-dot-halo", "value": "0 0 6px 2px rgba(248,113,113,0.6)", "purpose": "Small status-dot glow on an unacknowledged alert in the alert list." }
+    ],
+    "motion": [
+      { "name": "needle-ease", "value": "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Gauge needle rotation on value update — the one authored moment every gauge shares." },
+      { "name": "dim-transition", "value": "opacity/border-color 300ms", "purpose": "Focus-dim: neighboring tiles fade to 50% opacity when one tile is hovered or focused." },
+      { "name": "state-fade", "value": "opacity 500ms", "purpose": "Gauge SVG fades to 40% opacity when a device goes offline." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Gauge (signature)",
+      "kind": "custom",
+      "refersTo": "gauge",
+      "description": "The radial instrument every surface composes: 240 degree dial, eased needle, tabular numeral, state-driven glow.",
+      "html": "<div class=\"ds-gauge\" role=\"img\" aria-label=\"Temp: 21.2C, 3m ago\"><svg viewBox=\"0 0 200 200\" class=\"ds-gauge-svg\"><path d=\"M 32.4 176.6 A 78 78 0 1 1 167.6 176.6\" fill=\"none\" stroke=\"#332a20\" stroke-width=\"10\" stroke-linecap=\"round\"/><g class=\"ds-gauge-needle\"><line x1=\"100\" y1=\"46\" x2=\"100\" y2=\"98\" stroke=\"#dd9834\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><circle cx=\"100\" cy=\"108\" r=\"6\" fill=\"#dd9834\" class=\"ds-gauge-hub\"/></svg><div class=\"ds-gauge-readout\"><span class=\"ds-gauge-numeral\">21.2°C</span><span class=\"ds-gauge-label\">TEMP</span><span class=\"ds-gauge-sublabel\">3m ago</span></div></div>",
+      "css": ".ds-gauge { position: relative; width: 112px; height: 112px; flex-shrink: 0; } .ds-gauge-svg { width: 100%; height: 100%; transition: opacity 500ms; } .ds-gauge-needle { transform-origin: 100px 108px; filter: drop-shadow(0 0 3px #dd9834); } .ds-gauge-hub { filter: drop-shadow(0 0 3px #dd9834); } .ds-gauge-readout { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 12px; text-align: center; pointer-events: none; } .ds-gauge-numeral { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 1.125rem; color: #d9cbb0; } .ds-gauge-label { margin-top: 2px; font-size: 0.625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: #8a7a63; } .ds-gauge-sublabel { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-variant-numeric: tabular-nums; font-size: 0.5625rem; color: #453829; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid amber action button; the one primary action per view (Claim device, Create device).",
+      "html": "<button class=\"ds-btn-primary\">Claim device</button>",
+      "css": ".ds-btn-primary { background: #a8631c; color: #fff; padding: 6px 12px; border-radius: 6px; border: none; font-size: 0.875rem; font-weight: 500; transition: background 0.15s; } .ds-btn-primary:hover { background: #c97f22; } .ds-btn-primary:focus-visible { outline: 2px solid #dd9834; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ghost/bordered button for Cancel, Add manually, and settings actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #d9cbb0; padding: 6px 12px; border-radius: 6px; border: 1px solid #453829; font-size: 0.875rem; font-weight: 500; transition: background 0.15s; } .ds-btn-secondary:hover { background: #262019; } .ds-btn-secondary:focus-visible { outline: 2px solid #dd9834; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card / Tile",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat 1px-bordered panel; base container for device tiles, forms, and detail sections.",
+      "html": "<div class=\"ds-card\">Card content</div>",
+      "css": ".ds-card { background: #1c1712; border: 1px solid #332a20; border-radius: 8px; padding: 16px; color: #d9cbb0; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text field used across device-add and settings forms.",
+      "html": "<input class=\"ds-input\" placeholder=\"ferm-monitor-002\" />",
+      "css": ".ds-input { background: #14110e; color: #d9cbb0; border: 1px solid #453829; border-radius: 6px; padding: 4px 8px; font-size: 0.875rem; } .ds-input:focus-visible { outline: 2px solid #dd9834; outline-offset: 2px; }"
+    },
+    {
+      "name": "Device-Type Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Category badge distinguishing a Temp + Gravity module from a Hub; not a status indicator.",
+      "html": "<span class=\"ds-chip\">TEMP + GRAVITY</span>",
+      "css": ".ds-chip { background: #262019; color: #dd9834; border-radius: 6px; padding: 2px 6px; font-size: 0.625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Instrument Panel",
+    "overview": "The dashboard reads like a real gauge cluster mounted over the fermenter, not a status page pretending to be one. Every device is a radial instrument with a needle, a tick-marked dial, and a tabular numeral at its center -- never a card holding a bare number and a colored badge. The ground is a warm charcoal (never pure black) so the panel has a material temperature, and the one recurring accent -- amber phosphor glow -- lights up nominal readings the way an analog gauge's face would, then shifts to orange and red as a reading approaches or breaches its threshold. This is a code-led build: there was no comp to defer to, so this system is read directly off the shipped dashboard and its two captured viewports, not off intent.\n\nThe system stays deliberately quiet everywhere it isn't the gauge. Cards, buttons, and forms are flat 1px-bordered panels with no shadow vocabulary of their own; the only glow in the interface is the state signal on a needle, a dial center, or an unacknowledged alert dot. Nothing decorative competes with that signal.",
+    "keyCharacteristics": [
+      "Warm dark charcoal panel ground, never cold or pure black",
+      "One state vocabulary -- nominal / approaching / breached / offline -- expressed as glow color and glow intensity, reused identically everywhere a reading appears",
+      "Tabular monospace numerals on every live digit; uppercase tracked labels beneath them",
+      "Flat, unshadowed containers; glow is a state signal, not ambient depth",
+      "Focus-dim: bringing one instrument forward dims its neighbors instead of a badge or modal calling it out"
+    ],
+    "rules": [
+      { "name": "The Glow-Carries-State Rule", "body": "A gauge's state is never color alone. Nominal, approaching, breached, and offline each pair a hue with a distinct glow radius (3px / 5px / 9px / none) so severity reads as intensity before hue even registers -- the alert-brightness raise. Don't reintroduce state as a separate badge or icon once a gauge already carries it.", "section": "colors" },
+      { "name": "The One Amber Rule", "body": "`brew` is the only accent hue in the system outside the state vocabulary. It is not spent on decoration -- only on the nominal glow and on primary actions.", "section": "colors" },
+      { "name": "The Tabular Numerals Rule", "body": "Every live-updating digit -- gauge readouts, alert temperatures -- uses the monospace stack with tabular-nums. This is a legibility mechanism, not a technical costume, so it is never applied to static or non-numeric text.", "section": "typography" },
+      { "name": "The Flat-Except-Lit Rule", "body": "Containers never cast a shadow. The only glow permitted anywhere is the state glow already defined per gauge/indicator -- don't add ambient shadow or glow to a card, button, or chip that isn't reporting a live state.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the four-state vocabulary (nominal/approaching/breached/offline) -- and its paired glow intensity -- for any future live-reading indicator, not just Gauge.",
+      "Do keep every live-updating digit in the monospace tabular stack.",
+      "Do keep containers flat (1px border, no shadow); reserve glow strictly for state signaling.",
+      "Do theme browser-default surfaces (selection, scrollbar, focus ring) from the panel/amber palette rather than leaving them at browser defaults."
+    ],
+    "donts": [
+      "Don't add a status badge or icon next to a gauge -- the instrument already carries its own state.",
+      "Don't introduce a second accent hue; amber is the only accent outside the state vocabulary.",
+      "Don't add shadows, colored side-borders, or gradients to cards, chips, or buttons -- those are not part of this system.",
+      "Don't widen the gauge beyond its two sizes (sm/lg) or break its 240 degree dial into a full circle; the speedometer face is the signature silhouette."
+    ]
+  }
+}
