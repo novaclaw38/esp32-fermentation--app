@@ -32,7 +32,8 @@ const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET");
 interface AlertRow {
   id: number;
   device_id: string;
-  temperature_c: number;
+  /** Null for a reason with no reading behind it, e.g. sensor_fault. */
+  temperature_c: number | null;
   reason: string;
   created_at: string;
 }
@@ -45,21 +46,25 @@ interface WebhookPayload {
   old_record: AlertRow | null;
 }
 
-function reasonToText(reason: string, tempC: number): string {
-  if (reason === "below_min") return `dropped to ${tempC.toFixed(1)}°C, below your minimum threshold`;
-  if (reason === "above_max") return `rose to ${tempC.toFixed(1)}°C, above your maximum threshold`;
-  return `reported an out-of-range reading of ${tempC.toFixed(1)}°C (${reason})`;
+function reasonToText(reason: string, tempC: number | null): string {
+  if (reason === "below_min" && tempC != null) return `dropped to ${tempC.toFixed(1)}°C, below your minimum threshold`;
+  if (reason === "above_max" && tempC != null) return `rose to ${tempC.toFixed(1)}°C, above your maximum threshold`;
+  if (reason === "battery_low") return "is reporting a low battery";
+  if (reason === "sensor_fault") return "failed to get a temperature reading -- check the sensor's wiring";
+  return `reported an out-of-range reading${tempC != null ? ` of ${tempC.toFixed(1)}°C` : ""} (${reason})`;
 }
 
 async function sendEmail(to: string, deviceName: string, deviceId: string, alert: AlertRow) {
+  const tempC = alert.temperature_c != null ? Number(alert.temperature_c) : null;
+
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set -- skipping email send, logging only");
-    console.log(`[alert-notify] would email ${to}: ${deviceName} (${deviceId}) ${reasonToText(alert.reason, Number(alert.temperature_c))}`);
+    console.log(`[alert-notify] would email ${to}: ${deviceName} (${deviceId}) ${reasonToText(alert.reason, tempC)}`);
     return;
   }
 
   const subject = `Fermentation alert: ${deviceName} out of range`;
-  const body = `Your fermentation monitor "${deviceName}" (${deviceId}) ${reasonToText(alert.reason, Number(alert.temperature_c))}.\n\nTime: ${alert.created_at}\n\nOpen the dashboard to view the full temperature history and adjust thresholds.`;
+  const body = `Your fermentation monitor "${deviceName}" (${deviceId}) ${reasonToText(alert.reason, tempC)}.\n\nTime: ${alert.created_at}\n\nOpen the dashboard to view the full temperature history and adjust thresholds.`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -109,13 +114,21 @@ Deno.serve(async (req) => {
 
   const { data: device, error: deviceError } = await supabase
     .from("devices")
-    .select("id, name, user_id")
+    .select("id, name, user_id, notify_email")
     .eq("id", alert.device_id)
     .single();
 
   if (deviceError || !device) {
     console.error("alert-notify: device lookup failed", deviceError);
     return new Response("device not found", { status: 404 });
+  }
+
+  // Separate from alerts_muted_until, which silences the alert itself
+  // (dashboard included). This only silences email for an alert the owner
+  // still wants to see on the dashboard.
+  if (device.notify_email === false) {
+    console.log(`[alert-notify] notify_email is false for ${device.id} -- skipping email`);
+    return new Response("email disabled for this device", { status: 200 });
   }
 
   const { data: userResult, error: userError } = await supabase.auth.admin.getUserById(device.user_id);
