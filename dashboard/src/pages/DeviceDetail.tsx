@@ -323,7 +323,12 @@ export default function DeviceDetail() {
         <AlertList alerts={alerts} onAcknowledged={handleAcknowledged} />
       </section>
 
-      <details className="rounded-lg border border-panel-700 bg-panel-900" open>
+      {/* Closed by default -- checking a batch never needs any of the four
+          forms inside, and defaulting them open failed 2 of the cognitive-
+          load checklist's 8 items (one thing at a time; progressive
+          disclosure) by dumping device info, thresholds, alerts/notify, and
+          calibration into every device page's first view. */}
+      <details className="rounded-lg border border-panel-700 bg-panel-900">
         <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold uppercase tracking-wide text-panel-400">
           Settings
         </summary>
