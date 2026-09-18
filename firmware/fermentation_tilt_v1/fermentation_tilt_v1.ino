@@ -219,6 +219,10 @@ bool mcp9808Read16(uint8_t reg, uint16_t* out) {
 // mistaken for one.
 bool mcp9808Begin() {
   Wire.begin(I2C_SDA, I2C_SCL);
+  // A breadboard bus with weak/missing pull-ups can wedge (a device holds SDA
+  // low mid-transaction). Without this, Wire's blocking calls hang forever on
+  // a wedged bus -- the whole unit would never reach goToSleep() again.
+  Wire.setTimeOut(1000);
 
   uint16_t manuf;
   if (!mcp9808Read16(MCP9808_REG_MANUF_ID, &manuf)) return false;
@@ -317,6 +321,7 @@ void adxlWrite(uint8_t reg, uint8_t value) {
 
 bool adxlBegin() {
   Wire.begin(I2C_SDA, I2C_SCL);
+  Wire.setTimeOut(1000); // see the note in mcp9808Begin()
 
   Wire.beginTransmission(ADXL345_ADDR);
   Wire.write(ADXL345_REG_DEVID);
