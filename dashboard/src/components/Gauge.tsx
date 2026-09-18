@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { GaugeState } from "../lib/gaugeState";
 import { usePrefersReducedMotion } from "../lib/useReducedMotion";
 
@@ -104,11 +105,22 @@ const CX = 100;
 const CY = 94;
 const TRACK_R = 74;
 
+// Needle geometry: a tapered quadrilateral, not a uniform-width line. A
+// critique caught the old flat 3px line reading as a stray ruler mark
+// rather than a mechanical part -- wider at the pivot, narrower at the
+// tip is what makes a needle read as a thing with mass instead of a
+// diagram of one.
+const NEEDLE_TIP_Y = CY - TRACK_R + 16;
+const NEEDLE_BASE_Y = CY - 10;
+const NEEDLE_BASE_HALF_WIDTH = 2.4;
+const NEEDLE_TIP_HALF_WIDTH = 0.6;
+
 export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, endLabels, size = "sm" }: Props) {
   // The needle rotation and opacity fade still have to happen -- they carry
   // the state change, not just decorate it -- but under reduced motion they
   // snap to the new frame instead of animating into it.
   const reducedMotion = usePrefersReducedMotion();
+  const gradId = useId();
   const range = max - min;
   const rawFraction = value == null ? 0 : (value - min) / range;
   // A real needle pins at its travel limit rather than flying off-scale.
@@ -121,11 +133,21 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
   const svgOpacity = dim ? "opacity-40" : stale ? "opacity-75" : "opacity-100";
 
   const ticks = Array.from({ length: 6 }, (_, i) => START_ANGLE + (SWEEP / 5) * i);
+  // Fine graduation between the majors, gravity-only (see endLabels doc) --
+  // a real hydrometer prints a graduated scale, not six even dashes. This is
+  // the one place the dial's actual silhouette, not just its label content,
+  // differs by instrument: the gravity gauge is visibly finer-scaled than
+  // Temp/Battery, which read identically to each other on purpose.
+  const minorTicks = endLabels ? Array.from({ length: 5 }, (_, i) => START_ANGLE + (SWEEP / 10) * (2 * i + 1)) : [];
   const approachSpan = SWEEP * APPROACH_FRACTION;
 
   const dims = size === "lg" ? "h-56 w-56" : "h-28 w-28";
   const numeralClass = size === "lg" ? "text-3xl" : "text-lg";
   const labelClass = size === "lg" ? "text-xs" : "text-[10px]";
+  // endLabels crowded the track's rounded end-caps at sm -- same fixed 15px
+  // font the lg dial uses, on a dial with less than half the radius to fit it.
+  const endLabelFontSize = size === "lg" ? 15 : 10;
+  const endLabelOffset = size === "lg" ? 12 : 8;
 
   const announcement = dim ? "" : stateAnnouncement(state, value, min, max);
 
@@ -136,6 +158,23 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       aria-label={`${label}: ${dim ? "offline" : displayValue}${announcement ? `, ${announcement}` : ""}${subLabel ? `, ${subLabel}` : ""}`}
     >
       <svg viewBox="0 0 200 200" className={`h-full w-full ${reducedMotion ? "" : "transition-opacity duration-500"} ${svgOpacity}`}>
+        <defs>
+          {/* Dial face -- a critique found the arcs floating directly on the
+              card background with nothing enclosing them, so the instrument
+              never resolved into an object, only a diagram of one. A faint
+              off-center dish (panel-raised to panel-ground, the system's own
+              neutral steps -- no new hue) gives it a material surface to sit
+              on. useId keeps this unique per gauge instance; without it every
+              <svg> on a page (the device grid renders several) would define
+              the same #id and SVG resolves url(#id) to the first match in
+              the document, silently sharing one gauge's gradient with all
+              the others. */}
+          <radialGradient id={`dial-face-${gradId}`} cx="35%" cy="28%" r="80%">
+            <stop offset="0%" stopColor="#262019" />
+            <stop offset="100%" stopColor="#14110e" />
+          </radialGradient>
+        </defs>
+        <circle cx={CX} cy={CY} r={TRACK_R - 6} fill={`url(#dial-face-${gradId})`} />
         {/* Track. panel-700 (#332a20), the border-scale token this used to
             borrow, sits at 1.26:1 against the panel-900/950 surfaces this
             gauge renders on -- effectively invisible, and with it gone the
@@ -150,30 +189,37 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
           strokeLinecap="round"
         />
         {/* Redline zones -- static reference showing where this device's own
-            thresholds sit on the dial, independent of the current reading. */}
+            thresholds sit on the dial, independent of the current reading.
+            Widened/brightened after a critique found the original 3px/35%
+            opacity version functionally invisible at the 112px size used in
+            the device grid -- the surface most people actually scan. */}
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + approachSpan)}
           fill="none"
           stroke="#f87171"
-          strokeWidth={3}
+          strokeWidth={4}
           strokeLinecap="round"
-          opacity={0.35}
+          opacity={0.55}
         />
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE + SWEEP - approachSpan, START_ANGLE + SWEEP)}
           fill="none"
           stroke="#f87171"
-          strokeWidth={3}
+          strokeWidth={4}
           strokeLinecap="round"
-          opacity={0.35}
+          opacity={0.55}
         />
         {/* Tick marks. Was panel-600 (#453829, 1.57:1 against panel-900/950
             -- the same near-invisible problem as the track). panel-400
             (#9c8a6e) is the system's own verified-accessible secondary-text
             color (5.31:1 / 5.62:1), brighter than the track so the ticks
-            still read as discrete marks rather than blending into the ring. */}
+            still read as discrete marks rather than blending into the ring.
+            The two end ticks (min/max) run longer and heavier than the four
+            between them -- a major/minor hierarchy where a flat set of six
+            identical dashes read as decorative rather than instrumental. */}
         {ticks.map((angle, i) => {
-          const inner = pointOnCircle(CX, CY, TRACK_R - 12, angle);
+          const isMajor = i === 0 || i === ticks.length - 1;
+          const inner = pointOnCircle(CX, CY, TRACK_R - (isMajor ? 15 : 10), angle);
           const outer = pointOnCircle(CX, CY, TRACK_R - 2, angle);
           return (
             <line
@@ -183,28 +229,46 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               x2={outer.x}
               y2={outer.y}
               stroke="#9c8a6e"
-              strokeWidth={2}
+              strokeWidth={isMajor ? 2.5 : 1.5}
             />
           );
         })}
-        {/* Scale endpoints -- see the endLabels prop doc. */}
+        {minorTicks.map((angle, i) => {
+          const inner = pointOnCircle(CX, CY, TRACK_R - 6, angle);
+          const outer = pointOnCircle(CX, CY, TRACK_R - 2, angle);
+          return (
+            <line
+              key={i}
+              x1={inner.x}
+              y1={inner.y}
+              x2={outer.x}
+              y2={outer.y}
+              stroke="#9c8a6e"
+              strokeWidth={1}
+              opacity={0.6}
+            />
+          );
+        })}
+        {/* Scale endpoints -- see the endLabels prop doc. Font size/offset
+            scale with `size`; the lg dial's fixed 15px crowded the track's
+            rounded end-caps once reused on the sm dial's less-than-half radius. */}
         {endLabels && (
           <>
             <text
-              x={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE).x}
-              y={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE).y}
+              x={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).x}
+              y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).y}
               textAnchor="middle"
-              fontSize={15}
+              fontSize={endLabelFontSize}
               fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
               fill="#9c8a6e"
             >
               {endLabels[0]}
             </text>
             <text
-              x={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE + SWEEP).x}
-              y={pointOnCircle(CX, CY, TRACK_R + 12, START_ANGLE + SWEEP).y}
+              x={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE + SWEEP).x}
+              y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE + SWEEP).y}
               textAnchor="middle"
-              fontSize={15}
+              fontSize={endLabelFontSize}
               fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
               fill="#9c8a6e"
             >
@@ -212,7 +276,10 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
             </text>
           </>
         )}
-        {/* Needle -- rotated via transform, eased, around the dial center. This is the "moving gauge." */}
+        {/* Needle -- rotated via transform, eased, around the dial center.
+            This is the "moving gauge." A tapered polygon rather than a
+            uniform-width line, with a thin off-center highlight suggesting a
+            machined ridge rather than flat vector art. */}
         <g
           style={{
             transform: `rotate(${needleAngle}deg)`,
@@ -221,9 +288,29 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
             filter: glow ? `drop-shadow(0 0 ${glow}px ${color})` : undefined,
           }}
         >
-          <line x1={CX} y1={CY - TRACK_R + 16} x2={CX} y2={CY - 10} stroke={color} strokeWidth={3} strokeLinecap="round" />
+          <polygon
+            points={`${CX - NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y} ${CX - NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y}`}
+            fill={color}
+          />
+          <line
+            x1={CX - 0.6}
+            y1={NEEDLE_BASE_Y - 1}
+            x2={CX - 0.2}
+            y2={NEEDLE_TIP_Y + 1}
+            stroke="#ffffff"
+            strokeOpacity={0.3}
+            strokeWidth={0.7}
+            strokeLinecap="round"
+          />
         </g>
-        <circle cx={CX} cy={CY} r={6} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
+        {/* Hub -- layered rather than a flat filled dot: a base disc, a dark
+            inset ring standing in for a bezel edge, and a small off-center
+            highlight standing in for a glossy dome. Cheap to render, doesn't
+            need per-state gradient defs since only the base disc carries the
+            state color. */}
+        <circle cx={CX} cy={CY} r={7} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
+        <circle cx={CX} cy={CY} r={7} fill="none" stroke="#000000" strokeOpacity={0.4} strokeWidth={1} />
+        <circle cx={CX - 1.8} cy={CY - 1.8} r={2} fill="#ffffff" fillOpacity={0.4} />
       </svg>
 
       {/* Positioned to the dial's actual clear zone (below the arc's lower
