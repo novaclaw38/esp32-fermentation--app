@@ -2,47 +2,10 @@
   (version "D")
   (design
     (source "__main__.py")
-    (date "09/18/2026 09:40 PM")
+    (date "09/18/2026 10:46 PM")
     (tool "SKiDL (2.3.0)")
     (sheet
       (number 1)
-      (name "/regulation1/")
-      (tstamps "/6b0a4fb1-ca00-51c7-9208-c466848eea0b/")
-      (title_block
-        (title)
-        (company)
-        (rev)
-        (date)
-        (source "../../__main__.py")
-        (comment
-          (number "1")
-          (value ""))
-        (comment
-          (number "2")
-          (value ""))
-        (comment
-          (number "3")
-          (value ""))
-        (comment
-          (number "4")
-          (value ""))
-        (comment
-          (number "5")
-          (value ""))
-        (comment
-          (number "6")
-          (value ""))
-        (comment
-          (number "7")
-          (value ""))
-        (comment
-          (number "8")
-          (value ""))
-        (comment
-          (number "9")
-          (value ""))))
-    (sheet
-      (number 2)
       (name "/")
       (tstamps "/")
       (title_block
@@ -79,118 +42,7 @@
           (number "9")
           (value ""))))
     (sheet
-      (number 3)
-      (name "/mcu_core1/")
-      (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/")
-      (title_block
-        (title)
-        (company)
-        (rev)
-        (date)
-        (source "../../__main__.py")
-        (comment
-          (number "1")
-          (value ""))
-        (comment
-          (number "2")
-          (value ""))
-        (comment
-          (number "3")
-          (value ""))
-        (comment
-          (number "4")
-          (value ""))
-        (comment
-          (number "5")
-          (value ""))
-        (comment
-          (number "6")
-          (value ""))
-        (comment
-          (number "7")
-          (value ""))
-        (comment
-          (number "8")
-          (value ""))
-        (comment
-          (number "9")
-          (value ""))))
-    (sheet
-      (number 4)
-      (name "/charge_protection1/")
-      (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/")
-      (title_block
-        (title)
-        (company)
-        (rev)
-        (date)
-        (source "../../__main__.py")
-        (comment
-          (number "1")
-          (value ""))
-        (comment
-          (number "2")
-          (value ""))
-        (comment
-          (number "3")
-          (value ""))
-        (comment
-          (number "4")
-          (value ""))
-        (comment
-          (number "5")
-          (value ""))
-        (comment
-          (number "6")
-          (value ""))
-        (comment
-          (number "7")
-          (value ""))
-        (comment
-          (number "8")
-          (value ""))
-        (comment
-          (number "9")
-          (value ""))))
-    (sheet
-      (number 5)
-      (name "/power_input1/")
-      (tstamps "/e097af4a-6c7f-5014-a6e4-a6e70e0151af/")
-      (title_block
-        (title)
-        (company)
-        (rev)
-        (date)
-        (source "../../__main__.py")
-        (comment
-          (number "1")
-          (value ""))
-        (comment
-          (number "2")
-          (value ""))
-        (comment
-          (number "3")
-          (value ""))
-        (comment
-          (number "4")
-          (value ""))
-        (comment
-          (number "5")
-          (value ""))
-        (comment
-          (number "6")
-          (value ""))
-        (comment
-          (number "7")
-          (value ""))
-        (comment
-          (number "8")
-          (value ""))
-        (comment
-          (number "9")
-          (value ""))))
-    (sheet
-      (number 6)
+      (number 2)
       (name "/sensor_bus1/")
       (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/")
       (title_block
@@ -227,9 +79,157 @@
           (number "9")
           (value ""))))
     (sheet
-      (number 7)
+      (number 3)
       (name "/battery_sense1/")
       (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "../../__main__.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value ""))))
+    (sheet
+      (number 4)
+      (name "/regulation1/")
+      (tstamps "/6b0a4fb1-ca00-51c7-9208-c466848eea0b/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "../../__main__.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value ""))))
+    (sheet
+      (number 5)
+      (name "/charge_protection1/")
+      (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "../../__main__.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value ""))))
+    (sheet
+      (number 6)
+      (name "/mcu_core1/")
+      (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "../../__main__.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value ""))))
+    (sheet
+      (number 7)
+      (name "/power_input1/")
+      (tstamps "/e097af4a-6c7f-5014-a6e4-a6e70e0151af/")
       (title_block
         (title)
         (company)
@@ -277,7 +277,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "R4PSE8LchS")
+          (name "SKiDL Tag") "0juLeWt8Rm")
         (field
           (name "SKiDL Line") "mcu_core.py:24"))
       (libsource
@@ -286,7 +286,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "9cdbdc2b-e04a-5c66-94fa-ffaec97351c8"))
+      (tstamps "a5baefe7-61a5-5d5b-8e3c-da7ce59c4e48"))
     (comp
       (ref "C10")
       (value "0.1uF")
@@ -300,7 +300,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "x1Fju5Le7I")
+          (name "SKiDL Tag") "h0O1kq8hZQ")
         (field
           (name "SKiDL Line") "sensor_bus.py:53"))
       (libsource
@@ -309,7 +309,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "e455df8a-16f6-5ea7-9398-8e89114f6a73"))
+      (tstamps "083b68eb-aabd-509d-89d6-13ebd3f82748"))
     (comp
       (ref "C11")
       (value "1uF")
@@ -323,7 +323,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "6m7dHFeYig")
+          (name "SKiDL Tag") "mmQYKB1oqT")
         (field
           (name "SKiDL Line") "sensor_bus.py:54"))
       (libsource
@@ -332,7 +332,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "b6840593-a331-517b-a2de-a6142234c216"))
+      (tstamps "4b56391d-2691-589f-acdc-7789ab669ff7"))
     (comp
       (ref "C12")
       (value "0.1uF")
@@ -346,7 +346,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "IJgBvVi6vZ")
+          (name "SKiDL Tag") "DsoytrzIzs")
         (field
           (name "SKiDL Line") "sensor_bus.py:55"))
       (libsource
@@ -355,7 +355,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "e95a0a25-6a0b-5474-8d6a-54e8863fbdca"))
+      (tstamps "be56822d-e220-5ed9-b9b2-88659abcad37"))
     (comp
       (ref "C2")
       (value "0.1uF")
@@ -369,7 +369,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "ug8fNRLHSN")
+          (name "SKiDL Tag") "Qh_UVdaImf")
         (field
           (name "SKiDL Line") "mcu_core.py:26"))
       (libsource
@@ -378,7 +378,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "42a96b4a-96fa-5dc9-bfeb-f4e3bbf34e20"))
+      (tstamps "fd941a59-8d96-5c65-ba17-b3a6118f89a1"))
     (comp
       (ref "C3")
       (value "0.1uF")
@@ -392,7 +392,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "l9ZGWpsvaD")
+          (name "SKiDL Tag") "gw_y75esLs")
         (field
           (name "SKiDL Line") "mcu_core.py:27"))
       (libsource
@@ -401,7 +401,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "c8437c80-51ed-53a1-8e8e-b8f5639529a2"))
+      (tstamps "3e2b4dfb-f3ab-58f6-9a58-281b21c60cd1"))
     (comp
       (ref "C4")
       (value "22uF")
@@ -415,7 +415,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "n6n0ctKVzN")
+          (name "SKiDL Tag") "G3rcG7E3Vj")
         (field
           (name "SKiDL Line") "mcu_core.py:28"))
       (libsource
@@ -424,7 +424,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "2ea7f635-1e68-5282-a7ea-101a86c50936"))
+      (tstamps "ae13ed4e-18ae-58ec-b885-b37b857db140"))
     (comp
       (ref "C5")
       (value "10uF")
@@ -438,7 +438,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "uiY94JD8OZ")
+          (name "SKiDL Tag") "S13mgk1i6M")
         (field
           (name "SKiDL Line") "charge_protection.py:70"))
       (libsource
@@ -447,7 +447,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "75f794e2-ff4d-5f6d-82f4-c3a32c6a11ab"))
+      (tstamps "b5c1ce6c-e86c-561d-b8e4-646b5889c81a"))
     (comp
       (ref "C6")
       (value "10uF")
@@ -461,7 +461,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "Tpp2p7kfzu")
+          (name "SKiDL Tag") "nIBeK8gj1A")
         (field
           (name "SKiDL Line") "charge_protection.py:70"))
       (libsource
@@ -470,7 +470,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "dd526ad6-bd47-5614-9c3d-47dd1278665a"))
+      (tstamps "b2cf32bf-ee83-5ce9-ad97-95872d7cd0d1"))
     (comp
       (ref "C7")
       (value "1uF")
@@ -484,7 +484,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "xOagKX220F")
+          (name "SKiDL Tag") "XxzHfAE1HR")
         (field
           (name "SKiDL Line") "regulation.py:19"))
       (libsource
@@ -493,7 +493,7 @@
       (sheetpath
         (names "/regulation1/")
         (tstamps "/6b0a4fb1-ca00-51c7-9208-c466848eea0b/"))
-      (tstamps "0698a593-1ed4-55f2-bcbc-9287e3ae7299"))
+      (tstamps "aa0357af-d720-51c4-8c71-02c05fd1e472"))
     (comp
       (ref "C8")
       (value "1uF")
@@ -507,7 +507,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "DeZYBMJGsg")
+          (name "SKiDL Tag") "tnxJFOhcuq")
         (field
           (name "SKiDL Line") "regulation.py:20"))
       (libsource
@@ -516,7 +516,7 @@
       (sheetpath
         (names "/regulation1/")
         (tstamps "/6b0a4fb1-ca00-51c7-9208-c466848eea0b/"))
-      (tstamps "5753c8af-e5a9-5829-858e-611261c1af97"))
+      (tstamps "86b16dc7-f86b-5392-86d5-bcfa67293030"))
     (comp
       (ref "C9")
       (value "0.1uF")
@@ -530,7 +530,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "kUc5IKny5a")
+          (name "SKiDL Tag") "Ieh36Bykno")
         (field
           (name "SKiDL Line") "battery_sense.py:25"))
       (libsource
@@ -539,7 +539,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "adf9a330-b7e2-5250-83bb-ab3d3e36b32e"))
+      (tstamps "e7005a25-dd11-5c86-8582-4b8da230ea23"))
     (comp
       (ref "D1")
       (value "red")
@@ -553,7 +553,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "8Zzf_Enwvr")
+          (name "SKiDL Tag") "kezZFFxo9X")
         (field
           (name "SKiDL Line") "charge_protection.py:73"))
       (libsource
@@ -562,7 +562,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "796a3e42-0582-56fa-96be-b4df77740a79"))
+      (tstamps "646c3c05-6a6e-595a-acd6-9088832ecf0a"))
     (comp
       (ref "D2")
       (value "green")
@@ -576,7 +576,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "y4jGKFwtZj")
+          (name "SKiDL Tag") "hDyBROiB9M")
         (field
           (name "SKiDL Line") "charge_protection.py:74"))
       (libsource
@@ -585,7 +585,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "c4b305ff-c4aa-59fa-af88-f1327bbf7eb1"))
+      (tstamps "5e515788-ee8f-5084-95b8-e466aa1cf8d0"))
     (comp
       (ref "J1")
       (value "USB_C_Receptacle_PowerOnly_6P")
@@ -599,7 +599,7 @@
         (field
           (name "Datasheet") "https://www.usb.org/sites/default/files/documents/usb_type-c.zip")
         (field
-          (name "SKiDL Tag") "a5Npn86DZo")
+          (name "SKiDL Tag") "Ure948i9Oh")
         (field
           (name "SKiDL Line") "power_input.py:14"))
       (libsource
@@ -608,7 +608,7 @@
       (sheetpath
         (names "/power_input1/")
         (tstamps "/e097af4a-6c7f-5014-a6e4-a6e70e0151af/"))
-      (tstamps "c7479dd9-f22f-56e3-aaa8-dd3fd3ddcd4a"))
+      (tstamps "913e526d-5c7e-5e87-ad2e-1dcb75f40bbc"))
     (comp
       (ref "J3")
       (value "Conn_01x02")
@@ -622,7 +622,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "LE4dtL_AAI")
+          (name "SKiDL Tag") "2mtoWQx0EB")
         (field
           (name "SKiDL Line") "charge_protection.py:76"))
       (libsource
@@ -631,7 +631,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "c0ec63e4-17a5-5d5d-b82b-76261f29c0af"))
+      (tstamps "b46a8b1d-6877-5429-a02a-0e3a21d06193"))
     (comp
       (ref "J4")
       (value "Conn_01x06")
@@ -645,7 +645,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "NHiEBqajuw")
+          (name "SKiDL Tag") "PlLJT2Yn10")
         (field
           (name "SKiDL Line") "mcu_core.py:35"))
       (libsource
@@ -654,7 +654,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "75133170-f8a5-587e-b0b7-b777e0f23130"))
+      (tstamps "0a6dbce3-d57f-57f2-871b-99d8ea8b2561"))
     (comp
       (ref "Q1")
       (value "AO3401A")
@@ -668,7 +668,7 @@
         (field
           (name "Datasheet") "http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf")
         (field
-          (name "SKiDL Tag") "O2PGyqB8hb")
+          (name "SKiDL Tag") "tNnoDVLsAb")
         (field
           (name "SKiDL Line") "battery_sense.py:16"))
       (libsource
@@ -677,7 +677,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "5e971900-f5df-54d2-996c-11e18daa81c8"))
+      (tstamps "006c35c5-212e-5888-9397-8e976e14f065"))
     (comp
       (ref "Q2")
       (value "MMBT3904")
@@ -691,7 +691,7 @@
         (field
           (name "Datasheet") "https://www.onsemi.com/pdf/datasheet/pzt3904-d.pdf")
         (field
-          (name "SKiDL Tag") "8FtMUVHLi0")
+          (name "SKiDL Tag") "8KMl2RBd9b")
         (field
           (name "SKiDL Line") "battery_sense.py:17"))
       (libsource
@@ -700,7 +700,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "887c2e93-a54a-59e2-8423-c0d16e2a9b8c"))
+      (tstamps "9ca2bcb3-ea01-55cc-a468-0f5b2c220cfa"))
     (comp
       (ref "R1")
       (value "100k")
@@ -714,7 +714,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "fJWQ87_WVX")
+          (name "SKiDL Tag") "IpJ5LyKOwH")
         (field
           (name "SKiDL Line") "battery_sense.py:20"))
       (libsource
@@ -723,7 +723,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "0fc76aa3-1c2a-5318-8d49-08cdb60814f1"))
+      (tstamps "f0c39482-f920-5bcf-be61-56c70b757f9c"))
     (comp
       (ref "R10")
       (value "10k")
@@ -737,7 +737,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "DfPOJEasaP")
+          (name "SKiDL Tag") "JVF3VrjumZ")
         (field
           (name "SKiDL Line") "battery_sense.py:23"))
       (libsource
@@ -746,7 +746,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "8b6515d4-287c-59d3-aa69-cd6de44abe61"))
+      (tstamps "6dd610dc-b9a9-5cee-8fab-418b09735ad2"))
     (comp
       (ref "R11")
       (value "5.1k")
@@ -760,7 +760,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "5_yI6KFayM")
+          (name "SKiDL Tag") "BrzH5YCcYw")
         (field
           (name "SKiDL Line") "power_input.py:19"))
       (libsource
@@ -769,7 +769,7 @@
       (sheetpath
         (names "/power_input1/")
         (tstamps "/e097af4a-6c7f-5014-a6e4-a6e70e0151af/"))
-      (tstamps "5f1996b4-2336-55b7-9515-55803dfe367f"))
+      (tstamps "d4810050-d5fb-5990-ae06-ce927b623fb2"))
     (comp
       (ref "R12")
       (value "5.1k")
@@ -783,7 +783,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "C3A1xSO7it")
+          (name "SKiDL Tag") "fsBZJSLIOl")
         (field
           (name "SKiDL Line") "power_input.py:20"))
       (libsource
@@ -792,7 +792,7 @@
       (sheetpath
         (names "/power_input1/")
         (tstamps "/e097af4a-6c7f-5014-a6e4-a6e70e0151af/"))
-      (tstamps "cb85042d-a111-5fa5-bb43-3efca7a4d2e7"))
+      (tstamps "29def428-7244-5d73-8fc2-2418b9b20e8f"))
     (comp
       (ref "R13")
       (value "2k")
@@ -806,7 +806,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "s5LD0Iw2_l")
+          (name "SKiDL Tag") "u1GIItNQbW")
         (field
           (name "SKiDL Line") "charge_protection.py:66"))
       (libsource
@@ -815,7 +815,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "6221733b-2c5f-53da-883f-daab744c0fe3"))
+      (tstamps "051f2782-3345-5797-b209-1e90fa4084d0"))
     (comp
       (ref "R14")
       (value "2k")
@@ -829,7 +829,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "JQaIsjnC5F")
+          (name "SKiDL Tag") "7FOjQL4T2Y")
         (field
           (name "SKiDL Line") "charge_protection.py:67"))
       (libsource
@@ -838,7 +838,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "8456cd53-4649-5af1-9250-fb81f3ee7482"))
+      (tstamps "d380924b-2a8b-5237-b0d6-acf4be66a91e"))
     (comp
       (ref "R2")
       (value "100k")
@@ -852,7 +852,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "m9_GQY7tdj")
+          (name "SKiDL Tag") "No9UzS8D8D")
         (field
           (name "SKiDL Line") "battery_sense.py:21"))
       (libsource
@@ -861,7 +861,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "e26f5370-7fc4-5a97-a580-307af6d309d7"))
+      (tstamps "7cc60a4f-1c1f-536a-9fc3-b63054071920"))
     (comp
       (ref "R4")
       (value "10k")
@@ -875,7 +875,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "A1tCwcwcMy")
+          (name "SKiDL Tag") "6q5DYDBNJd")
         (field
           (name "SKiDL Line") "mcu_core.py:21"))
       (libsource
@@ -884,7 +884,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "4a164a3b-4fe5-5861-811d-58862ab0511a"))
+      (tstamps "065bd357-5515-5d29-b162-5b01cfac6ea8"))
     (comp
       (ref "R5")
       (value "10k")
@@ -898,7 +898,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "ydbb1GISD1")
+          (name "SKiDL Tag") "SmvPKT4OKB")
         (field
           (name "SKiDL Line") "mcu_core.py:22"))
       (libsource
@@ -907,7 +907,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "dd0d72f9-917d-582c-ab13-3fe3dd85f0ad"))
+      (tstamps "387e4a21-4861-5148-8e63-77b8c4e39641"))
     (comp
       (ref "R6")
       (value "100k")
@@ -921,7 +921,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "WToKRCdzNR")
+          (name "SKiDL Tag") "4KRxkWLz2x")
         (field
           (name "SKiDL Line") "battery_sense.py:22"))
       (libsource
@@ -930,7 +930,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "1b1d2009-e22f-5fe1-92ee-5d7864a514bd"))
+      (tstamps "cc98dd39-89a8-5346-9af2-0f48447bdf30"))
     (comp
       (ref "R7")
       (value "4.7k")
@@ -944,7 +944,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "v2JlgsJkvd")
+          (name "SKiDL Tag") "VuQtlhevHx")
         (field
           (name "SKiDL Line") "sensor_bus.py:50"))
       (libsource
@@ -953,7 +953,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "e0ab8ee4-1bb1-5ca8-b39f-1699258a5866"))
+      (tstamps "5b92eda9-3839-5386-baaf-fd6dde6e3640"))
     (comp
       (ref "R8")
       (value "4.7k")
@@ -967,7 +967,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "mR_sccECje")
+          (name "SKiDL Tag") "ogV1wlQBqH")
         (field
           (name "SKiDL Line") "sensor_bus.py:51"))
       (libsource
@@ -976,7 +976,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "91645691-62dd-51f8-a1bb-7f753acecd54"))
+      (tstamps "9d992c92-e4e9-5796-8580-46e9afd20ffc"))
     (comp
       (ref "R9")
       (value "1.2k")
@@ -990,7 +990,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "q44MQZmYWj")
+          (name "SKiDL Tag") "2rWskXOO53")
         (field
           (name "SKiDL Line") "charge_protection.py:65"))
       (libsource
@@ -999,7 +999,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "f42982f7-bb76-5e85-ad52-0cdc8c6ecc90"))
+      (tstamps "eb4ea464-983a-5e23-9c62-9479bb385e53"))
     (comp
       (ref "SW1")
       (value "TS-1187A-B-A-B")
@@ -1013,7 +1013,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "_E_JcSpYOm")
+          (name "SKiDL Tag") "qAh_TMNNtk")
         (field
           (name "SKiDL Line") "mcu_core.py:33"))
       (libsource
@@ -1022,7 +1022,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "4ddf465b-516f-5cb5-8e03-b4dc6c26ef04"))
+      (tstamps "aadd6479-a2f9-5aa1-b363-2662614b8a00"))
     (comp
       (ref "U1")
       (value "ESP32-WROOM-32E")
@@ -1036,7 +1036,7 @@
         (field
           (name "Datasheet") "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf")
         (field
-          (name "SKiDL Tag") "EnD3hLBMQj")
+          (name "SKiDL Tag") "zhaElVci9T")
         (field
           (name "SKiDL Line") "mcu_core.py:15"))
       (libsource
@@ -1045,7 +1045,7 @@
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "3f426a8d-e424-5012-b036-379c8b6d169a"))
+      (tstamps "37e7995b-0b8b-5edf-bcf9-b4619b2f0564"))
     (comp
       (ref "U2")
       (value "TP4056")
@@ -1059,7 +1059,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "ReYjIeUIvO")
+          (name "SKiDL Tag") "tn3ZQvhBl2")
         (field
           (name "SKiDL Line") "charge_protection.py:23"))
       (libsource
@@ -1068,7 +1068,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "49c59139-17a5-5f75-a2b4-1d77d08d2cdf"))
+      (tstamps "1e19cd41-8fc2-5897-afcf-ede140b85ac8"))
     (comp
       (ref "U3")
       (value "DW01A")
@@ -1082,7 +1082,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "tUSGR6tl_t")
+          (name "SKiDL Tag") "SiYlj4bs98")
         (field
           (name "SKiDL Line") "charge_protection.py:39"))
       (libsource
@@ -1091,7 +1091,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "d4514355-c908-5f95-99d9-593e0658542d"))
+      (tstamps "99cf8e2f-ae89-5ecb-96e0-7039fddddd55"))
     (comp
       (ref "U4")
       (value "FS8205A")
@@ -1105,7 +1105,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "q4dL8fn7hj")
+          (name "SKiDL Tag") "ldAyZsBxbD")
         (field
           (name "SKiDL Line") "charge_protection.py:51"))
       (libsource
@@ -1114,7 +1114,7 @@
       (sheetpath
         (names "/charge_protection1/")
         (tstamps "/8d57e1a2-915a-59ed-b83d-a4a0818ca4fd/"))
-      (tstamps "04558037-4e76-5af5-8438-99bb4139a665"))
+      (tstamps "791acb14-d470-5131-aacb-6c4c3e529c13"))
     (comp
       (ref "U5")
       (value "XC6206P332MR-G")
@@ -1128,7 +1128,7 @@
         (field
           (name "Datasheet") "https://www.torexsemi.com/file/xc6206/XC6206.pdf")
         (field
-          (name "SKiDL Tag") "_7kvmNTPLY")
+          (name "SKiDL Tag") "PFC0k8geSW")
         (field
           (name "SKiDL Line") "regulation.py:14"))
       (libsource
@@ -1137,7 +1137,7 @@
       (sheetpath
         (names "/regulation1/")
         (tstamps "/6b0a4fb1-ca00-51c7-9208-c466848eea0b/"))
-      (tstamps "fd4e1c25-67d7-5c9c-8ac4-6169fa349d45"))
+      (tstamps "32d6971e-ed87-52e3-86cc-52c9e2d6cdc3"))
     (comp
       (ref "U6")
       (value "ADXL345BCCZ-RL7")
@@ -1151,7 +1151,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "PFx0DW8Wtj")
+          (name "SKiDL Tag") "4AbqCYn5jx")
         (field
           (name "SKiDL Line") "sensor_bus.py:20"))
       (libsource
@@ -1160,7 +1160,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "03dfc3d1-39d5-5c62-bfc9-bdb9d5beb322"))
+      (tstamps "ea1a47e8-41f9-5095-93c8-ba0907b51d86"))
     (comp
       (ref "U7")
       (value "MCP9808_MSOP")
@@ -1174,7 +1174,7 @@
         (field
           (name "Datasheet") "http://ww1.microchip.com/downloads/en/DeviceDoc/22203b.pdf")
         (field
-          (name "SKiDL Tag") "mkdY9YMilM")
+          (name "SKiDL Tag") "5kXlfhI0Nz")
         (field
           (name "SKiDL Line") "sensor_bus.py:44"))
       (libsource
@@ -1183,7 +1183,7 @@
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "d2cb9e64-3f91-529b-8385-3276835e0aac")))
+      (tstamps "e75572b3-da81-5691-9da4-bea43603f562")))
   (nets
     (net
       (code 1)

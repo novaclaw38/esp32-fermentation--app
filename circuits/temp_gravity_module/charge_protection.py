@@ -24,14 +24,14 @@ def charge_protection(vbus, bat_plus, gnd, v3v3):
         tool=SKIDL, name="TP4056", ref="U2", ref_prefix="U",
         footprint="Package_SO:SO-8_3.9x4.9mm_P1.27mm",
         pins=[
-            Pin(num=1, name="TEMP", func=Pin.types.NOCONNECT),
-            Pin(num=2, name="PROG", func=Pin.types.PASSIVE),
-            Pin(num=3, name="GND", func=Pin.types.PWRIN),
-            Pin(num=4, name="VCC", func=Pin.types.PWRIN),
-            Pin(num=5, name="BAT", func=Pin.types.PWROUT),
-            Pin(num=6, name="STDBY", func=Pin.types.OPENCOLL),
-            Pin(num=7, name="CHRG", func=Pin.types.OPENCOLL),
-            Pin(num=8, name="CE", func=Pin.types.INPUT),
+            Pin(num=1, name="TEMP", func=Pin.types.NOCONNECT, orientation="L"),
+            Pin(num=2, name="PROG", func=Pin.types.PASSIVE, orientation="L"),
+            Pin(num=3, name="GND", func=Pin.types.PWRIN, orientation="L"),
+            Pin(num=4, name="VCC", func=Pin.types.PWRIN, orientation="L"),
+            Pin(num=5, name="BAT", func=Pin.types.PWROUT, orientation="L"),
+            Pin(num=6, name="STDBY", func=Pin.types.OPENCOLL, orientation="L"),
+            Pin(num=7, name="CHRG", func=Pin.types.OPENCOLL, orientation="L"),
+            Pin(num=8, name="CE", func=Pin.types.INPUT, orientation="L"),
         ],
     )
 
@@ -40,24 +40,24 @@ def charge_protection(vbus, bat_plus, gnd, v3v3):
         tool=SKIDL, name="DW01A", ref="U3", ref_prefix="U",
         footprint="Package_TO_SOT_SMD:SOT-23-6",
         pins=[
-            Pin(num=1, name="VM", func=Pin.types.INPUT),      # senses across the FET pair
-            Pin(num=2, name="VDD", func=Pin.types.PWRIN),     # cell+
-            Pin(num=3, name="VSS", func=Pin.types.PWRIN),     # cell- / GND reference
-            Pin(num=4, name="CS", func=Pin.types.INPUT),      # shared FS8205A source node
-            Pin(num=5, name="DO", func=Pin.types.OUTPUT),     # discharge-FET gate drive
-            Pin(num=6, name="CO", func=Pin.types.OUTPUT),     # charge-FET gate drive
+            Pin(num=1, name="VM", func=Pin.types.INPUT, orientation="L"),      # senses across the FET pair
+            Pin(num=2, name="VDD", func=Pin.types.PWRIN, orientation="L"),     # cell+
+            Pin(num=3, name="VSS", func=Pin.types.PWRIN, orientation="L"),     # cell- / GND reference
+            Pin(num=4, name="CS", func=Pin.types.INPUT, orientation="L"),      # shared FS8205A source node
+            Pin(num=5, name="DO", func=Pin.types.OUTPUT, orientation="L"),     # discharge-FET gate drive
+            Pin(num=6, name="CO", func=Pin.types.OUTPUT, orientation="L"),     # charge-FET gate drive
         ],
     )
     u4 = Part(
         tool=SKIDL, name="FS8205A", ref="U4", ref_prefix="U",
         footprint="Package_TO_SOT_SMD:SOT-23-6",
         pins=[
-            Pin(num=1, name="G1", func=Pin.types.INPUT),      # charge-FET gate, from U3 CO
-            Pin(num=2, name="S", func=Pin.types.PASSIVE),     # shared source, to U3 CS
-            Pin(num=3, name="G2", func=Pin.types.INPUT),      # discharge-FET gate, from U3 DO
-            Pin(num=4, name="D2", func=Pin.types.PASSIVE),    # discharge-FET drain, to system GND
-            Pin(num=5, name="NC", func=Pin.types.NOCONNECT),
-            Pin(num=6, name="D1", func=Pin.types.PASSIVE),    # charge-FET drain, to cell-
+            Pin(num=1, name="G1", func=Pin.types.INPUT, orientation="L"),      # charge-FET gate, from U3 CO
+            Pin(num=2, name="S", func=Pin.types.PASSIVE, orientation="L"),     # shared source, to U3 CS
+            Pin(num=3, name="G2", func=Pin.types.INPUT, orientation="L"),      # discharge-FET gate, from U3 DO
+            Pin(num=4, name="D2", func=Pin.types.PASSIVE, orientation="L"),    # discharge-FET drain, to system GND
+            Pin(num=5, name="NC", func=Pin.types.NOCONNECT, orientation="L"),
+            Pin(num=6, name="D1", func=Pin.types.PASSIVE, orientation="L"),    # charge-FET drain, to cell-
         ],
     )
 

@@ -32,6 +32,8 @@ supabase/.temp/
 .venv/
 __pycache__/
 *_sklib.py
+outputs/*_skin.svg
+outputs/*.json
 *.erc
 
 
