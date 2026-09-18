@@ -28,6 +28,12 @@ supabase/.temp/
 .DS_Store
 *.log
 
+# SKiDL PCB design toolchain
+.venv/
+__pycache__/
+*_sklib.py
+*.erc
+
 
 # Factory provisioning output — manifest.csv contains DEVICE SECRETS.
 # Deliberately never tracked, unlike pdf/. Keep these off shared drives too.
