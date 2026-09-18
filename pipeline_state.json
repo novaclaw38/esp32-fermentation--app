@@ -1,19 +1,28 @@
 {
   "version": "4.0",
   "circuit_name": "temp_gravity_module",
-  "stage": "coding",
+  "stage": "design_review",
   "last_updated": "2026-09-18",
   "active_circuit_file": "circuits/temp_gravity_module/__main__.py",
   "requirements_complete": true,
   "architecture_complete": true,
   "sourcing_complete": true,
   "datasheets_complete": true,
+  "review_status": {
+    "erc": "PASS",
+    "architecture": "OK",
+    "code_quality": "OK",
+    "high_severity_count": 0,
+    "medium_severity_count": 3,
+    "low_severity_count": 3,
+    "report_path": "outputs/design_review.md"
+  },
   "erc_status": {
     "last_run": "2026-09-18",
     "errors": 0,
     "warnings": 1,
     "pass": true,
-    "report_path": null
+    "report_path": "outputs/erc_report.md"
   },
   "sourced_bom_version": "1.0",
   "last_modified_circuit": "circuits/temp_gravity_module/",
