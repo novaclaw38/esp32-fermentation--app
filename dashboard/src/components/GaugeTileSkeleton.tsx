@@ -30,7 +30,7 @@ export default function GaugeTileSkeleton() {
         <path
           d={describeArc(START_ANGLE, START_ANGLE + SWEEP)}
           fill="none"
-          stroke="#332a20"
+          stroke="#7a654c"
           strokeWidth={7}
           strokeLinecap="round"
         />

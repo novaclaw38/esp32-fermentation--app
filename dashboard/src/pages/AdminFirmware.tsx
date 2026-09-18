@@ -177,7 +177,7 @@ export default function AdminFirmware() {
           <p className="mt-1 text-sm text-panel-400">{loadError}</p>
           <button
             onClick={loadReleases}
-            className="mt-2 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="mt-2 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -251,7 +251,7 @@ export default function AdminFirmware() {
                   <button
                     onClick={() => handleUpload(type)}
                     disabled={section.uploading}
-                    className="rounded-md border border-panel-600 px-3 py-1.5 text-sm font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
+                    className="rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
                   >
                     {section.uploading ? "Uploading…" : "Upload"}
                   </button>
@@ -280,7 +280,7 @@ export default function AdminFirmware() {
                           <button
                             onClick={() => handlePublish(r)}
                             disabled={publishingId === r.id}
-                            className="shrink-0 rounded-md bg-brew-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+                            className="shrink-0 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
                           >
                             {publishingId === r.id ? "Publishing…" : "Publish"}
                           </button>

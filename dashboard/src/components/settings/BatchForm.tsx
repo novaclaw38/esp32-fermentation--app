@@ -59,7 +59,7 @@ export default function BatchForm({ device, onSaved }: Props) {
       {og == null ? null : !confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="mt-3 rounded-md border border-panel-600 px-3 py-1.5 text-sm font-medium text-panel-200 hover:bg-panel-800"
+          className="mt-3 rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800"
         >
           Start new batch…
         </button>
@@ -68,13 +68,13 @@ export default function BatchForm({ device, onSaved }: Props) {
           <button
             onClick={handleReset}
             disabled={resetting}
-            className="rounded-md bg-breach-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
+            className="rounded-md bg-breach-500 px-3 py-2 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
           >
             {resetting ? "Resetting…" : "Yes, start a new batch"}
           </button>
           <button
             onClick={() => setConfirming(false)}
-            className="rounded-md border border-panel-600 px-3 py-1.5 text-sm text-panel-200 hover:bg-panel-800"
+            className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
           >
             Cancel
           </button>

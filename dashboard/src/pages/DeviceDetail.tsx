@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useDevice } from "../lib/useDevice";
 import type { Alert, Device, Reading, ReadingWithGravity } from "../types/database";
-import TemperatureChart from "../components/TemperatureChart";
-import GravityChart from "../components/GravityChart";
 import AlertList from "../components/AlertList";
 import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
@@ -16,8 +14,22 @@ import { computeGravitySg, computeGravitySgRaw, formatSg, isCalibrated, isTiltDe
 import { computeFermentationAnalytics } from "../lib/fermentationAnalytics";
 import FermentationSummary from "../components/FermentationSummary";
 import FermentationStageBar from "../components/FermentationStageBar";
-import FermentationChart from "../components/FermentationChart";
-import FermentationRateChart from "../components/FermentationRateChart";
+
+// Recharts is the single heaviest dependency in the bundle (Vite's own build
+// warning flagged the 800+KB single chunk this pulled into every page,
+// including ones -- Login, the device grid -- that never render a chart at
+// all). Loaded only once this page actually needs a chart, not on first
+// paint of the app.
+const TemperatureChart = lazy(() => import("../components/TemperatureChart"));
+const GravityChart = lazy(() => import("../components/GravityChart"));
+const FermentationChart = lazy(() => import("../components/FermentationChart"));
+const FermentationRateChart = lazy(() => import("../components/FermentationRateChart"));
+
+// Fixed-height placeholders matching each chart's own established height, so
+// the lazy chunk arriving doesn't shift anything else on the page.
+function ChartFallback({ height }: { height: string }) {
+  return <div className={`${height} rounded-lg border border-panel-700 bg-panel-900`} />;
+}
 
 const HISTORY_HOURS = 48;
 
@@ -144,7 +156,7 @@ export default function DeviceDetail() {
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={reloadDevice}
-            className="rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -213,7 +225,7 @@ export default function DeviceDetail() {
         </div>
         <Link
           to={`/devices/${device.id}/settings`}
-          className="shrink-0 rounded-md border border-panel-600 px-3 py-1.5 text-sm font-medium text-panel-200 hover:bg-panel-800"
+          className="shrink-0 rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800"
         >
           Settings
         </Link>
@@ -266,7 +278,7 @@ export default function DeviceDetail() {
           <p className="mt-1 text-sm text-panel-400">{historyError}</p>
           <button
             onClick={loadHistory}
-            className="mt-2 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="mt-2 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -296,7 +308,9 @@ export default function DeviceDetail() {
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
               Temperature · last {HISTORY_HOURS}h
             </h2>
-            <TemperatureChart readings={readings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
+            <Suspense fallback={<ChartFallback height="h-64" />}>
+              <TemperatureChart readings={readings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
+            </Suspense>
           </section>
 
           {showGravity && (
@@ -304,7 +318,9 @@ export default function DeviceDetail() {
               <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
                 {calibrated ? "Gravity" : "Tilt"} · last {HISTORY_HOURS}h
               </h2>
-              <GravityChart readings={readings} calibrated={calibrated} />
+              <Suspense fallback={<ChartFallback height="h-64" />}>
+                <GravityChart readings={readings} calibrated={calibrated} />
+              </Suspense>
             </section>
           )}
 
@@ -314,14 +330,18 @@ export default function DeviceDetail() {
                 <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
                   Gravity + Temperature · last {HISTORY_HOURS}h
                 </h2>
-                <FermentationChart readings={readings} />
+                <Suspense fallback={<ChartFallback height="h-72" />}>
+                  <FermentationChart readings={readings} />
+                </Suspense>
               </section>
 
               <section className="mb-6">
                 <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
                   Fermentation rate · SG per 24h
                 </h2>
-                <FermentationRateChart readings={readings} />
+                <Suspense fallback={<ChartFallback height="h-40" />}>
+                  <FermentationRateChart readings={readings} />
+                </Suspense>
               </section>
             </>
           )}

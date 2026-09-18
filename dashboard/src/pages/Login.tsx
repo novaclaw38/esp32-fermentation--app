@@ -123,7 +123,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+            className="w-full rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
           >
             {loading
               ? mode === "signin"

@@ -1,4 +1,5 @@
 import type { GaugeState } from "../lib/gaugeState";
+import { usePrefersReducedMotion } from "../lib/useReducedMotion";
 
 interface Props {
   /** Raw value in the same unit as min/max -- needle position is threshold-relative, so this stays °C even when displayValue shows °F. */
@@ -104,6 +105,10 @@ const CY = 94;
 const TRACK_R = 74;
 
 export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, endLabels, size = "sm" }: Props) {
+  // The needle rotation and opacity fade still have to happen -- they carry
+  // the state change, not just decorate it -- but under reduced motion they
+  // snap to the new frame instead of animating into it.
+  const reducedMotion = usePrefersReducedMotion();
   const range = max - min;
   const rawFraction = value == null ? 0 : (value - min) / range;
   // A real needle pins at its travel limit rather than flying off-scale.
@@ -130,7 +135,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       role="img"
       aria-label={`${label}: ${dim ? "offline" : displayValue}${announcement ? `, ${announcement}` : ""}${subLabel ? `, ${subLabel}` : ""}`}
     >
-      <svg viewBox="0 0 200 200" className={`h-full w-full transition-opacity duration-500 ${svgOpacity}`}>
+      <svg viewBox="0 0 200 200" className={`h-full w-full ${reducedMotion ? "" : "transition-opacity duration-500"} ${svgOpacity}`}>
         {/* Track. panel-700 (#332a20), the border-scale token this used to
             borrow, sits at 1.26:1 against the panel-900/950 surfaces this
             gauge renders on -- effectively invisible, and with it gone the
@@ -212,7 +217,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
           style={{
             transform: `rotate(${needleAngle}deg)`,
             transformOrigin: `${CX}px ${CY}px`,
-            transition: "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: reducedMotion ? "none" : "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
             filter: glow ? `drop-shadow(0 0 ${glow}px ${color})` : undefined,
           }}
         >

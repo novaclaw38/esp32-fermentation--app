@@ -44,7 +44,7 @@ export default function DeviceSettings() {
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={reload}
-            className="rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>

@@ -48,7 +48,7 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="mt-3 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+          className="mt-3 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
         >
           Remove device…
         </button>
@@ -68,7 +68,7 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
             <button
               onClick={handleDelete}
               disabled={confirmText.trim() !== device.id || deleting}
-              className="rounded-md bg-breach-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
+              className="rounded-md bg-breach-500 px-3 py-2 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
             >
               {deleting ? "Removing…" : "Permanently remove"}
             </button>
@@ -78,7 +78,7 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
                 setConfirmText("");
                 setError(null);
               }}
-              className="rounded-md border border-panel-600 px-3 py-1.5 text-sm text-panel-200 hover:bg-panel-800"
+              className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
             >
               Cancel
             </button>

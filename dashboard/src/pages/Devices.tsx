@@ -122,13 +122,13 @@ export default function Devices() {
           <UnitToggle />
           <button
             onClick={() => { setShowClaimForm((v) => !v); setShowAddForm(false); }}
-            className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500"
+            className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500"
           >
             {showClaimForm ? "Cancel" : "Claim device"}
           </button>
           <button
             onClick={() => { setShowAddForm((v) => !v); setShowClaimForm(false); }}
-            className="rounded-md border border-panel-600 px-3 py-1.5 text-sm font-medium text-panel-200 hover:bg-panel-800"
+            className="rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800"
           >
             {showAddForm ? "Cancel" : "Add manually"}
           </button>
@@ -213,7 +213,7 @@ export default function Devices() {
             </div>
           </fieldset>
           {error && <p className="text-sm text-breach-400">{error}</p>}
-          <button type="submit" className="rounded-md bg-brew-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brew-500">
+          <button type="submit" className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500">
             Create device
           </button>
         </form>
@@ -248,7 +248,7 @@ export default function Devices() {
           <p className="mt-1 text-panel-400">{loadError}</p>
           <button
             onClick={loadDevices}
-            className="mt-3 rounded-md border border-breach-500/50 px-3 py-1.5 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="mt-3 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>

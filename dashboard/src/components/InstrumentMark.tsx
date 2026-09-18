@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePrefersReducedMotion } from "../lib/useReducedMotion";
 
 // Same 240°-sweep grammar as Gauge.tsx (duplicated, not imported -- Gauge's
 // geometry is a live-reading instrument; this is a static wordmark glyph, a
@@ -35,9 +36,8 @@ const restAngle = START_ANGLE + SWEEP * REST_FRACTION;
  * show. Skips straight to the resting frame under prefers-reduced-motion.
  */
 export default function InstrumentMark({ size = 40 }: { size?: number }) {
-  const [settled, setSettled] = useState(
-    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-  );
+  const reducedMotion = usePrefersReducedMotion();
+  const [settled, setSettled] = useState(reducedMotion);
 
   useEffect(() => {
     if (settled) return;

@@ -52,7 +52,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
           </code>
           <button
             onClick={onUnclaimed}
-            className="rounded-md bg-approach-500 px-3 py-1.5 text-sm font-medium text-panel-950 hover:bg-approach-400"
+            className="rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400"
           >
             Done
           </button>
@@ -60,7 +60,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
       ) : !confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="mt-3 rounded-md border border-approach-500/50 px-3 py-1.5 text-sm font-medium text-approach-400 hover:bg-panel-800"
+          className="mt-3 rounded-md border border-approach-500/50 px-3 py-2 text-sm font-medium text-approach-400 hover:bg-panel-800"
         >
           Unclaim device…
         </button>
@@ -71,7 +71,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
             <button
               onClick={handleUnclaim}
               disabled={unclaiming}
-              className="rounded-md bg-approach-500 px-3 py-1.5 text-sm font-medium text-panel-950 hover:bg-approach-400 disabled:opacity-40"
+              className="rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400 disabled:opacity-40"
             >
               {unclaiming ? "Releasing…" : "Yes, release it"}
             </button>
@@ -80,7 +80,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
                 setConfirming(false);
                 setError(null);
               }}
-              className="rounded-md border border-panel-600 px-3 py-1.5 text-sm text-panel-200 hover:bg-panel-800"
+              className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
             >
               Cancel
             </button>
