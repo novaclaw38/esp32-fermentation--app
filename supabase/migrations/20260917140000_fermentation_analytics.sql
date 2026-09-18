@@ -43,20 +43,50 @@ comment on column devices.fermentation_started_at is
 -- claim_device -- a newly claimed device starts with no batch in progress
 -- ---------------------------------------------------------------------------
 
--- Same signature as 20260915090000; a straight replace, no drop needed.
+-- claim_device() returns jsonb as of 20260915103000 (claim_rate_limit), not
+-- text as of its original 20260915090000 definition -- rate limiting needs
+-- to return on a bad code rather than raise, so the attempt row it just
+-- wrote commits instead of rolling back with the exception. Same return
+-- type here, so a straight replace (no drop) is fine; only the reset of the
+-- three new batch-anchor columns is new.
 create or replace function claim_device(p_claim_code text)
-returns text
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_uid uuid := auth.uid();
-  v_code text;
-  v_id text;
+  max_failures constant int := 10;
+  window_len   constant interval := interval '1 hour';
+
+  v_uid      uuid := auth.uid();
+  v_code     text;
+  v_id       text;
+  v_failures int;
+  v_oldest   timestamptz;
 begin
   if v_uid is null then
     raise exception 'Not authenticated' using errcode = '28000';
+  end if;
+
+  delete from claim_attempts
+   where user_id = v_uid and attempted_at < now() - interval '24 hours';
+
+  select count(*), min(attempted_at)
+    into v_failures, v_oldest
+    from claim_attempts
+   where user_id = v_uid
+     and not succeeded
+     and attempted_at > now() - window_len;
+
+  if v_failures >= max_failures then
+    return jsonb_build_object(
+      'ok', false,
+      'error', 'too_many_attempts',
+      'retry_after_seconds',
+        greatest(1, ceil(extract(epoch from (v_oldest + window_len - now())))::int),
+      'message', 'Too many claim attempts. Wait a little and try again.'
+    );
   end if;
 
   v_code := upper(regexp_replace(coalesce(p_claim_code, ''), '[^A-Za-z0-9]', '', 'g'));
@@ -73,12 +103,17 @@ begin
      and user_id is null
   returning id into v_id;
 
+  insert into claim_attempts (user_id, succeeded) values (v_uid, v_id is not null);
+
   if v_id is null then
-    raise exception 'That claim code is not valid, or the device has already been claimed'
-      using errcode = 'P0002';
+    return jsonb_build_object(
+      'ok', false,
+      'error', 'invalid_code',
+      'message', 'That claim code is not valid, or the device has already been claimed.'
+    );
   end if;
 
-  return v_id;
+  return jsonb_build_object('ok', true, 'device_id', v_id);
 end;
 $$;
 
