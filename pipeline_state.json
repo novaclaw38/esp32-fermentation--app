@@ -1,0 +1,25 @@
+{
+  "version": "4.0",
+  "circuit_name": "temp_gravity_module",
+  "stage": "requirements",
+  "last_updated": "2026-09-18",
+  "active_circuit_file": null,
+  "requirements_complete": true,
+  "architecture_complete": false,
+  "sourcing_complete": false,
+  "datasheets_complete": false,
+  "erc_status": {
+    "last_run": null,
+    "errors": 0,
+    "warnings": 0,
+    "pass": false,
+    "report_path": null
+  },
+  "sourced_bom_version": null,
+  "last_modified_circuit": null,
+  "coding_mode": null,
+  "block_manifest": [],
+  "sourcing_escalation_count": 0,
+  "erc_iteration_count": 0,
+  "architecture_rework_count": 0
+}
