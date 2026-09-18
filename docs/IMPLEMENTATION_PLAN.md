@@ -238,6 +238,7 @@ support tickets.
 2. **Backend**: Supabase table per device, RLS scoped per user account, threshold-based alert rules.
 3. **Alerting**: Start dumb and reliable — email via Supabase Edge Function or n8n webhook when temp exceeds a user-set range for N consecutive readings (avoid false-alarm spam from single blips).
 4. **Dashboard**: React, one page per device — current temp, 24-48h graph, alert history. Don't build multi-batch history/analytics yet; that's a retention feature for later, not an MVP requirement.
+   **Update, this repo:** built anyway, once the floating module made it meaningful — OG is auto-captured server-side from the first calibrated reading of a batch (not derived from whatever window the dashboard happens to have loaded, which would be wrong for anything older than 48h), and the dashboard now shows live ABV, apparent/real attenuation, a normalized fermentation-rate figure, and an automated 5-stage process indicator (Lag/Active/Slowing/Cleanup/Complete) with in-app guidance per stage. Single-batch, not cross-batch history — the "retention feature for later" this line meant is still not built; this is real-time analytics on the batch in progress, which turned out to be needed for the floating module to be worth anything over a plain thermometer.
 5. **Enclosure**: 3D-printed or off-the-shelf project box, sealed connector for the probe. This is the part most likely to eat unexpected time — budget for it.
 
 ---
@@ -283,7 +284,7 @@ This repo implements the Phase 1 MVP build:
   Module** (`fermentation_tilt_v1/` — potted DS18B20 + ADXL345 tilt,
   posting temperature and raw tilt angle)
 - `supabase/` — Postgres schema, RLS policies, and an Edge Function that emails on new alerts
-- `dashboard/` — React + TypeScript dashboard (auth, per-device live reading, 48h chart, alert history, threshold editor)
+- `dashboard/` — React + TypeScript dashboard: auth, an instrument-panel gauge for every live reading (temp/gravity/battery), 48h charts, alert history, and per-device settings split across its own tabbed page (Profile/Setup/Tools/Data — thresholds, gravity calibration, snooze, unclaim/transfer, email opt-out, remove device). For the floating module: real-time single-batch fermentation analytics (ABV, apparent/real attenuation, a normalized fermentation-rate figure, and an automated Lag/Active/Slowing/Cleanup/Complete stage indicator), anchored to an original gravity captured server-side rather than guessed from whatever the dashboard has loaded — see `supabase/migrations/20260917140000_fermentation_analytics.sql`.
 - `landing/` — static one-page pre-order/signup site for the Phase 0 validation track
 - `hardware/` — custom PCB design (schematic, BOM, DFM notes) for the
   Phase 2 pre-sold batch, replacing the perfboard build above, plus the
@@ -303,5 +304,18 @@ calibration curve and calibration temperature, and gravity is corrected to a
 is complete end to end in software, including the temperature compensation
 the onboard DS18B20 exists for. What's untested is physical: the tilt axis assumption and the
 housing's waterproofing.
+
+**First real hardware-in-the-loop debugging happened this session**, on a
+bench build of the Temp + Gravity module (GY-291/HW-860 ADXL345 breakout,
+DS18B20 on 1-Wire): temperature posted successfully end to end
+(device → `ingest_reading` → dashboard) from the first cycle, confirming the
+whole pipeline is real, not just simulated. Tilt posted `null` on every
+reading — root-caused to the breakout's **CS pin left floating**, which
+leaves the ADXL345 in SPI mode so it never ACKs on I²C at `0x53` (the
+`ADXL345 not responding on I2C` line in `adxlBegin()`). Fix is a jumper from
+CS to 3.3V; not yet confirmed working end-to-end as of this writing. Also
+flagged: the DS18B20 was reading without its required 4.7kΩ pull-up on
+GPIO4, which can appear to work on a short bench wire off the ESP32's weak
+internal pull-up alone and fail intermittently once it doesn't.
 
 Not yet built: CO₂ module firmware and its schema/dashboard support.
