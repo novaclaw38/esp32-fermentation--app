@@ -1,12 +1,12 @@
 {
   "version": "4.0",
   "circuit_name": "temp_gravity_module",
-  "stage": "architecture",
+  "stage": "sourcing",
   "last_updated": "2026-09-18",
   "active_circuit_file": null,
   "requirements_complete": true,
   "architecture_complete": true,
-  "sourcing_complete": false,
+  "sourcing_complete": true,
   "datasheets_complete": false,
   "erc_status": {
     "last_run": null,
@@ -15,7 +15,7 @@
     "pass": false,
     "report_path": null
   },
-  "sourced_bom_version": null,
+  "sourced_bom_version": "1.0",
   "last_modified_circuit": null,
   "coding_mode": null,
   "block_manifest": [],
