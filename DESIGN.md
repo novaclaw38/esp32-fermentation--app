@@ -213,6 +213,12 @@ A read-only status version of Tab Navigation's step logic, not a new pattern: fi
 ### Fermentation charts
 Two additions beside the existing Temperature and Gravity charts: a dual-axis Gravity+Temperature chart (SG on the left axis in the same green already established by GravityChart, temperature on the right axis in `brew-400` dashed, matching TemperatureChart's own line color), and a fermentation-rate area chart (SG points per 24h, same green, filled at 15% opacity) below it. Deliberately two charts and two axes rather than one three-axis chart: a third independently-scaled line on the combo chart was tried and read as noise, not signal, the same legibility call GravityChart itself made when it chose not to plot raw tilt and corrected SG together.
 
+### Instrument Mark
+A 40px wordmark glyph — the same 240°-dial/needle/glow grammar as Gauge, at a fixed "nominal" angle rather than a real reading (it's a mark, not an instrument; it never claims to measure anything). The one authored moment on the sign-in threshold: on mount the needle sweeps from zero to its resting angle and the glow fades in over ~900ms, once, never looping. Skips straight to the resting frame under `prefers-reduced-motion: reduce`. This is deliberately the first thing a visitor who hasn't claimed a device yet sees — the sign-in page previously carried none of this system (default Tailwind `stone` grays on an unset background, no dark panel ground), which read as an unfinished, unbranded form bolted in front of a finished product. Rebuilt onto the same card/input/button tokens as everything else in Components below.
+
+### Loading & empty states
+A gray spinner or bare "Loading…" text breaks the instrument-panel illusion at the one moment — first paint — it matters most. The device grid's loading state is a grid of dial-shaped skeleton tiles (`GaugeTileSkeleton`: the dial's silhouette in `panel-700` stroke, gently pulsing, no spinner) previewing the exact layout about to render, not a generic placeholder. `animate-pulse` is disabled under `prefers-reduced-motion: reduce` globally (see `index.css`). The zero-devices empty state composes the real `Gauge` component in its own `offline` pose — dim numeral, no glow — as the centerpiece, with copy that treats it as "your first instrument, not yet wired in" rather than an apology; this reuses the system's own signature silhouette instead of a generic icon-plus-heading card.
+
 ## Do's and Don'ts
 
 ### Do:

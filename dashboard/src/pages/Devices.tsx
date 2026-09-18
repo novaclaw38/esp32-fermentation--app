@@ -6,6 +6,7 @@ import type { Device, DeviceType, Reading } from "../types/database";
 import ClaimDeviceForm from "../components/ClaimDeviceForm";
 import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
+import GaugeTileSkeleton from "../components/GaugeTileSkeleton";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
@@ -227,7 +228,11 @@ export default function Devices() {
       )}
 
       {loading ? (
-        <p className="text-panel-400">Loading…</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <GaugeTileSkeleton key={i} />
+          ))}
+        </div>
       ) : loadError ? (
         <div className="rounded-lg border border-breach-500/40 bg-panel-900 p-4 text-sm">
           <p className="font-medium text-breach-400">Couldn't load your devices</p>
@@ -240,7 +245,16 @@ export default function Devices() {
           </button>
         </div>
       ) : devices.length === 0 ? (
-        <p className="text-panel-400">No devices yet. Add one above once you've flashed a unit.</p>
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-panel-700 bg-panel-900 px-6 py-12 text-center">
+          <Gauge value={null} min={0} max={1} displayValue="—" label="Temp" state="offline" size="lg" />
+          <div>
+            <p className="font-medium text-panel-200">No instruments online yet</p>
+            <p className="mx-auto mt-1 max-w-xs text-sm text-panel-400">
+              Claim the device with the code printed on your unit, or add one manually if you
+              flashed it yourself — it'll take this gauge's place after its first reading.
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {devices.map((d) => {

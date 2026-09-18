@@ -45,3 +45,9 @@ body {
   outline: 2px solid theme("colors.brew.400");
   outline-offset: 2px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+}
