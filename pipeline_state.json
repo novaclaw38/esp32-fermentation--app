@@ -1,11 +1,11 @@
 {
   "version": "4.0",
   "circuit_name": "temp_gravity_module",
-  "stage": "requirements",
+  "stage": "architecture",
   "last_updated": "2026-09-18",
   "active_circuit_file": null,
   "requirements_complete": true,
-  "architecture_complete": false,
+  "architecture_complete": true,
   "sourcing_complete": false,
   "datasheets_complete": false,
   "erc_status": {
