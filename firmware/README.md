@@ -151,18 +151,35 @@ settings page takes effect on the device's next wake — no re-flash needed.
 
 ## Firmware OTA updates
 
-Set `OTA_ENABLED = true` and host two files over HTTPS (a public Supabase
-Storage bucket works well):
-
-- `manifest.json`: `{"version": 2, "url": "https://.../firmware.bin"}`
-- `firmware.bin`: exported via Arduino IDE Sketch > Export Compiled Binary
-
-Bump `FIRMWARE_VERSION` in the `.ino` to match the manifest before each
-release you publish. The device checks the manifest roughly once a day
+Set `OTA_ENABLED = true` per sketch. Each device type checks its own
+manifest at a fixed public URL roughly once a day
 (`OTA_CHECK_EVERY_N_CYCLES`) and self-updates + reboots if the manifest's
-version is newer. `WiFiClientSecure::setInsecure()` is used for simplicity
-in v1 — pin the actual CA certificate before shipping a large field batch,
-since `setInsecure()` accepts any TLS certificate.
+version is newer than its own `FIRMWARE_VERSION`. That check
+(`checkForOTAUpdate()`) is unchanged by anything below — it still fetches a
+flat `{"version": N, "url": "..."}` JSON object from a fixed, unauthenticated
+URL and hand-parses it by substring search, no server-side changes.
+
+**Publishing a release:** sign in to the dashboard with an admin account and
+go to `/admin/firmware` (a "Firmware" link appears in the devices page
+header for admins). Export the compiled binary (Arduino IDE Sketch > Export
+Compiled Binary), upload it under the matching device type with a version
+number matching `FIRMWARE_VERSION` in the `.ino`, then hit Publish. That
+writes the device type's `manifest.json` and the `vN.bin` object into the
+project's `firmware` Storage bucket — the same two files this section used
+to say to upload by hand into the Supabase Storage console, just tracked
+with upload history and a one-click way to re-publish an older version as a
+rollback. Hub and Temp + Gravity each read their own manifest
+(`firmware/hub/manifest.json` / `firmware/tilt/manifest.json`), since they
+ship different binaries — set `OTA_MANIFEST_URL` in each `.ino` to its
+matching path.
+
+Granting admin access (there's no UI for this — deliberately, it's a rare,
+high-trust action): `insert into admin_users (user_id) select id from
+auth.users where email = '...';` in the Supabase SQL editor.
+
+`WiFiClientSecure::setInsecure()` is used for simplicity in v1 — pin the
+actual CA certificate before shipping a large field batch, since
+`setInsecure()` accepts any TLS certificate.
 
 ## Known Gaps / Next Steps (flag to founder, not silent assumptions)
 

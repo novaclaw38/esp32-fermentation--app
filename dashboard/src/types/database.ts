@@ -93,3 +93,19 @@ export interface Alert {
   created_at: string;
   acknowledged: boolean;
 }
+
+/**
+ * Upload/publish history for the firmware admin console. Devices never read
+ * this row -- they read manifest.json from the firmware Storage bucket,
+ * written alongside publish_firmware_release() by the console itself.
+ */
+export interface FirmwareRelease {
+  id: number;
+  device_type: DeviceType;
+  version: number;
+  storage_path: string;
+  notes: string | null;
+  published: boolean;
+  created_at: string;
+  created_by: string | null;
+}

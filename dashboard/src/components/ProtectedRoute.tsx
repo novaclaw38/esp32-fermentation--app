@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
 
   if (loading) {
-    return <div className="p-8 text-stone-500">Loading…</div>;
+    return <div className="p-8 text-panel-400">Loading…</div>;
   }
 
   if (!session) {

@@ -159,6 +159,8 @@ Device settings live on their own route (`/devices/:id/settings`) rather than in
 
 **Focus-dim.** On the device grid, hovering or focusing one tile dims every other tile to 50% opacity over a 300ms transition — the raise borrowed from the streaming-catalog challenger. No badge or modal calls the focused tile out; the neighbors simply recede.
 
+An internal-only admin surface (`/admin/firmware`, gated by an `is_admin()` check rather than anything device-owner-scoped) reuses the same single-column shell, card, form, and button vocabulary as the customer-facing pages — no separate "admin theme." A quiet "Firmware" text link appears in the devices page header only for an admin session; everyone else never sees it.
+
 ## Elevation & Depth
 
 The system is flat by default — cards and panels carry a 1px border (`panel-700`) and no box-shadow. Depth and "liveness" are conveyed by glow, not shadow: a gauge's needle and dial center carry an SVG `drop-shadow` sized to the current state (0px offline, 3px nominal, 5px approaching, 9px breached), and an unacknowledged alert gets a small red halo (`0 0 6px 2px`) on its status dot. This is the instrument-panel material reading as lit from within rather than lifted off the page — a deliberate divergence from a generic shadow-elevation system, grounded in the OWN-WORLD's "amber-phosphor glow" mandate rather than a default.

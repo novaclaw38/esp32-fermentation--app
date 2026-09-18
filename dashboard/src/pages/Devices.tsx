@@ -42,9 +42,13 @@ export default function Devices() {
   // Focus-dim: hovering/focusing one tile dims the rest of the panel so the
   // one you're reading pops, the way a lit instrument recedes its neighbors.
   const [focusedId, setFocusedId] = useState<string | null>(null);
+  // Purely cosmetic (shows/hides the Firmware link) -- AdminRoute is what
+  // actually gates the page, so a false positive here can't grant access.
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     loadDevices();
+    supabase.rpc("is_admin").then(({ data }) => setIsAdmin(Boolean(data)));
   }, []);
 
   async function loadDevices() {
@@ -128,6 +132,11 @@ export default function Devices() {
           >
             {showAddForm ? "Cancel" : "Add manually"}
           </button>
+          {isAdmin && (
+            <Link to="/admin/firmware" className="text-sm text-panel-400 hover:text-panel-200">
+              Firmware
+            </Link>
+          )}
           <button
             onClick={() => supabase.auth.signOut()}
             className="text-sm text-panel-400 hover:text-panel-200"

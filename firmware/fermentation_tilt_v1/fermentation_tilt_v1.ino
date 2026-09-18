@@ -89,8 +89,11 @@ uint64_t SLEEP_INTERVAL_SECONDS = 900;
 const unsigned long WIFI_TIMEOUT_MS = 15000;
 
 // --- OTA ---
+// This sketch's own manifest, separate from the Hub's -- see the note in
+// fermentation_monitor_v1.ino. Publish from /admin/firmware in the
+// dashboard rather than editing Storage objects by hand.
 const bool OTA_ENABLED = false;
-const char* OTA_MANIFEST_URL = "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/firmware/manifest.json";
+const char* OTA_MANIFEST_URL = "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/firmware/tilt/manifest.json";
 const int FIRMWARE_VERSION = 1;
 const int OTA_CHECK_EVERY_N_CYCLES = 96; // ~once/day at a 15 min interval
 

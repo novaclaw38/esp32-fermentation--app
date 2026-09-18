@@ -77,12 +77,14 @@ uint64_t SLEEP_INTERVAL_SECONDS = 600;
 const unsigned long WIFI_TIMEOUT_MS = 15000;
 
 // --- OTA (optional but recommended before shipping a pre-sold batch) ---
-// Host a manifest.json ({"version": N, "url": "https://.../firmware.bin"})
-// and the matching firmware.bin somewhere reachable over HTTPS (a public
-// Supabase Storage bucket works well). Bump FIRMWARE_VERSION here and in
-// the manifest together each release.
+// Publish releases from the dashboard's admin Firmware console
+// (/admin/firmware -- see firmware/README.md) rather than editing Storage
+// objects by hand; it writes this exact manifest.json/vN.bin pair for you.
+// This is the Hub's own manifest -- the Temp + Gravity sketch reads a
+// separate one at tilt/manifest.json, since the two sketches ship different
+// binaries. Bump FIRMWARE_VERSION here to match the version you publish.
 const bool OTA_ENABLED = false; // flip on once OTA_MANIFEST_URL is real
-const char* OTA_MANIFEST_URL = "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/firmware/manifest.json";
+const char* OTA_MANIFEST_URL = "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/firmware/hub/manifest.json";
 const int FIRMWARE_VERSION = 1;
 const int OTA_CHECK_EVERY_N_CYCLES = 144; // ~once/day at a 10 min interval
 
