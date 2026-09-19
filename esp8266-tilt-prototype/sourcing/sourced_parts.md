@@ -24,7 +24,7 @@ stock/pricing verification.
 | 100kΩ resistor ×1 | LCSC C25803 (0603 SMD) or any through-hole 1/4W | Battery-sense divider bottom |
 | 4.7kΩ resistor ×1 | LCSC C23162 (0603 SMD) or any through-hole 1/4W | 1-Wire pull-up — only if the DS18B20 probe doesn't already have one |
 | Breadboard + jumper wires | Any | — |
-| Short wire for D0→RST jumper | Any | Only if the board doesn't already bridge this — check first |
+| Solder or a 0Ω resistor for the "SLEEP" jumper pad | Any | Board has a labeled pad next to `D0` for this — bridge it, no separate wire needed |
 
 ## Explicitly not sourced (deliberate, see design_risks.md)
 

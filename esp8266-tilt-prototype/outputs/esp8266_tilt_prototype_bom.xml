@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>/home/user/fermentation-/esp8266-tilt-prototype/circuits/esp8266_tilt_prototype/__main__.py</source>
-    <date>09/19/2026 07:18 AM</date>
+    <date>09/19/2026 07:40 AM</date>
     <tool>SKiDL (2.3.0)</tool>
   </design>
   <components>
@@ -45,42 +45,43 @@
   <nets>
     <net code="0" name="BAT_PLUS">
       <node ref="MOD1" pin="1"/>
+      <node ref="R1" pin="1"/>
       <node ref="U1" pin="9"/>
       <node ref="MOD1" pin="3"/>
-      <node ref="R1" pin="1"/>
     </net>
     <net code="1" name="GND">
-      <node ref="MOD1" pin="2"/>
       <node ref="U1" pin="10"/>
-      <node ref="MOD1" pin="4"/>
-      <node ref="R2" pin="2"/>
       <node ref="MOD2" pin="2"/>
+      <node ref="R2" pin="2"/>
+      <node ref="MOD1" pin="2"/>
       <node ref="MOD2" pin="5"/>
+      <node ref="MOD1" pin="4"/>
       <node ref="U2" pin="1"/>
     </net>
     <net code="2" name="D1MINI_3V3">
-      <node ref="MOD2" pin="1"/>
       <node ref="R3" pin="1"/>
       <node ref="U2" pin="3"/>
+      <node ref="MOD2" pin="6"/>
       <node ref="U1" pin="1"/>
+      <node ref="MOD2" pin="1"/>
     </net>
     <net code="3" name="SDA">
-      <node ref="MOD2" pin="3"/>
       <node ref="U1" pin="13"/>
+      <node ref="MOD2" pin="3"/>
     </net>
     <net code="4" name="SCL">
-      <node ref="MOD2" pin="4"/>
       <node ref="U1" pin="14"/>
+      <node ref="MOD2" pin="4"/>
     </net>
     <net code="5" name="ONE_WIRE">
-      <node ref="R3" pin="2"/>
       <node ref="U1" pin="4"/>
+      <node ref="R3" pin="2"/>
       <node ref="U2" pin="2"/>
     </net>
     <net code="6" name="BATT_SENSE_ADC">
       <node ref="R1" pin="2"/>
-      <node ref="U1" pin="7"/>
       <node ref="R2" pin="1"/>
+      <node ref="U1" pin="7"/>
     </net>
     <net code="7" name="D0_RST_JUMPER">
       <node ref="U1" pin="6"/>

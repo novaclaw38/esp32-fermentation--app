@@ -9,10 +9,11 @@
 | `D1MINI_3V3` | Power, regulated | D1 Mini `3V3` pin (output of its onboard LDO) → GY-291 `VCC`, DS18B20 `VCC`, R3 pull-up top |
 | `SDA` | I2C | D1 Mini `D2` (GPIO4) → GY-291 `SDA` |
 | `SCL` | I2C | D1 Mini `D1` (GPIO5) → GY-291 `SCL` |
-| `SDO` | Signal | GY-291 `SDO` → `GND` — **required** to get I2C address 0x53 (many GY-291 clones float/pull this high otherwise, giving 0x1D) |
+| `SDO` | Signal | GY-291 `SDO` → `GND` — **required** to get I2C address 0x53. Confirmed as its own dedicated header pin on the user's board (photo), not internally tied |
+| `CS` | Signal | GY-291 `CS` → `3V3` — also confirmed as its own dedicated header pin, same as SDO. Wired explicitly rather than left floating (see `datasheets/GY-291_ADXL345_SUMMARY.md`) |
 | `ONE_WIRE` | Signal | D1 Mini `D6` (GPIO12) → DS18B20 `DATA`, R3 (4.7kΩ pull-up to 3V3, only if the probe lacks one built in) |
 | `BATT_SENSE_ADC` | Signal, analog | R1 (330kΩ) from `BAT_PLUS` → node → R2 (100kΩ) → `GND`; node → D1 Mini `A0` |
-| `D0_RST_JUMPER` | — | D1 Mini `D0` (GPIO16) → D1 Mini `RST` — **hardwire required for `ESP.deepSleep()` to ever wake the board.** Verify whether the specific board already bridges this before adding a wire. |
+| `D0_RST_JUMPER` | — | D1 Mini `D0` (GPIO16) → D1 Mini `RST`. **User's board has a labeled "SLEEP" solder-jumper pad next to `D0`** (photo of the board's back) — almost certainly the manufacturer-provided provision for exactly this connection. Appears unbridged (open) in the photo — bridge it with a solder blob or a 0Ω resistor rather than running a separate external wire from `D0` to `RST`. |
 
 ## Deliberately NOT populated (vs. the production board)
 

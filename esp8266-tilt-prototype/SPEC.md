@@ -65,9 +65,11 @@ a drop-in swap for the ESP32 design.
   `BAT+` (not gated).
 - **`D0` (GPIO16) MUST be wired to `RST`** for `ESP.deepSleep()` to ever
   wake the board — ESP8266 deep-sleep wake works *only* by GPIO16
-  pulsing low into RST. Many D1 Mini clones do **not** ship this bridged.
-  **Status: unverified — check for an existing solder jumper before
-  assuming a wire is needed.**
+  pulsing low into RST. **Found: a "SLEEP" solder-jumper pad next to
+  `D0`** on the user's board (back-side photo) — almost certainly the
+  manufacturer's provision for this exact connection. Appears unbridged.
+  **Action: solder it closed** (blob or 0Ω resistor), then confirm
+  continuity with a multimeter.
 - Unused/avoided: `D3` (GPIO0), `D4` (GPIO2), `D8` (GPIO15) — ESP8266
   boot-strapping pins, left unconnected on this build.
 

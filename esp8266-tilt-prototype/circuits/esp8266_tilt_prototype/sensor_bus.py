@@ -21,7 +21,7 @@ def sensor_bus(d1mini_3v3, gnd, sda, scl, one_wire):
             Pin(num=3, name="SDA", func=Pin.types.BIDIR, orientation="L"),
             Pin(num=4, name="SCL", func=Pin.types.INPUT, orientation="L"),
             Pin(num=5, name="SDO", func=Pin.types.INPUT, orientation="L"),
-            Pin(num=6, name="CS", func=Pin.types.NOCONNECT, orientation="L"),
+            Pin(num=6, name="CS", func=Pin.types.INPUT, orientation="L"),
         ],
     )
     u2 = Part(
@@ -35,6 +35,10 @@ def sensor_bus(d1mini_3v3, gnd, sda, scl, one_wire):
     sda += gy291["SDA"]
     scl += gy291["SCL"]
     gnd += gy291["SDO"]  # sets I2C address 0x53
-    gy291["CS"] += NC    # tied high on-module already (I2C mode) on most clones
+    # CS is its own labeled header pin on the user's board (confirmed by
+    # photo), same as SDO -- not assumed internally tied. Wire explicitly
+    # to 3V3 rather than leaving a CMOS input floating (indeterminate
+    # logic level risks an unwanted SPI-mode switch or erratic I2C).
+    d1mini_3v3 += gy291["CS"]
 
     one_wire += r3[2], u2["DQ"]

@@ -21,7 +21,12 @@ final run:
 
 **PASS.** Ready for the wiring diagram to be used as-is. Remember: ERC
 verifies netlist connectivity logic, not the physical-world unknowns
-flagged in `../architecture/design_risks.md` (TP4056 breakout protection
-status, D0-RST jumper presence, GY-291 SDO pull, A0 onboard-divider
-possibility) — those need a multimeter and a visual check on the actual
-boards, not a schematic tool.
+flagged in `../architecture/design_risks.md` (A0 onboard-divider
+possibility, and confirming the "SLEEP" jumper pad actually gets
+soldered closed) — those need a multimeter and a soldering iron, not a
+schematic tool.
+
+Re-run after a later fix (still 0 errors, 0 warnings): GY-291's `CS` pin
+changed from `NC` to wired to `3V3`, once the user's board photo showed
+`CS` is a dedicated header pin on this module, not internally tied —
+same reasoning as `SDO`.

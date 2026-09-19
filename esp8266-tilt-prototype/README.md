@@ -31,20 +31,24 @@ These are flagged throughout `architecture/design_risks.md` but worth
 repeating in one place, since they're the difference between "works" and
 "looks dead":
 
-1. **`D0` must be wired to `RST`.** ESP8266 only wakes from
-   `ESP.deepSleep()` via GPIO16 (`D0`) pulsing `RST` low. Check for an
-   existing solder bridge before assuming you need to add a wire — many
-   D1 Mini clones don't ship one. **Skip this and the board sleeps once
-   and never wakes**, indistinguishable from a dead unit.
+1. **Bridge the "SLEEP" solder-jumper pad next to `D0`** (found on the
+   back of the user's board) with a solder blob or 0Ω resistor. This is
+   almost certainly the manufacturer's provided `D0`→`RST` wake
+   connection — confirm continuity with a multimeter after bridging.
+   **Skip this and the board sleeps once and never wakes**,
+   indistinguishable from a dead unit.
 2. **Verify `A0` has no onboard divider** on this specific clone (a
    multimeter continuity check) before trusting the 330k/100k external
    divider math.
-3. **Tie the GY-291's `SDO` to `GND`** — confirmed gotcha on this clone
-   family, not every board does this internally.
 
 ✅ **TP4056 breakout — resolved.** User photo confirms 3 ICs (TP4056 +
 DW01A + FS8205A), the protected-board signature. Cleared for the
 battery/float test.
+
+✅ **GY-291 `SDO`/`CS` — resolved.** User photo confirms both are
+dedicated header pins, not internally tied. Wired explicitly in the
+circuit: `SDO`→`GND`, `CS`→`3V3`. The board also has a printed X/Y/Z
+axis diagram, useful for the tilt-axis calibration step.
 
 ## What's genuinely verified vs. what isn't
 
@@ -54,11 +58,14 @@ battery/float test.
   93% — tight, see `architecture/design_risks.md`, but sufficient for
   this feature set as written).
 
-**Verified by the user (photo):**
+**Verified by the user (photos):**
 - The TP4056 breakout is protected (3 ICs: TP4056 + DW01A + FS8205A).
+- The GY-291's `SDO`/`CS` are dedicated pins, not internally tied.
+- A "SLEEP" jumper pad exists next to `D0` — very likely the wake
+  connection, but still needs to be soldered closed and confirmed with a
+  multimeter (bridging it is a physical step this session can't do).
 
 **Not verified — cannot be, without the physical hardware:**
-- Whether the D0-RST jumper is present on this specific board.
 - Whether `WiFiClientSecure`'s BearSSL handshake to Supabase succeeds
   under real runtime heap pressure (compiling only checks static
   memory, not dynamic/runtime heap).

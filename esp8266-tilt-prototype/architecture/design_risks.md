@@ -23,27 +23,40 @@
    — user photo of the board (marking "03962A") shows three ICs: one
    SOP-8 (TP4056) plus two SOT-23-6 (DW01A + FS8205A), matching the
    protected-board signature. Cleared for the battery/float test.
+2. ~~**GY-291's `SDO`/`CS` pull.**~~ ✅ **Confirmed as dedicated pins, not
+   internally tied** — user photo of the GY-291's header shows `SDO` and
+   `CS` both broken out individually (silkscreen: `SCL SDA SDO INT2 INT1
+   CS VCC GND`). Neither is assumed pulled by the module. Wired
+   explicitly in `circuits/esp8266_tilt_prototype/sensor_bus.py`: `SDO`→
+   `GND` (address 0x53), `CS`→`3V3` (forces I2C mode, avoids a floating
+   CMOS input). The board also has a printed X/Y/Z axis diagram — see
+   `datasheets/GY-291_ADXL345_SUMMARY.md`.
+
+## Hardware, likely resolved — one soldering step from confirmed
+
+1. **D0-to-RST wake jumper.** ESP8266 only wakes from `ESP.deepSleep()`
+   when GPIO16 (`D0`) pulses low into `RST`. **User's board has a
+   silkscreened "SLEEP" solder-jumper pad next to `D0`**, visible on the
+   back-side photo — this is almost certainly the manufacturer's
+   provided provision for exactly this connection (a documented feature
+   on genuine Wemos D1 Mini boards, not a guess). The pad **appears
+   open/unbridged** in the photo. **Action: bridge it with a solder blob
+   or a 0Ω resistor** rather than running a separate wire from `D0` to
+   `RST` — cleaner and matches what the pad is there for. Confirm
+   continuity between `D0` and `RST` with a multimeter after bridging,
+   before relying on it. **If this isn't bridged, the board will sleep
+   once and never wake — it will look like a dead/bricked unit, not a
+   code bug.**
 
 ## Hardware, unverified — must check before relying on this rig
 
-1. **D0-to-RST wake jumper.** ESP8266 only wakes from `ESP.deepSleep()`
-   when GPIO16 (`D0`) pulses low into `RST`. Many D1 Mini clones do
-   **not** ship this bridged by default (unlike some NodeMCU variants).
-   **If this isn't wired, the board will sleep once and never wake —
-   it will look like a dead/bricked unit, not a code bug.** Check for an
-   existing solder jumper near the reset circuit before assuming a wire
-   is needed; add one (`D0` → `RST`) if not present.
-2. **A0's onboard divider, if any.** Some D1 Mini-family clones (not all)
+1. **A0's onboard divider, if any.** Some D1 Mini-family clones (not all)
    ship a fixed onboard divider on `A0` for reading `VIN`; a genuine
    Wemos D1 Mini does not. Verify with a multimeter (continuity from A0
    to anything other than the header pin) before trusting the 330k/100k
    external-divider math in `net_plan.md` — an unexpected onboard
    divider stacked with the external one would give a wrong reading, not
    a dangerous one (both paths only attenuate).
-3. **GY-291's `SDO` pull.** Confirmed gotcha, not hypothetical — the
-   prototype doc's own troubleshooting table lists
-   `Error: no usable ADXL345 samples` as the direct symptom of `SDO`
-   floating/pulled high on this exact clone family. Tie `SDO` to GND.
 
 ## TLS/RAM risk — now measured, not just theoretical
 
