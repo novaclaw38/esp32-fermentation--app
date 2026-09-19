@@ -16,21 +16,27 @@
   change shared behavior.
 
   ############################################################################
-  # READ BEFORE FLASHING -- hardware checks this port cannot make for you   #
+  # Hardware verification status (this specific board, per the project's  #
+  # architecture/design_risks.md) -- all four items resolved:               #
   ############################################################################
-  1. D0 MUST be wired to RST (a jumper wire, or an existing on-board solder
-     bridge -- check first). ESP8266 deep sleep wakes ONLY via GPIO16 (D0)
-     pulsing RST low. Without this, the board sleeps once and never wakes --
-     it will look exactly like a dead/bricked unit, not a firmware bug.
-  2. Confirm the TP4056 breakout is a PROTECTED module (3 ICs: TP4056 +
-     DW01A + FS8205, not just 1) before wiring a cell to it. Not needed for
-     bench testing over USB only.
-  3. Confirm A0 does NOT already have an onboard divider on this specific
-     D1 Mini clone (multimeter, continuity check) before trusting the
-     330k/100k external divider's math below -- see readBatteryVoltage().
-  4. Confirm the GY-291's SDO pin is tied to GND (I2C address 0x53) --
-     many clones float or pull it high, giving 0x1D instead.
-  See esp8266-tilt-prototype/architecture/design_risks.md for the full list.
+  1. D0-RST wake jumper: this board has a manufacturer "SLEEP" solder-jumper
+     pad next to D0 -- CONFIRMED SOLDERED by the user. Recommended: a quick
+     multimeter continuity check between D0 and RST before the first real
+     deep-sleep cycle (a cold joint here looks identical to "never wakes").
+  2. TP4056 breakout: CONFIRMED PROTECTED (3 ICs: TP4056 + DW01A + FS8205,
+     verified by photo).
+  3. A0 onboard divider: CONFIRMED PRESENT on this clone (~220k/100k,
+     ratio ~0.3125, steps 0-3.2V down to 0-1.0V) -- unlike a genuine Wemos
+     D1 Mini, which has none. The external divider and
+     BATTERY_DIVIDER_MULTIPLIER below are sized for this TWO-STAGE path;
+     see readBatteryVoltage() and net_plan.md for the derivation. If you
+     swap to a different D1 Mini clone, re-check this before trusting a
+     reading.
+  4. GY-291 SDO/CS: CONFIRMED as dedicated header pins on this board, not
+     internally tied (verified by photo) -- both wired explicitly in the
+     SKiDL circuit (SDO->GND, CS->3V3).
+  See esp8266-tilt-prototype/architecture/design_risks.md for the full
+  history of each check.
   ############################################################################
 
   Behavior each wake cycle (unchanged from the ESP32 sketch):
@@ -136,11 +142,19 @@ const float ADXL345_G_PER_LSB = 0.0039;
 const int TILT_SAMPLE_COUNT = 24;
 const int TILT_SAMPLE_DELAY_MS = 10;
 
-// Battery divider: 330k (top, BAT+) / 100k (bottom, GND), NOT the
-// production board's 1:1 100k/100k -- ESP8266's A0 only accepts 0-1.0V.
-// At a max cell voltage of 4.2V this divider gives ~0.98V, safely under
-// the limit. Multiplier below undoes it: (330k+100k)/100k = 4.3.
-const float BATTERY_DIVIDER_MULTIPLIER = 4.3;
+// Battery divider: TWO STAGES on this specific board.
+//   1. External: R1=10k (top, BAT+) / R2=22k (bottom, GND) -> the header pin
+//   2. Onboard (confirmed present on this clone): ~220k/100k -> the chip
+// Neither stage alone gets to 0-1.0V; together they do. At a 4.2V max
+// cell: stage 1 gives ~2.89V at the header pin (margin under this board's
+// ~3.2V input ceiling), stage 2 then gives ~0.90V at the chip (margin
+// under the ADC's 1.0V limit). Multiplier undoes BOTH stages:
+//   (R1+R2)/R2 * (220k+100k)/100k = (32/22) * 3.2 = 4.6545
+// This is specific to THIS clone's onboard divider ratio -- if you swap
+// to a genuine Wemos D1 Mini (no onboard divider) or a different clone,
+// this multiplier (and likely R1/R2) need to be recalculated. See
+// esp8266-tilt-prototype/architecture/net_plan.md for the full derivation.
+const float BATTERY_DIVIDER_MULTIPLIER = 4.6545;
 
 // ---------------------------------------------------------------------------
 
@@ -346,10 +360,12 @@ float readTemperature() {
   return ds18b20ReadC();
 }
 
-// Reads battery voltage through the ungated 330k/100k divider. Ungated is
-// deliberate on this bench build (see SPEC.md) -- there's no Q1/Q2 gate to
-// enable/disable, so BATTERY_EN_PIN is toggled only for structural parity
-// with the production sketch and drives nothing physical here.
+// Reads battery voltage through the ungated external divider PLUS this
+// board's own onboard divider (two stages total -- see
+// BATTERY_DIVIDER_MULTIPLIER above). Ungated is deliberate on this bench
+// build (see SPEC.md) -- there's no Q1/Q2 gate to enable/disable, so
+// BATTERY_EN_PIN is toggled only for structural parity with the
+// production sketch and drives nothing physical here.
 float readBatteryVoltage() {
   digitalWrite(BATTERY_EN_PIN, HIGH);
   delay(30);
@@ -358,10 +374,14 @@ float readBatteryVoltage() {
 
   digitalWrite(BATTERY_EN_PIN, LOW);
 
-  // ESP8266 ADC: 10-bit (0-1023), 0-1.0V range. Multiplier undoes the
-  // 330k/100k divider -- see the constant's definition above for the math.
+  // ESP8266 ADC: 10-bit (0-1023), 0-1.0V range. Multiplier undoes BOTH
+  // divider stages -- see the constant's definition above for the math.
   // Same caveat as the ESP32 sketch: treat as a low-battery warning, not a
-  // fuel gauge, and calibrate against a multimeter on the first unit.
+  // fuel gauge. Calibration matters MORE here than on a single-stage
+  // divider -- the onboard divider's ratio was read off this board as
+  // "typically 220k/100k," not measured precisely, so check a real
+  // reading against a multimeter early and adjust the multiplier if it's
+  // consistently off.
   return (raw / 1023.0) * 1.0 * BATTERY_DIVIDER_MULTIPLIER;
 }
 

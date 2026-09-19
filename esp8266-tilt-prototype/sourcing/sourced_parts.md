@@ -11,7 +11,7 @@ stock/pricing verification.
 |---|---|---|
 | ESP8266 D1 Mini | ✅ Confirmed correct (photo) | None |
 | TP4056 micro-USB charger, "HKD", 5V 1A, board "03962A" | ✅ Confirmed protected (3 ICs: TP4056 + DW01A + FS8205A) | None |
-| GY-291 (ADXL345) breakout | ✅ Confirmed correct part | Verify `SDO` → GND before wiring I2C |
+| GY-291 (ADXL345) breakout | ✅ Confirmed correct part, `SDO`/`CS` confirmed dedicated pins (photo) | None — both wired in the circuit |
 
 ## Still needed
 
@@ -20,11 +20,10 @@ stock/pricing verification.
 | DS18B20, bare TO-92 | LCSC C9753 (Maxim, ±0.5°C) or any distributor | Bench probe — not the production board's MCP9808 |
 | 18650 Li-ion cell (~2500mAh) | Any | Matches the production board's cell sizing assumption |
 | 18650 holder or solder tabs | Any | — |
-| 330kΩ resistor ×1 | LCSC C23137 (0603 SMD) or any through-hole 1/4W | Battery-sense divider top — **not** the production board's 100k, see `net_plan.md` |
-| 100kΩ resistor ×1 | LCSC C25803 (0603 SMD) or any through-hole 1/4W | Battery-sense divider bottom |
+| 10kΩ resistor ×1 | LCSC C25804 (0603 SMD) or any through-hole 1/4W | Battery-sense divider top (R1) — sized for this board's confirmed onboard A0 divider, see `net_plan.md` |
+| 22kΩ resistor ×1 | LCSC C31850 (0603 SMD) or any through-hole 1/4W | Battery-sense divider bottom (R2) |
 | 4.7kΩ resistor ×1 | LCSC C23162 (0603 SMD) or any through-hole 1/4W | 1-Wire pull-up — only if the DS18B20 probe doesn't already have one |
 | Breadboard + jumper wires | Any | — |
-| Solder or a 0Ω resistor for the "SLEEP" jumper pad | Any | Board has a labeled pad next to `D0` for this — bridge it, no separate wire needed |
 
 ## Explicitly not sourced (deliberate, see design_risks.md)
 

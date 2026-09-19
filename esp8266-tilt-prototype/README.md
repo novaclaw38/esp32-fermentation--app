@@ -23,49 +23,58 @@ for the full port.
 | Datasheets | ✅ [`datasheets/`](datasheets/) |
 | SKiDL wiring diagram | ✅ ERC PASS (0 errors, 0 warnings), all footprints valid — [`circuits/esp8266_tilt_prototype/`](circuits/esp8266_tilt_prototype/), [`outputs/`](outputs/) |
 | Firmware | ✅ **Compiles clean** against `esp8266:esp8266` core 3.1.2 (`arduino-cli compile`, exit 0) — [`firmware/fermentation_tilt_v1_esp8266/`](firmware/fermentation_tilt_v1_esp8266/) |
-| Physical build | ⚠️ **Not built or tested on real hardware** — see below |
+| Hardware verification | ✅ All 4 items resolved (TP4056 protection, GY-291 SDO/CS, D0-RST jumper, A0 divider) — see below |
+| Physical build | ⚠️ **Not yet powered on / run end-to-end** — see below |
 
-## Before you wire anything — unverified items
+## Hardware verification — all four items resolved
 
-These are flagged throughout `architecture/design_risks.md` but worth
-repeating in one place, since they're the difference between "works" and
-"looks dead":
+Everything originally flagged here has been checked against the actual
+boards (photos + user's own multimeter/soldering):
 
-1. **Verify `A0` has no onboard divider** on this specific clone (a
-   multimeter continuity check) before trusting the 330k/100k external
-   divider math. **Status: being checked by the user now.**
+✅ **TP4056 breakout — protected.** 3 ICs confirmed (TP4056 + DW01A +
+FS8205A). Cleared for the battery/float test.
 
-✅ **TP4056 breakout — resolved.** User photo confirms 3 ICs (TP4056 +
-DW01A + FS8205A), the protected-board signature. Cleared for the
-battery/float test.
-
-✅ **GY-291 `SDO`/`CS` — resolved.** User photo confirms both are
-dedicated header pins, not internally tied. Wired explicitly in the
-circuit: `SDO`→`GND`, `CS`→`3V3`. The board also has a printed X/Y/Z
+✅ **GY-291 `SDO`/`CS` — dedicated pins, not internally tied.** Wired
+explicitly: `SDO`→`GND`, `CS`→`3V3`. The board also has a printed X/Y/Z
 axis diagram, useful for the tilt-axis calibration step.
 
-✅ **D0-to-RST "SLEEP" jumper — soldered.** User confirms the pad is
-bridged. **Worth a 10-second multimeter continuity check between `D0`
-and `RST` before the first real deep-sleep cycle** — a cold joint on
-this one pad is otherwise indistinguishable from "never wakes."
+✅ **D0-to-RST "SLEEP" jumper — soldered.** Recommended (not blocking):
+a 10-second multimeter continuity check between `D0` and `RST` before
+the first real deep-sleep cycle — a cold joint on this one pad is
+otherwise indistinguishable from "never wakes."
+
+✅ **A0 onboard divider — confirmed present, ~220kΩ/100kΩ.** Unlike a
+genuine Wemos D1 Mini, this clone has its own divider between the `A0`
+header pin and the chip. **The external divider was redesigned as a
+result**: R1/R2 changed from 330k/100k to **10k/22k**, now targeting
+the board's ~3.2V header ceiling instead of the chip's 1.0V limit
+directly (the onboard divider does that second stage). Firmware
+`BATTERY_DIVIDER_MULTIPLIER` updated to **4.6545** to match. Re-verified
+after the change: ERC still 0 errors/0 warnings, firmware still
+compiles clean. See `architecture/net_plan.md` for the full derivation.
+**Recommended:** calibrate the first real reading against a multimeter
+— the onboard ratio was read off the board, not precision-measured, so
+this combined multiplier carries more uncertainty than a single-stage
+divider would.
 
 ## What's genuinely verified vs. what isn't
 
 **Verified in this environment:**
-- SKiDL wiring diagram: ERC passes, footprints validate.
+- SKiDL wiring diagram: ERC passes, footprints validate (re-confirmed
+  after the divider redesign).
 - Firmware: compiles clean, real memory numbers measured (IRAM is at
   93% — tight, see `architecture/design_risks.md`, but sufficient for
   this feature set as written).
 
-**Verified by the user (photos + soldering):**
-- The TP4056 breakout is protected (3 ICs: TP4056 + DW01A + FS8205A).
-- The GY-291's `SDO`/`CS` are dedicated pins, not internally tied.
-- The "SLEEP" jumper pad next to `D0` is now soldered/bridged.
+**Verified by the user (photos + soldering + multimeter):**
+- The TP4056 breakout is protected.
+- The GY-291's `SDO`/`CS` are dedicated pins.
+- The "SLEEP" jumper pad next to `D0` is soldered/bridged.
+- `A0` has an onboard divider (~220k/100k).
 
-**Not yet verified:**
-- Whether `A0` has an onboard divider on this specific clone (in progress).
-- Continuity of the newly-soldered `D0`-`RST` bridge (a quick multimeter
-  check, recommended above, not yet confirmed).
+**Recommended follow-up checks (not blocking):**
+- Continuity of the `D0`-`RST` bridge.
+- Calibrate the two-stage battery-voltage reading against a multimeter.
 
 **Not verified — cannot be, without the physical hardware:**
 - Whether `WiFiClientSecure`'s BearSSL handshake to Supabase succeeds

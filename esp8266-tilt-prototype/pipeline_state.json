@@ -57,7 +57,7 @@
     }
   ],
   "sourcing_escalation_count": 0,
-  "erc_iteration_count": 1,
+  "erc_iteration_count": 3,
   "architecture_rework_count": 0,
-  "notes": "Separate self-contained project folder, sibling to the main repo's production temp_gravity_module PCB pipeline. Firmware port tracked in firmware/fermentation_tilt_v1_esp8266/."
+  "notes": "Separate self-contained project folder, sibling to the main repo's production temp_gravity_module PCB pipeline. Firmware port tracked in firmware/fermentation_tilt_v1_esp8266/. All 4 hardware-verification items (TP4056 protection, GY-291 SDO/CS, D0-RST SLEEP jumper, A0 onboard divider) resolved against the user's physical boards as of 2026-09-19; battery_sense.py R1/R2 redesigned (330k/100k -> 10k/22k) as a two-stage divider once the A0 onboard divider was confirmed present on this clone."
 }

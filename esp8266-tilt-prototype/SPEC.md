@@ -51,9 +51,13 @@ a drop-in swap for the ESP32 design.
   toggles `BATTERY_EN_PIN` and waits before reading, matching the
   production sketch's structure, but the pin drives nothing on this
   build.
-- **Divider ratio is NOT the production board's 1:1.** ESP8266's `A0` is
-  a 10-bit ADC with a **0-1.0V** input range (not ESP32's 0-3.3V) — see
-  Interface section for the corrected ratio.
+- **Divider is TWO stages on this board, not one.** ESP8266's chip-level
+  ADC has a 10-bit, **0-1.0V** input range (not ESP32's 0-3.3V), and —
+  confirmed by the user — this specific D1 Mini clone has its own
+  onboard divider (~220kΩ/100kΩ) between the `A0` header pin and the
+  chip, stepping 0-3.2V down to 0-1.0V. The external divider only needs
+  to bring the cell voltage down to that ~3.2V header ceiling — see
+  Interface section for the combined ratio.
 
 ## Interface
 
@@ -61,8 +65,9 @@ a drop-in swap for the ESP32 design.
   pins on a Wemos D1 Mini, matching what most D1 Mini shields assume.
 - DS18B20 (bench probe): `D6` (GPIO12) data, 4.7kΩ pull-up to 3V3 (only
   if the probe doesn't already carry one).
-- Battery sense: `A0`, through an external 330kΩ/100kΩ divider from
-  `BAT+` (not gated).
+- Battery sense: `A0`, through an external 10kΩ/22kΩ divider from `BAT+`
+  (not gated), feeding into the board's own onboard ~220kΩ/100kΩ
+  divider — see `architecture/net_plan.md` for the two-stage math.
 - **`D0` (GPIO16) MUST be wired to `RST`** for `ESP.deepSleep()` to ever
   wake the board — ESP8266 deep-sleep wake works *only* by GPIO16
   pulsing low into RST. ✅ **Done** — the board's "SLEEP" solder-jumper

@@ -19,14 +19,24 @@ final run:
 
 ## Verdict
 
-**PASS.** Ready for the wiring diagram to be used as-is. Remember: ERC
-verifies netlist connectivity logic, not the physical-world unknowns
-flagged in `../architecture/design_risks.md` (A0 onboard-divider
-possibility, and confirming the "SLEEP" jumper pad actually gets
-soldered closed) — those need a multimeter and a soldering iron, not a
-schematic tool.
+**PASS.** Ready for the wiring diagram to be used as-is.
 
-Re-run after a later fix (still 0 errors, 0 warnings): GY-291's `CS` pin
-changed from `NC` to wired to `3V3`, once the user's board photo showed
-`CS` is a dedicated header pin on this module, not internally tied —
-same reasoning as `SDO`.
+## Revision history
+
+Re-run after two fixes, both still 0 errors/0 warnings:
+- GY-291's `CS` pin changed from `NC` to wired to `3V3`, once the user's
+  board photo showed `CS` is a dedicated header pin on this module, not
+  internally tied — same reasoning as `SDO`.
+- `battery_sense.py`'s R1/R2 changed from 330k/100k to 10k/22k, once the
+  user confirmed (multimeter) this D1 Mini clone has its own onboard
+  divider on `A0` — the external divider was redesigned as the first
+  stage of a two-stage system rather than doing all the attenuation
+  itself. See `../architecture/net_plan.md` for the derivation.
+
+All four hardware items originally flagged in
+`../architecture/design_risks.md` (TP4056 protection, GY-291 SDO/CS,
+D0-RST jumper, A0 divider) are now resolved by the user against the
+physical boards. ERC verifies netlist connectivity logic, not physical
+reality — the remaining recommended-not-blocking checks (D0-RST
+continuity, battery-reading calibration) still need a multimeter, not a
+schematic tool.

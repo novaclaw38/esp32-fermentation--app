@@ -32,25 +32,30 @@
    CMOS input). The board also has a printed X/Y/Z axis diagram — see
    `datasheets/GY-291_ADXL345_SUMMARY.md`.
 3. ~~**D0-to-RST wake jumper.**~~ ✅ **Soldered by the user.** The
-   "SLEEP" pad next to `D0` (see below for what it is) is now bridged.
-   **Recommended before the first real deep-sleep cycle:** confirm
-   continuity between `D0` and `RST` with a multimeter — a cold solder
-   joint on this specific pad is indistinguishable from "never wakes" at
-   the behavioral level, so it's worth the 10-second check once rather
-   than debugging it blind later. ESP8266 only wakes from
-   `ESP.deepSleep()` via GPIO16 (`D0`) pulsing `RST` low; this pad is the
-   manufacturer's documented provision for exactly that connection on
-   genuine Wemos D1 Mini boards.
+   "SLEEP" pad next to `D0` is now bridged. **Recommended before the
+   first real deep-sleep cycle:** confirm continuity between `D0` and
+   `RST` with a multimeter — a cold solder joint on this specific pad is
+   indistinguishable from "never wakes" at the behavioral level.
+4. ~~**A0's onboard divider.**~~ ✅ **Confirmed present** — user checked
+   (inspection/multimeter) and found this specific clone has its own
+   onboard divider on `A0`, ~220kΩ/100kΩ (ratio ≈0.3125), stepping a
+   0-3.2V header signal down to 0-1.0V. Unlike a genuine Wemos D1 Mini
+   (no onboard divider), this one has it — so the external divider was
+   **redesigned as a two-stage system**: R1/R2 changed from
+   330kΩ/100kΩ to **10kΩ/22kΩ**, targeting the board's ~3.2V header
+   ceiling instead of the chip's 1.0V limit directly (the onboard
+   divider now does that second stage). Firmware
+   `BATTERY_DIVIDER_MULTIPLIER` updated from 4.3 to **4.6545** to match.
+   Full derivation in `net_plan.md`. Re-verified: ERC still 0/0, firmware
+   still compiles clean. **Calibrate against a multimeter early** — the
+   onboard ratio was read off the board as "typically 220k/100k," not
+   precision-measured, so the combined multiplier carries more
+   uncertainty than a single-stage divider would.
 
-## Hardware, unverified — must check before relying on this rig
-
-1. **A0's onboard divider, if any.** Some D1 Mini-family clones (not all)
-   ship a fixed onboard divider on `A0` for reading `VIN`; a genuine
-   Wemos D1 Mini does not. Verify with a multimeter (continuity from A0
-   to anything other than the header pin) before trusting the 330k/100k
-   external-divider math in `net_plan.md` — an unexpected onboard
-   divider stacked with the external one would give a wrong reading, not
-   a dangerous one (both paths only attenuate).
+All four physical hardware items originally flagged in this document are
+now resolved or addressed in the design. Nothing hardware-side remains
+outstanding for this bench rig beyond the recommended (not blocking)
+multimeter checks noted above.
 
 ## TLS/RAM risk — now measured, not just theoretical
 

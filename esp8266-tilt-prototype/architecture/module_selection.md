@@ -30,8 +30,8 @@ ordinary components you'd buy regardless of module choice.
 
 | Function | MPN | LCSC# | Stock | Tier | Notes |
 |---|---|---|---|---|---|
-| Battery divider top (R1) | 0603WAF3303T5E, 330kΩ | C23137 | 954,047 | Basic | New value — production board uses 100k here; ESP8266's 1.0V ADC range needs a steeper ratio, see `net_plan.md` |
-| Battery divider bottom (R2) | 0603WAF1003T5E, 100kΩ | C25803 | 22,656,083 | Basic | Same part already verified for the production board in `../architecture/ic_selection.md` |
+| Battery divider top (R1) | 0603WAF1002T5E, 10kΩ | C25804 | 22,373,597 | Basic | Value changed after confirming this D1 Mini clone has its own onboard divider (~220k/100k) — this external divider now targets the board's ~3.2V header ceiling, not the chip's 1.0V limit directly. Same part already verified for the production board in `../architecture/ic_selection.md`. See `net_plan.md` for the two-stage derivation |
+| Battery divider bottom (R2) | 0603WAF2202T5E, 22kΩ | C31850 | 3,823,319 | Basic | Paired with R1 above for the two-stage divider |
 | 1-Wire pull-up (R3, if needed) | 0603WAF4701T5E, 4.7kΩ | C23162 | 24,680,139 | Basic | Only needed if the DS18B20 probe doesn't already carry one — check before adding a redundant one |
 
 These are SMD 0603 values given for BOM consistency with the rest of the
