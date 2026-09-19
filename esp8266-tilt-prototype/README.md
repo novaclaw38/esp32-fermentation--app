@@ -31,15 +31,9 @@ These are flagged throughout `architecture/design_risks.md` but worth
 repeating in one place, since they're the difference between "works" and
 "looks dead":
 
-1. **Bridge the "SLEEP" solder-jumper pad next to `D0`** (found on the
-   back of the user's board) with a solder blob or 0Ω resistor. This is
-   almost certainly the manufacturer's provided `D0`→`RST` wake
-   connection — confirm continuity with a multimeter after bridging.
-   **Skip this and the board sleeps once and never wakes**,
-   indistinguishable from a dead unit.
-2. **Verify `A0` has no onboard divider** on this specific clone (a
+1. **Verify `A0` has no onboard divider** on this specific clone (a
    multimeter continuity check) before trusting the 330k/100k external
-   divider math.
+   divider math. **Status: being checked by the user now.**
 
 ✅ **TP4056 breakout — resolved.** User photo confirms 3 ICs (TP4056 +
 DW01A + FS8205A), the protected-board signature. Cleared for the
@@ -50,6 +44,11 @@ dedicated header pins, not internally tied. Wired explicitly in the
 circuit: `SDO`→`GND`, `CS`→`3V3`. The board also has a printed X/Y/Z
 axis diagram, useful for the tilt-axis calibration step.
 
+✅ **D0-to-RST "SLEEP" jumper — soldered.** User confirms the pad is
+bridged. **Worth a 10-second multimeter continuity check between `D0`
+and `RST` before the first real deep-sleep cycle** — a cold joint on
+this one pad is otherwise indistinguishable from "never wakes."
+
 ## What's genuinely verified vs. what isn't
 
 **Verified in this environment:**
@@ -58,12 +57,15 @@ axis diagram, useful for the tilt-axis calibration step.
   93% — tight, see `architecture/design_risks.md`, but sufficient for
   this feature set as written).
 
-**Verified by the user (photos):**
+**Verified by the user (photos + soldering):**
 - The TP4056 breakout is protected (3 ICs: TP4056 + DW01A + FS8205A).
 - The GY-291's `SDO`/`CS` are dedicated pins, not internally tied.
-- A "SLEEP" jumper pad exists next to `D0` — very likely the wake
-  connection, but still needs to be soldered closed and confirmed with a
-  multimeter (bridging it is a physical step this session can't do).
+- The "SLEEP" jumper pad next to `D0` is now soldered/bridged.
+
+**Not yet verified:**
+- Whether `A0` has an onboard divider on this specific clone (in progress).
+- Continuity of the newly-soldered `D0`-`RST` bridge (a quick multimeter
+  check, recommended above, not yet confirmed).
 
 **Not verified — cannot be, without the physical hardware:**
 - Whether `WiFiClientSecure`'s BearSSL handshake to Supabase succeeds

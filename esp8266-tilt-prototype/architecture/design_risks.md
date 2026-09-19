@@ -31,22 +31,16 @@
    `GND` (address 0x53), `CS`→`3V3` (forces I2C mode, avoids a floating
    CMOS input). The board also has a printed X/Y/Z axis diagram — see
    `datasheets/GY-291_ADXL345_SUMMARY.md`.
-
-## Hardware, likely resolved — one soldering step from confirmed
-
-1. **D0-to-RST wake jumper.** ESP8266 only wakes from `ESP.deepSleep()`
-   when GPIO16 (`D0`) pulses low into `RST`. **User's board has a
-   silkscreened "SLEEP" solder-jumper pad next to `D0`**, visible on the
-   back-side photo — this is almost certainly the manufacturer's
-   provided provision for exactly this connection (a documented feature
-   on genuine Wemos D1 Mini boards, not a guess). The pad **appears
-   open/unbridged** in the photo. **Action: bridge it with a solder blob
-   or a 0Ω resistor** rather than running a separate wire from `D0` to
-   `RST` — cleaner and matches what the pad is there for. Confirm
-   continuity between `D0` and `RST` with a multimeter after bridging,
-   before relying on it. **If this isn't bridged, the board will sleep
-   once and never wake — it will look like a dead/bricked unit, not a
-   code bug.**
+3. ~~**D0-to-RST wake jumper.**~~ ✅ **Soldered by the user.** The
+   "SLEEP" pad next to `D0` (see below for what it is) is now bridged.
+   **Recommended before the first real deep-sleep cycle:** confirm
+   continuity between `D0` and `RST` with a multimeter — a cold solder
+   joint on this specific pad is indistinguishable from "never wakes" at
+   the behavioral level, so it's worth the 10-second check once rather
+   than debugging it blind later. ESP8266 only wakes from
+   `ESP.deepSleep()` via GPIO16 (`D0`) pulsing `RST` low; this pad is the
+   manufacturer's documented provision for exactly that connection on
+   genuine Wemos D1 Mini boards.
 
 ## Hardware, unverified — must check before relying on this rig
 
