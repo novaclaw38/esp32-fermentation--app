@@ -86,18 +86,23 @@ divider would.
 
 ## Quick start
 
-1. Resolve the four unverified items above.
-2. Wire per [`architecture/net_plan.md`](architecture/net_plan.md) (or
+**Building it on a Prototype Shield v.5?** See
+[`BUILD_GUIDE.md`](BUILD_GUIDE.md) (or the rendered
+[`outputs/protoshield_build_guide.pdf`](outputs/protoshield_build_guide.pdf))
+for a physical placement diagram and numbered assembly steps — covers
+all of the below plus exactly where each module goes on the shield.
+
+1. Wire per [`architecture/net_plan.md`](architecture/net_plan.md) (or
    view [`outputs/esp8266_tilt_prototype.pdf`](outputs/esp8266_tilt_prototype.pdf)
-   for the visual wiring diagram).
-3. Open `firmware/fermentation_tilt_v1_esp8266/fermentation_tilt_v1_esp8266.ino`,
+   for the electrical schematic).
+2. Open `firmware/fermentation_tilt_v1_esp8266/fermentation_tilt_v1_esp8266.ino`,
    fill in the `CONFIG` section (same placeholders as the ESP32 sketch:
    WiFi, Supabase URL/key, device ID/secret).
-4. Install the ESP8266 board package (Boards Manager URL:
+3. Install the ESP8266 board package (Boards Manager URL:
    `http://arduino.esp8266.com/stable/package_esp8266com_index.json`),
    select board **"LOLIN(WEMOS) D1 R2 & mini"** (or the generic
    `esp8266:esp8266:d1_mini` FQBN), flash.
-5. Follow the axis test and calibration steps in
+4. Follow the axis test and calibration steps in
    [`../hardware/PROTOTYPE_TEMP_GRAVITY.md`](../hardware/PROTOTYPE_TEMP_GRAVITY.md)
    — unchanged by any of this, they're firmware-behavior steps, not
    board-specific ones.
