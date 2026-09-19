@@ -1,7 +1,13 @@
 """D1 Mini (ESP8266) — module pin header, matching the user's board photo.
 Block from: architecture/block_diagram.md (block 2)
-Interface nets: d1mini_5v, d1mini_3v3, gnd, sda, scl, one_wire, batt_sense_adc, d0_rst_jumper
+Interface nets: d1mini_5v, d1mini_3v3, gnd, sda, scl, batt_sense_adc, d0_rst_jumper
 Parts: U1 (D1 Mini module, modeled as a 16-pin header matching silkscreen)
+
+D6 (GPIO12) is unconnected on this build -- was the DS18B20 1-Wire pin,
+now unused since the temperature sensor moved to the shared I2C bus
+(MCP9808 breakout, see sensor_bus.py). Physically still free on the
+header if a DS18B20 probe is ever added back as the firmware's fallback
+path.
 
 Pin numbering here is left-column-top-to-bottom (1-8), then
 right-column-top-to-bottom (9-16), matching the physical board exactly:
@@ -12,7 +18,7 @@ from skidl import *
 
 
 @SubCircuit
-def d1_mini(d1mini_5v, d1mini_3v3, gnd, sda, scl, one_wire, batt_sense_adc, d0_rst_jumper):
+def d1_mini(d1mini_5v, d1mini_3v3, gnd, sda, scl, batt_sense_adc, d0_rst_jumper):
     """ESP8266 D1 Mini. D3/D4/D8 (GPIO0/2/15) are boot-strapping pins and
     are deliberately left NC on this build — see architecture/design_risks.md.
     D0 must be wired to RST for deep-sleep wake (see net_plan.md).
@@ -23,8 +29,8 @@ def d1_mini(d1mini_5v, d1mini_3v3, gnd, sda, scl, one_wire, batt_sense_adc, d0_r
         pins=[
             Pin(num=1, name="3V3", func=Pin.types.PWROUT, orientation="L"),
             Pin(num=2, name="D8", func=Pin.types.NOCONNECT, orientation="L"),   # GPIO15, boot-strap, avoided
-            Pin(num=3, name="D7", func=Pin.types.OUTPUT, orientation="L"),      # GPIO13, BATTERY_EN -- unused on this ungated build
-            Pin(num=4, name="D6", func=Pin.types.BIDIR, orientation="L"),       # GPIO12, 1-Wire
+            Pin(num=3, name="D7", func=Pin.types.NOCONNECT, orientation="L"),   # GPIO13, BATTERY_EN -- unused on this ungated build
+            Pin(num=4, name="D6", func=Pin.types.NOCONNECT, orientation="L"),   # GPIO12, unused (was 1-Wire)
             Pin(num=5, name="D5", func=Pin.types.NOCONNECT, orientation="L"),   # GPIO14, spare
             Pin(num=6, name="D0", func=Pin.types.OUTPUT, orientation="L"),      # GPIO16, deep-sleep wake source
             Pin(num=7, name="A0", func=Pin.types.INPUT, orientation="L"),       # ADC, 0-1.0V only
@@ -45,7 +51,6 @@ def d1_mini(d1mini_5v, d1mini_3v3, gnd, sda, scl, one_wire, batt_sense_adc, d0_r
     d1mini_3v3 += u1["3V3"]
     sda += u1["D2"]
     scl += u1["D1"]
-    one_wire += u1["D6"]
     batt_sense_adc += u1["A0"]
     d0_rst_jumper += u1["D0"], u1["RST"]
 
@@ -56,6 +61,8 @@ def d1_mini(d1mini_5v, d1mini_3v3, gnd, sda, scl, one_wire, batt_sense_adc, d0_r
     u1["D3"] += NC
     u1["RX"] += NC
     u1["TX"] += NC
-    # D7 (BATTERY_EN) is toggled by firmware for structural parity with the
+    # D6: was DS18B20 1-Wire, unused now the temp sensor moved to I2C.
+    u1["D6"] += NC
+    # D7 (BATTERY_EN) is toggled by firmware for code parity with the
     # production sketch but drives nothing physical on this ungated build.
     u1["D7"] += NC

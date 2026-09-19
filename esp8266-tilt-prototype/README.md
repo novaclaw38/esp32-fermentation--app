@@ -23,10 +23,10 @@ for the full port.
 | Datasheets | ✅ [`datasheets/`](datasheets/) |
 | SKiDL wiring diagram | ✅ ERC PASS (0 errors, 0 warnings), all footprints valid — [`circuits/esp8266_tilt_prototype/`](circuits/esp8266_tilt_prototype/), [`outputs/`](outputs/) |
 | Firmware | ✅ **Compiles clean** against `esp8266:esp8266` core 3.1.2 (`arduino-cli compile`, exit 0) — [`firmware/fermentation_tilt_v1_esp8266/`](firmware/fermentation_tilt_v1_esp8266/) |
-| Hardware verification | ✅ All 4 items resolved (TP4056 protection, GY-291 SDO/CS, D0-RST jumper, A0 divider) — see below |
+| Hardware verification | ✅ All 5 items resolved (TP4056 protection, GY-291 SDO/CS, D0-RST jumper, A0 divider, DS18B20→MCP9808 swap) — see below |
 | Physical build | ⚠️ **Not yet powered on / run end-to-end** — see below |
 
-## Hardware verification — all four items resolved
+## Hardware verification — all five items resolved
 
 Everything originally flagged here has been checked against the actual
 boards (photos + user's own multimeter/soldering):
@@ -57,6 +57,16 @@ compiles clean. See `architecture/net_plan.md` for the full derivation.
 this combined multiplier carries more uncertainty than a single-stage
 divider would.
 
+✅ **Temperature probe swapped: DS18B20 → MCP9808 I2C breakout.** The
+DS18B20 TO-92 probe was too bulky for a PCB-mounted build, so the
+temperature sensor moved to an MCP9808 breakout (e.g. Adafruit #1782)
+sharing the GY-291's existing I2C bus — no new GPIO, no new pull-up.
+**No firmware change needed:** `mcp9808Begin()` already runs before the
+DS18B20 fallback path in `setup()`. Re-verified: ERC still 0/0, all
+footprints valid, firmware still compiles clean. **Recommended:** verify
+the specific breakout bought defaults its `A0`/`A1`/`A2` address pins to
+GND (address `0x18`) — see `datasheets/MCP9808_Breakout_SUMMARY.md`.
+
 ## What's genuinely verified vs. what isn't
 
 **Verified in this environment:**
@@ -71,6 +81,8 @@ divider would.
 - The GY-291's `SDO`/`CS` are dedicated pins.
 - The "SLEEP" jumper pad next to `D0` is soldered/bridged.
 - `A0` has an onboard divider (~220k/100k).
+- The temperature sensor is now an MCP9808 I2C breakout, not a DS18B20
+  TO-92 probe (too bulky for a PCB-mounted build).
 
 **Recommended follow-up checks (not blocking):**
 - Continuity of the `D0`-`RST` bridge.

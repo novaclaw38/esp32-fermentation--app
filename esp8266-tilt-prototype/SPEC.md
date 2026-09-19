@@ -28,10 +28,11 @@ a drop-in swap for the ESP32 design.
 ## Functional
 
 - Same behavior as `fermentation_tilt_v1.ino`: wake from deep sleep,
-  read temperature (DS18B20 probe on this bench rig; MCP9808 is a
-  production-board-only part, not used here) + tilt angle (ADXL345),
-  connect WiFi, fetch remote config, POST a reading via the
-  `ingest_reading` RPC, check thresholds, sleep.
+  read temperature (MCP9808 I2C breakout, sharing the ADXL345's bus —
+  swapped in for a DS18B20 TO-92 probe, which was too bulky for a
+  PCB-mounted build) + tilt angle (ADXL345), connect WiFi, fetch remote
+  config, POST a reading via the `ingest_reading` RPC, check thresholds,
+  sleep.
 - **No gravity computed on-device** — raw tilt angle posted, calibration
   curve applied server-side, unchanged from the production design.
 - Bench-only: this is for the axis-test and gravity-sweep calibration
@@ -63,8 +64,8 @@ a drop-in swap for the ESP32 design.
 
 - I2C: `D1` (GPIO5) = SCL, `D2` (GPIO4) = SDA — the conventional I2C
   pins on a Wemos D1 Mini, matching what most D1 Mini shields assume.
-- DS18B20 (bench probe): `D6` (GPIO12) data, 4.7kΩ pull-up to 3V3 (only
-  if the probe doesn't already carry one).
+  Both the GY-291 (ADXL345) and MCP9808 breakouts share this bus. `D6`
+  (GPIO12), the former DS18B20 1-Wire pin, is now unused.
 - Battery sense: `A0`, through an external 10kΩ/22kΩ divider from `BAT+`
   (not gated), feeding into the board's own onboard ~220kΩ/100kΩ
   divider — see `architecture/net_plan.md` for the two-stage math.

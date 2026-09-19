@@ -125,11 +125,10 @@ const uint8_t ADXL345_REG_FORMAT  = 0x31;
 const uint8_t ADXL345_REG_DATAX0  = 0x32;
 const uint8_t ADXL345_DEVID_VALUE = 0xE5;
 
-// MCP9808 is a production-board-only part (shares the ADXL345's I2C bus
-// on that board) -- this bench rig has no MCP9808, so mcp9808Present will
-// always be false and the DS18B20 fallback path is what actually runs.
-// Left in so this file stays a straightforward diff against the ESP32
-// sketch rather than deleting a whole subsystem.
+// MCP9808 I2C breakout, sharing the ADXL345's bus -- swapped in for the
+// original DS18B20 TO-92 probe, which was too bulky for a PCB-mounted
+// build. mcp9808Begin() runs first in setup(); the DS18B20 path below
+// stays as the automatic fallback if no MCP9808 is found on the bus.
 const uint8_t MCP9808_ADDR         = 0x18;
 const uint8_t MCP9808_REG_CONFIG   = 0x01;
 const uint8_t MCP9808_REG_AMBIENT  = 0x05;
@@ -278,7 +277,7 @@ bool connectWiFi() {
   return true;
 }
 
-// --- MCP9808 (unused on this bench build -- see hardware note above) -----
+// --- MCP9808 -----------------------------------------------------------
 
 void mcp9808Write16(uint8_t reg, uint16_t value) {
   Wire.beginTransmission(MCP9808_ADDR);
@@ -878,9 +877,6 @@ void setup() {
 
   sensors.begin();
 
-  // MCP9808 probe will always fail on this bench build (no such sensor
-  // fitted) -- kept for structural parity with the ESP32 sketch, see the
-  // hardware note near MCP9808_ADDR above.
   mcp9808Present = mcp9808Begin();
   Serial.println(mcp9808Present ? "Temperature sensor: MCP9808 (I2C)"
                                 : "Temperature sensor: DS18B20 (1-Wire)");

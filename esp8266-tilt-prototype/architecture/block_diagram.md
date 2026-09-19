@@ -20,14 +20,14 @@ flowchart TD
         U1[ESP-12F module\nWemos D1 Mini pinout]
     end
 
-    subgraph SENSE["3. Battery Sense\nungated, per prototype doc"]
-        R1[330k]
-        R2[100k]
+    subgraph SENSE["3. Battery Sense\nungated, two-stage (A0 onboard divider)"]
+        R1[10k]
+        R2[22k]
     end
 
     subgraph BUS["4. Sensor Bus"]
-        ACC[GY-291 / ADXL345\nI2C 0x53, SDO->GND]
-        DS[DS18B20 probe\n1-Wire, D6]
+        ACC[GY-291 / ADXL345\nI2C 0x53, SDO->GND, CS->3V3]
+        TMP[MCP9808 breakout\nI2C 0x18]
     end
 
     J1 --> TP
@@ -35,7 +35,7 @@ flowchart TD
     TP -- OUT+/OUT- --> U1
     BATT -- BAT+ --> R1 --> R2 --> U1
     U1 -- D1/D2 I2C --> ACC
-    U1 -- D6 1-Wire --> DS
+    U1 -- D1/D2 I2C --> TMP
     U1 -.D0-RST jumper\nrequired for wake.-> U1
 ```
 
@@ -44,6 +44,6 @@ flowchart TD
 | # | Block | Parts | Interface nets |
 |---|---|---|---|
 | 1 | Charger Module | TP4056 breakout (J-USB, B+/B-, OUT+/OUT-) | VBUS(5V), BAT_PLUS, BAT_MINUS |
-| 2 | D1 Mini (ESP8266) | ESP-12F module on Wemos-pinout carrier | 5V, 3V3, GND, D0/RST, D1, D2, D6, A0 |
-| 3 | Battery Sense (ungated) | R1 (330k), R2 (100k) | BAT_PLUS, GND, BATT_SENSE_ADC |
-| 4 | Sensor Bus | GY-291 (ADXL345), DS18B20 probe, R3 (4.7k pull-up if needed) | 3V3, GND, SDA, SCL, ONE_WIRE |
+| 2 | D1 Mini (ESP8266) | ESP-12F module on Wemos-pinout carrier | 5V, 3V3, GND, D0/RST, D1, D2, A0 |
+| 3 | Battery Sense (ungated) | R1 (10k), R2 (22k) — two-stage, see `net_plan.md` | BAT_PLUS, GND, BATT_SENSE_ADC |
+| 4 | Sensor Bus | GY-291 (ADXL345), MCP9808 breakout | 3V3, GND, SDA, SCL |

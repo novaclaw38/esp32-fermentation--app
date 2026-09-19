@@ -15,7 +15,7 @@ final run:
 
 ## Footprint validation
 
-`✓ All footprints valid (7 checked across 5 files)`.
+`✓ All footprints valid (6 checked across 5 files)`.
 
 ## Verdict
 
@@ -23,7 +23,7 @@ final run:
 
 ## Revision history
 
-Re-run after two fixes, both still 0 errors/0 warnings:
+Re-run after several fixes, all still 0 errors/0 warnings:
 - GY-291's `CS` pin changed from `NC` to wired to `3V3`, once the user's
   board photo showed `CS` is a dedicated header pin on this module, not
   internally tied — same reasoning as `SDO`.
@@ -32,6 +32,17 @@ Re-run after two fixes, both still 0 errors/0 warnings:
   divider on `A0` — the external divider was redesigned as the first
   stage of a two-stage system rather than doing all the attenuation
   itself. See `../architecture/net_plan.md` for the derivation.
+- `sensor_bus.py`'s DS18B20 TO-92 probe + pull-up (R3) replaced with an
+  MCP9808 I2C breakout (`MOD3`) sharing the GY-291's existing bus — the
+  bulky TO-92 package didn't suit a PCB-mounted build. `d1_mini.py`'s D6
+  (former 1-Wire pin) is now unused and declared `NOCONNECT`.
+- Schematic rendering only (no electrical/ERC effect): `d1_mini.py`'s D6
+  and D7 pins, and `sensor_bus.py`'s GY-291 `CS` pin, needed
+  `NOCONNECT`/`symio` adjustments to work around two separate
+  `netlistsvg`/`elkjs` crashes triggered by scratch-built (symbol-less)
+  parts — see inline comments in those files for the specific bug
+  patterns (a functionally-typed pin wired only to `NC`, and a single
+  driver pin fanning out to two input pins on the same part instance).
 
 All four hardware items originally flagged in
 `../architecture/design_risks.md` (TP4056 protection, GY-291 SDO/CS,

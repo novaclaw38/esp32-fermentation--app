@@ -52,10 +52,21 @@
    precision-measured, so the combined multiplier carries more
    uncertainty than a single-stage divider would.
 
-All four physical hardware items originally flagged in this document are
-now resolved or addressed in the design. Nothing hardware-side remains
-outstanding for this bench rig beyond the recommended (not blocking)
-multimeter checks noted above.
+5. **Temperature probe swapped: DS18B20 → MCP9808.** The DS18B20's
+   TO-92 package was too bulky for a PCB-mounted build. Replaced with an
+   MCP9808 I2C breakout (`MOD3`) sharing the GY-291's existing bus — no
+   new GPIO, no new pull-up. **Wiring-only change:** the firmware already
+   tries `mcp9808Begin()` before the DS18B20 fallback path in `setup()`,
+   so no firmware edit was needed. One item to verify on whichever
+   specific breakout is bought: its `A0`/`A1`/`A2` address pins default
+   grounded (address `0x18`) — true on Adafruit #1782 and most clones,
+   but confirm on the actual board, same spirit as the GY-291 `SDO`/`CS`
+   check above. See `net_plan.md` and
+   `datasheets/MCP9808_Breakout_SUMMARY.md`.
+
+All five physical hardware items addressed in this document are now
+resolved. Nothing hardware-side remains outstanding for this bench rig
+beyond the recommended (not blocking) multimeter checks noted above.
 
 ## TLS/RAM risk — now measured, not just theoretical
 
@@ -97,5 +108,3 @@ report). That remains a real open question:
 - Battery divider left ungated (no Q1/Q2) — the doc's own stated
   rationale (breadboard sleep-current budget doesn't need it) applies
   identically to this ESP8266 build.
-- MCP9808 not used — production-board-only part; this rig uses the
-  DS18B20 fallback path, same as the ESP32 prototype guidance.

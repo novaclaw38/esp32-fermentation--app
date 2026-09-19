@@ -4,15 +4,33 @@
 |---|---|---|
 | `VBUS_5V` | Power, 5V | Micro-USB J1 → TP4056 breakout VIN |
 | `BAT_PLUS` | Power, 3.0-4.2V | TP4056 breakout `B+` → 18650 cell `+`; TP4056 breakout `OUT+` → D1 Mini `5V` pin; also → R1 (battery-sense divider top, 10kΩ) |
-| `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, D1 Mini `GND`, GY-291 `GND`, DS18B20 `GND`, R2 bottom |
+| `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, D1 Mini `GND`, GY-291 `GND`, MCP9808 `GND`, R2 bottom |
 | `D1MINI_5V` | Power | = TP4056 `OUT+` (see BAT_PLUS — same node, D1 Mini's onboard regulator runs from this) |
-| `D1MINI_3V3` | Power, regulated | D1 Mini `3V3` pin (output of its onboard LDO) → GY-291 `VCC`, DS18B20 `VCC`, R3 pull-up top |
-| `SDA` | I2C | D1 Mini `D2` (GPIO4) → GY-291 `SDA` |
-| `SCL` | I2C | D1 Mini `D1` (GPIO5) → GY-291 `SCL` |
+| `D1MINI_3V3` | Power, regulated | D1 Mini `3V3` pin (output of its onboard LDO) → GY-291 `VCC`, GY-291 `CS`, MCP9808 `VDD` |
+| `SDA` | I2C | D1 Mini `D2` (GPIO4) → GY-291 `SDA`, MCP9808 `SDA` |
+| `SCL` | I2C | D1 Mini `D1` (GPIO5) → GY-291 `SCL`, MCP9808 `SCL` |
 | `SDO` | Signal | GY-291 `SDO` → `GND` — **required** to get I2C address 0x53. Confirmed as its own dedicated header pin on the user's board (photo), not internally tied |
 | `CS` | Signal | GY-291 `CS` → `3V3` — also confirmed as its own dedicated header pin, same as SDO. Wired explicitly rather than left floating (see `datasheets/GY-291_ADXL345_SUMMARY.md`) |
-| `ONE_WIRE` | Signal | D1 Mini `D6` (GPIO12) → DS18B20 `DATA`, R3 (4.7kΩ pull-up to 3V3, only if the probe lacks one built in) |
 | `BATT_SENSE_ADC` | Signal, analog | R1 (10kΩ) from `BAT_PLUS` → node → R2 (22kΩ) → `GND`; node → D1 Mini `A0` header pin (which then feeds the board's own onboard divider before reaching the chip — see the two-stage note below) |
+
+## Temperature sensor — MCP9808 I2C breakout (swapped from DS18B20)
+
+The DS18B20 TO-92 probe was dropped in favor of an **MCP9808 I2C
+breakout** (`MOD3`) once the TO-92 package turned out too bulky for this
+build — the user wants a PCB-mounted sensor instead. The MCP9808 shares
+the `SDA`/`SCL` bus already wired to the GY-291, so this cost no extra
+GPIO or wiring beyond the module itself: `VDD`→`D1MINI_3V3`,
+`GND`→`GND`, `SDA`→`SDA`, `SCL`→`SCL`, `ALERT` left `NC` (unused by this
+firmware). Address `0x18`, assuming the breakout's `A0`/`A1`/`A2` pins
+default grounded — true on Adafruit #1782 and most clones, but **verify
+on the specific board bought** before assuming it (same spirit as the
+GY-291 `SDO`/`CS` check above). D1 Mini's `D6` (GPIO12), the former
+1-Wire pin, is now unused and left `NOCONNECT`.
+
+No firmware change was needed for this swap: `mcp9808Begin()` already
+runs before the DS18B20 fallback path in `setup()`, so the sketch picks
+up the MCP9808 automatically once it's on the bus. See
+`datasheets/MCP9808_Breakout_SUMMARY.md`.
 | `D0_RST_JUMPER` | — | D1 Mini `D0` (GPIO16) → D1 Mini `RST`. **User's board has a labeled "SLEEP" solder-jumper pad next to `D0`** (photo of the board's back) — the manufacturer-provided provision for exactly this connection. ✅ **Soldered/bridged by the user.** Recommended: confirm continuity with a multimeter before the first real deep-sleep cycle. |
 
 ## Deliberately NOT populated (vs. the production board)
@@ -22,8 +40,6 @@
   breadboard builds. `BATTERY_EN_PIN` (`D7`/GPIO13) is still toggled by
   firmware for structural parity with the production sketch, but is
   left unconnected on this build (`NC`).
-- **No MCP9808** — production-board-only part. This bench build uses the
-  DS18B20 fallback path the firmware already supports.
 - **`D3` (GPIO0), `D4` (GPIO2), `D8` (GPIO15)** — ESP8266 boot-strapping
   pins, deliberately left unconnected.
 

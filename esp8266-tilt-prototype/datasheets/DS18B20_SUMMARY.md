@@ -1,4 +1,13 @@
-# DS18B20 (bare TO-92) — Bench Probe Reference
+# DS18B20 (bare TO-92) — Firmware Fallback Reference (not wired on this build)
+
+**Not used in this circuit as of the MCP9808 swap** — the TO-92 package
+was too bulky for a PCB-mounted build, so the temperature sensor moved to
+an MCP9808 I2C breakout sharing the GY-291's bus instead (see
+`MCP9808_Breakout_SUMMARY.md`, `../architecture/net_plan.md`). Kept here
+because the firmware still supports this sensor as an automatic fallback
+(`mcp9808Begin()` runs first in `setup()`, DS18B20 only tried if that
+fails) — useful reference if a DS18B20 probe is ever added back to `D6`
+(GPIO12), which is currently unused/`NOCONNECT` on this build.
 
 LCSC C9753 (Maxim/ADI, genuine) or C376006 (UMW, cheaper clone) — either
 works with this firmware. PDF not fetched (simple, extremely standard

@@ -32,7 +32,7 @@
       "block_id": "d1_mini",
       "block_name": "D1 Mini (ESP8266)",
       "filename": "circuits/esp8266_tilt_prototype/d1_mini.py",
-      "interface_nets": ["BAT_PLUS", "D1MINI_3V3", "GND", "SDA", "SCL", "ONE_WIRE", "BATT_SENSE_ADC", "D0_RST_JUMPER"],
+      "interface_nets": ["BAT_PLUS", "D1MINI_3V3", "GND", "SDA", "SCL", "BATT_SENSE_ADC", "D0_RST_JUMPER"],
       "parts": ["U1"],
       "status": "done",
       "erc_errors_attributed": 0
@@ -48,16 +48,16 @@
     },
     {
       "block_id": "sensor_bus",
-      "block_name": "Sensor Bus (GY-291 + DS18B20)",
+      "block_name": "Sensor Bus (GY-291 + MCP9808)",
       "filename": "circuits/esp8266_tilt_prototype/sensor_bus.py",
-      "interface_nets": ["D1MINI_3V3", "GND", "SDA", "SCL", "ONE_WIRE"],
-      "parts": ["MOD2", "U2", "R3"],
+      "interface_nets": ["D1MINI_3V3", "GND", "SDA", "SCL"],
+      "parts": ["MOD2", "MOD3"],
       "status": "done",
       "erc_errors_attributed": 0
     }
   ],
   "sourcing_escalation_count": 0,
-  "erc_iteration_count": 3,
+  "erc_iteration_count": 4,
   "architecture_rework_count": 0,
-  "notes": "Separate self-contained project folder, sibling to the main repo's production temp_gravity_module PCB pipeline. Firmware port tracked in firmware/fermentation_tilt_v1_esp8266/. All 4 hardware-verification items (TP4056 protection, GY-291 SDO/CS, D0-RST SLEEP jumper, A0 onboard divider) resolved against the user's physical boards as of 2026-09-19; battery_sense.py R1/R2 redesigned (330k/100k -> 10k/22k) as a two-stage divider once the A0 onboard divider was confirmed present on this clone."
+  "notes": "Separate self-contained project folder, sibling to the main repo's production temp_gravity_module PCB pipeline. Firmware port tracked in firmware/fermentation_tilt_v1_esp8266/. All 4 original hardware-verification items (TP4056 protection, GY-291 SDO/CS, D0-RST SLEEP jumper, A0 onboard divider) resolved against the user's physical boards as of 2026-09-19; battery_sense.py R1/R2 redesigned (330k/100k -> 10k/22k) as a two-stage divider once the A0 onboard divider was confirmed present on this clone. sensor_bus.py's DS18B20 TO-92 probe (too bulky for a PCB-mounted build) replaced with an MCP9808 I2C breakout sharing the GY-291's bus (wiring-only change, firmware already auto-detects MCP9808 first); d1_mini.py's D6/D7 pins and sensor_bus.py's GY-291 CS pin needed NOCONNECT/symio schematic-render-only fixes to work around two netlistsvg/elkjs crashes with scratch-built parts."
 }

@@ -20,7 +20,6 @@ D1MINI_3V3.drive = POWER
 
 SDA = Net("SDA")
 SCL = Net("SCL")
-ONE_WIRE = Net("ONE_WIRE")
 BATT_SENSE_ADC = Net("BATT_SENSE_ADC")
 D0_RST_JUMPER = Net("D0_RST_JUMPER")
 
@@ -32,11 +31,11 @@ D0_RST_JUMPER = Net("D0_RST_JUMPER")
 charger(bat_plus=BAT_PLUS, gnd=GND, d1mini_5v=BAT_PLUS)
 d1_mini(
     d1mini_5v=BAT_PLUS, d1mini_3v3=D1MINI_3V3, gnd=GND,
-    sda=SDA, scl=SCL, one_wire=ONE_WIRE,
+    sda=SDA, scl=SCL,
     batt_sense_adc=BATT_SENSE_ADC, d0_rst_jumper=D0_RST_JUMPER,
 )
 battery_sense(bat_plus=BAT_PLUS, gnd=GND, batt_sense_adc=BATT_SENSE_ADC)
-sensor_bus(d1mini_3v3=D1MINI_3V3, gnd=GND, sda=SDA, scl=SCL, one_wire=ONE_WIRE)
+sensor_bus(d1mini_3v3=D1MINI_3V3, gnd=GND, sda=SDA, scl=SCL)
 
 if __name__ == "__main__":
     ERC()

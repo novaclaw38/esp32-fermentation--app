@@ -1,7 +1,8 @@
 # ESP8266 Bench Rig — Prototype Shield Build Guide
 
 Temp + Gravity module bench prototype: D1 Mini (ESP8266) + TP4056 charger
-+ GY-291 (ADXL345) mounted on an Arduino-style Prototype Shield v.5.
++ GY-291 (ADXL345) + MCP9808 (I2C temperature) mounted on an
+Arduino-style Prototype Shield v.5.
 
 Rendered diagram + this same content as a single PDF:
 [`outputs/protoshield_build_guide.pdf`](outputs/protoshield_build_guide.pdf).
@@ -21,6 +22,8 @@ which you populate and wire by hand.
   multimeter continuity check before your first real deep-sleep cycle
 - ✅ A0 has an onboard divider (~220kΩ/100kΩ) — the external divider
   below (10kΩ/22kΩ) is sized for it
+- ✅ Temperature sensor is an MCP9808 I2C breakout, not a DS18B20 probe
+  — shares the GY-291's I2C bus, no extra GPIO needed
 
 ## Step-by-step assembly
 
@@ -48,10 +51,12 @@ which you populate and wire by hand.
    GY-291 `VCC`, `GND` → `GND`, `D2` → `SDA`, `D1` → `SCL`. **Also wire
    GY-291 `SDO` → `GND` and `CS` → `3V3`** (both are dedicated pins on
    this board, not internally tied — confirmed from your photo).
-6. **Wire the DS18B20 probe.** D1 Mini `D6` → probe `DATA`, plus a
-   4.7kΩ pull-up resistor between `DATA` and `3V3` (skip the resistor
-   if your probe already has one built in — check first). Probe `VCC`
-   → `3V3`, `GND` → `GND`.
+6. **Wire the MCP9808 breakout.** Four wires, same pattern as the
+   GY-291: MCP9808 `VDD` → D1 Mini `3V3`, `GND` → `GND`, `SDA` → the
+   same `SDA` wire as the GY-291 (or directly to D1 Mini `D2`), `SCL` →
+   the same `SCL` wire as the GY-291 (or directly to `D1`). It shares
+   the GY-291's I2C bus — no new GPIO needed. Leave `ALERT` (if present)
+   unconnected.
 7. **Wire the battery.** 18650 cell (in its own holder, off the shield)
    → TP4056 `B+`/`B-`. Keep the holder separate rather than gluing it
    down — you'll be swapping/recharging it often during calibration.
@@ -97,7 +102,10 @@ don't connect the battery with only one of B+/B- wired).
 | I2C | D1 Mini D1 | GY-291 SCL | GPIO5 |
 | Address set | GY-291 SDO | GND | I2C address 0x53 |
 | Mode set | GY-291 CS | 3V3 | Forces I2C mode |
-| 1-Wire | D1 Mini D6 | DS18B20 DATA | GPIO12, + 4.7kΩ pull-up to 3V3 |
+| Power | D1 Mini 3V3 | MCP9808 VDD | Shares GY-291's 3V3 wire |
+| Ground | D1 Mini GND | MCP9808 GND | Shares GY-291's GND wire |
+| I2C | D1 Mini D2 | MCP9808 SDA | Same net as GY-291 SDA |
+| I2C | D1 Mini D1 | MCP9808 SCL | Same net as GY-291 SCL |
 | ADC | BAT+ | D1 Mini A0 | via 10kΩ/22kΩ external divider |
 | Wake | D0 | RST | "SLEEP" pad, already soldered |
 
@@ -105,7 +113,6 @@ don't connect the battery with only one of B+/B- wired).
 |---|---|---|
 | 10kΩ resistor | 1 | Battery divider top (R1) |
 | 22kΩ resistor | 1 | Battery divider bottom (R2) |
-| 4.7kΩ resistor | 1 | 1-Wire pull-up (only if probe lacks one) |
 | 18650 cell + holder | 1 | ~2500mAh |
 | Jumper wires | ~15 | Solid-core preferred for perfboard soldering |
 
