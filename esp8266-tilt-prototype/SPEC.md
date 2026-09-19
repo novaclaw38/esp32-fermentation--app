@@ -17,10 +17,10 @@ a drop-in swap for the ESP32 design.
   This is the ESP8266 (ESP-12F module, visible zigzag PCB antenna trace)
   — **not** the ESP32 D1 Mini the production firmware assumes.
 - **TP4056 Li-ion charger breakout, micro-USB, 5V 1A** ("HKD"-branded or
-  similar generic module). **Must be verified to be a protected module
-  (3 ICs on the board: TP4056 + DW01A + FS8205) before trusting it with a
-  cell** — see `architecture/design_risks.md` finding #1.
-  ⚠️ **Status: unverified by the user — flagged, not confirmed.**
+  similar generic module, board marking "03962A"). ✅ **Confirmed
+  protected** — user photo shows three ICs: one SOP-8 (TP4056) plus two
+  SOT-23-6 (DW01A + FS8205A) — matching the protected-board signature in
+  `architecture/design_risks.md` finding #1. Safe to wire to a cell.
 - **GY-291 breakout (ADXL345)** — exactly the part
   `hardware/PROTOTYPE_TEMP_GRAVITY.md` already recommends for this bench
   build.

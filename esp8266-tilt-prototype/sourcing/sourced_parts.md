@@ -10,7 +10,7 @@ stock/pricing verification.
 | Part | Status | Action needed |
 |---|---|---|
 | ESP8266 D1 Mini | ✅ Confirmed correct (photo) | None |
-| TP4056 micro-USB charger, "HKD", 5V 1A | ⚠️ Protection unverified | Count ICs — 3 = protected (safe), 1 = not (get a protected one before the battery test) |
+| TP4056 micro-USB charger, "HKD", 5V 1A, board "03962A" | ✅ Confirmed protected (3 ICs: TP4056 + DW01A + FS8205A) | None |
 | GY-291 (ADXL345) breakout | ✅ Confirmed correct part | Verify `SDO` → GND before wiring I2C |
 
 ## Still needed

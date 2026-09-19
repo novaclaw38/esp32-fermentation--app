@@ -36,13 +36,15 @@ repeating in one place, since they're the difference between "works" and
    existing solder bridge before assuming you need to add a wire — many
    D1 Mini clones don't ship one. **Skip this and the board sleeps once
    and never wakes**, indistinguishable from a dead unit.
-2. **Count the ICs on the TP4056 charger breakout** before wiring a
-   cell to it — 3 = protected (safe), 1 = not (get a protected one).
-3. **Verify `A0` has no onboard divider** on this specific clone (a
+2. **Verify `A0` has no onboard divider** on this specific clone (a
    multimeter continuity check) before trusting the 330k/100k external
    divider math.
-4. **Tie the GY-291's `SDO` to `GND`** — confirmed gotcha on this clone
+3. **Tie the GY-291's `SDO` to `GND`** — confirmed gotcha on this clone
    family, not every board does this internally.
+
+✅ **TP4056 breakout — resolved.** User photo confirms 3 ICs (TP4056 +
+DW01A + FS8205A), the protected-board signature. Cleared for the
+battery/float test.
 
 ## What's genuinely verified vs. what isn't
 
@@ -52,9 +54,11 @@ repeating in one place, since they're the difference between "works" and
   93% — tight, see `architecture/design_risks.md`, but sufficient for
   this feature set as written).
 
+**Verified by the user (photo):**
+- The TP4056 breakout is protected (3 ICs: TP4056 + DW01A + FS8205A).
+
 **Not verified — cannot be, without the physical hardware:**
 - Whether the D0-RST jumper is present on this specific board.
-- Whether the TP4056 breakout is protected.
 - Whether `WiFiClientSecure`'s BearSSL handshake to Supabase succeeds
   under real runtime heap pressure (compiling only checks static
   memory, not dynamic/runtime heap).

@@ -9,7 +9,7 @@ independently on the breadboard).
 flowchart TD
     subgraph CHG["1. Charger Module (user-supplied)"]
         J1[Micro-USB 5V 1A input]
-        TP[TP4056 + protection\n⚠ IC count unverified]
+        TP[TP4056 + protection\n✅ confirmed: 3 ICs]
     end
 
     subgraph CELL["Off-board"]

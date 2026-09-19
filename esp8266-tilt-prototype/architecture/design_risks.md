@@ -17,6 +17,13 @@
    `A0` only, 10-bit, **0-1.0V**. Divider ratio and firmware multiplier
    both change — see `net_plan.md`.
 
+## Hardware, resolved
+
+1. ~~**TP4056 breakout protection status.**~~ ✅ **Confirmed protected**
+   — user photo of the board (marking "03962A") shows three ICs: one
+   SOP-8 (TP4056) plus two SOT-23-6 (DW01A + FS8205A), matching the
+   protected-board signature. Cleared for the battery/float test.
+
 ## Hardware, unverified — must check before relying on this rig
 
 1. **D0-to-RST wake jumper.** ESP8266 only wakes from `ESP.deepSleep()`
@@ -26,18 +33,14 @@
    it will look like a dead/bricked unit, not a code bug.** Check for an
    existing solder jumper near the reset circuit before assuming a wire
    is needed; add one (`D0` → `RST`) if not present.
-2. **TP4056 breakout protection status.** See
-   `architecture/module_selection.md` — count the ICs (3 = protected, 1
-   = not) before wiring a cell to it. Not a blocker for the axis test
-   (USB-only, no battery), is a blocker before the float/battery test.
-3. **A0's onboard divider, if any.** Some D1 Mini-family clones (not all)
+2. **A0's onboard divider, if any.** Some D1 Mini-family clones (not all)
    ship a fixed onboard divider on `A0` for reading `VIN`; a genuine
    Wemos D1 Mini does not. Verify with a multimeter (continuity from A0
    to anything other than the header pin) before trusting the 330k/100k
    external-divider math in `net_plan.md` — an unexpected onboard
    divider stacked with the external one would give a wrong reading, not
    a dangerous one (both paths only attenuate).
-4. **GY-291's `SDO` pull.** Confirmed gotcha, not hypothetical — the
+3. **GY-291's `SDO` pull.** Confirmed gotcha, not hypothetical — the
    prototype doc's own troubleshooting table lists
    `Error: no usable ADXL345 samples` as the direct symptom of `SDO`
    floating/pulled high on this exact clone family. Tie `SDO` to GND.

@@ -17,7 +17,7 @@ ordinary components you'd buy regardless of module choice.
 
 | Selection | Status | Notes |
 |---|---|---|
-| **TP4056 micro-USB breakout, "HKD", 5V 1A** (user-supplied) | ⚠️ **Unverified — protection status unknown** | Per `hardware/PROTOTYPE_TEMP_GRAVITY.md`: "Count the ICs to tell them apart: protected boards have three (TP4056 + DW01A + FS8205), unprotected have one." **Open a photo of the board and count before wiring a cell to it.** An unprotected board is not a blocker for the axis test (which runs on USB power only, no battery) but must be resolved before the battery/float test. |
+| **TP4056 micro-USB breakout, "HKD", 5V 1A, board marking "03962A"** (user-supplied) | ✅ **Confirmed protected** | Per `hardware/PROTOTYPE_TEMP_GRAVITY.md`: "Count the ICs to tell them apart: protected boards have three (TP4056 + DW01A + FS8205), unprotected have one." User photo shows three ICs — one SOP-8 (TP4056) plus two SOT-23-6 (DW01A + FS8205A). Cleared for the battery/float test. |
 
 ## Block 4 — Sensor Bus
 
