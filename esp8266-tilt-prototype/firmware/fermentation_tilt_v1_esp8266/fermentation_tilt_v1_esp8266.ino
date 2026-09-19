@@ -889,6 +889,18 @@ void setup() {
     adxlSleep();
   }
 
+  // TEMP DEBUG: print tilt before the temp-failure early-return below, so
+  // ADXL345 bring-up is visible on the serial monitor even with no
+  // temperature sensor wired at all (bench testing only -- remove this
+  // block, or just leave it, once a temp sensor is connected; it's
+  // harmless either way since the real print further down still runs on
+  // a successful temp read).
+  if (isnan(tempC)) {
+    Serial.println("Tilt (temp sensor not wired yet): " +
+                    (isnan(tiltDeg) ? String("unavailable -- check ADXL345 wiring/address")
+                                    : String(tiltDeg, 2) + " deg"));
+  }
+
   if (isnan(tempC)) {
     Serial.println("Temperature read FAILED -- no reading to post this cycle");
     reportSensorFault();
