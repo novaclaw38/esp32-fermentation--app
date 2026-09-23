@@ -1,110 +1,127 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
-import InstrumentMark from "../components/InstrumentMark";
+import AuthShell from "../components/auth/AuthShell";
+import AuthField from "../components/auth/AuthField";
+import { friendlyAuthError } from "../lib/authErrors";
 import { MIN_PASSWORD_LENGTH } from "./Login";
 
-const inputClass = "mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200";
+const textButton = "inline-flex min-h-11 items-center font-medium text-brew-400 underline underline-offset-2";
 
 /**
  * Landing page for the emailed reset link. supabase-js reads the recovery
  * token from the URL and signs the visitor in, so by the time the form shows
  * there's a session to update the password on. Without one (an expired or
- * already-used link) it says so instead of showing a form that can't work.
+ * already-used link) it says so, and sends them straight to request another.
  */
 export default function ResetPassword() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ password?: string; confirm?: string; form?: string }>({});
   const [saving, setSaving] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+
+  const expired = !loading && !session;
+
+  useEffect(() => {
+    document.title = `${expired ? "Reset link expired" : "Choose a new password"} · Fermentation Monitor`;
+  }, [expired]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
-      return;
-    }
-    if (password !== confirm) {
-      setError("The two passwords don't match.");
-      return;
-    }
+    const next: typeof errors = {};
+    if (password.length < MIN_PASSWORD_LENGTH) next.password = `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
+    else if (password !== confirm) next.confirm = "The two passwords don't match.";
+    setErrors(next);
+    if (next.password) return passwordRef.current?.focus();
+    if (next.confirm) return confirmRef.current?.focus();
+
     setSaving(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({ password });
     setSaving(false);
-    if (updateError) {
-      setError(updateError.message);
+    if (error) {
+      const friendly = friendlyAuthError(error);
+      setErrors(friendly.field === "password" ? { password: friendly.message } : { form: friendly.message });
       return;
     }
     navigate("/devices", { replace: true });
   }
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-panel-950 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-start gap-3">
-          <InstrumentMark />
-          <div>
-            <h1 className="text-xl font-semibold uppercase tracking-wide text-panel-200">Fermentation Monitor</h1>
-            <p className="text-sm text-panel-400">Choose a new password</p>
-          </div>
-        </div>
+  if (loading) {
+    return (
+      <AuthShell>
+        <p role="status" className="text-panel-400">
+          Checking your reset link…
+        </p>
+      </AuthShell>
+    );
+  }
 
-        {loading ? (
-          <p role="status" className="text-panel-400">
-            Checking your reset link…
+  if (expired) {
+    return (
+      <AuthShell>
+        <section role="alert" className="space-y-3 rounded-lg border border-approach-500/40 bg-panel-900 p-6">
+          <h1 className="text-lg font-semibold text-panel-200">This reset link has expired</h1>
+          <p className="text-sm text-panel-400">
+            Reset links work once and last an hour. Request a new one and use the most recent email.
           </p>
-        ) : !session ? (
-          <div role="alert" className="rounded-lg border border-approach-500/40 bg-panel-900 p-6 text-sm">
-            <p className="font-medium text-approach-400">This reset link has expired or was already used.</p>
-            <p className="mt-2 text-panel-400">Request a new one from the sign-in page.</p>
-            <Link to="/login" className="mt-3 inline-flex min-h-11 items-center font-medium text-brew-400 underline">
-              Back to sign in
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-panel-700 bg-panel-900 p-6">
-            <label className="block text-sm text-panel-200">
-              New password
-              <input
-                type="password"
-                required
-                minLength={MIN_PASSWORD_LENGTH}
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm text-panel-200">
-              Confirm new password
-              <input
-                type="password"
-                required
-                autoComplete="new-password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            {error && (
-              <p role="alert" className="text-sm text-breach-400">
-                {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={saving}
-              className="min-h-11 w-full rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
-            >
-              {saving ? "Saving…" : "Save new password"}
-            </button>
-          </form>
+          <Link to="/login?mode=forgot" className={textButton}>
+            Send me a new link
+          </Link>
+        </section>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell>
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        aria-busy={saving}
+        className="space-y-4 rounded-lg border border-panel-700 bg-panel-900 p-6"
+      >
+        <h1 className="text-lg font-semibold text-panel-200">Choose a new password</h1>
+        <AuthField
+          ref={passwordRef}
+          label="New password"
+          type="password"
+          name="new-password"
+          revealable
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
+          error={errors.password}
+        />
+        <AuthField
+          ref={confirmRef}
+          label="Confirm new password"
+          type="password"
+          name="confirm-password"
+          revealable
+          autoComplete="new-password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          error={errors.confirm}
+        />
+        {errors.form && (
+          <p role="alert" className="rounded-md border border-breach-500/50 bg-panel-950 px-3 py-2 text-sm text-breach-400">
+            {errors.form}
+          </p>
         )}
-      </div>
-    </main>
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-11 w-full rounded-md bg-brew-600 px-3 text-sm font-medium text-white hover:bg-brew-700 disabled:cursor-wait disabled:bg-brew-800 disabled:text-panel-200"
+        >
+          {saving ? "Saving…" : "Save new password"}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

@@ -2,8 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The panel is dark, so native UI (validation popups, date pickers,
+   scrollbars in some engines, form controls) must render dark too. */
+:root {
+  color-scheme: dark;
+}
+
 body {
   @apply bg-panel-950 text-panel-200;
+}
+
+/* Browser autofill paints its own pale-yellow or blue fill over inputs,
+   which is the most out-of-world frame a password manager user sees. An
+   inset shadow is the only fill autofill lets a page override. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: theme("colors.panel.200");
+  box-shadow: 0 0 0 1000px theme("colors.panel.950") inset;
+  caret-color: theme("colors.brew.400");
+  transition: background-color 9999s ease-out 0s;
+}
+
+input {
+  caret-color: theme("colors.brew.400");
 }
 
 /* Every live numeral on a gauge or reading uses this -- digits must not

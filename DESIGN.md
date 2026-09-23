@@ -261,3 +261,39 @@ lightening to `brew-500`, where white text fell to 3.21:1.
 
 An offline gauge no longer draws its needle: resting at the bottom of its
 travel, it read as "reading at the minimum".
+
+## Sign-in and password reset (2026-09-23 critique)
+
+Both pages share `components/auth/AuthShell` (page frame) and
+`components/auth/AuthField` (labelled field), so they can't drift apart.
+
+- **Frame:** anchored near the top (`pt-[12vh]`/`16vh`), not vertically
+  centred. Centring re-centred the card, and moved the header 40–90px, every
+  time an error or notice appeared. The Instrument Mark is 48px beside a
+  one-line product name. Each mode has its own `h1` ("Sign in", "Create your
+  account", "Reset your password", "Check your inbox") and its own
+  `document.title`.
+- **Fields:** labels use the system's tracked-uppercase label voice
+  (`text-xs uppercase tracking-wider panel-400`) and are tied to their inputs
+  with `htmlFor`/`id`. Nothing else ever sits inside a `<label>`. Inputs are
+  44px tall with a `panel-500` border (3.21:1 against the card, clearing the
+  3:1 floor for UI boundaries) that turns `breach-400` in error. Placeholders
+  use `panel-400`, not the browser's gray. Hints are persistent text below the
+  field, never only a placeholder. Passwords have a show/hide control.
+- **Validation:** the forms use `noValidate`, so the browser's white native
+  tooltip never appears on the dark panel. Errors are per-field
+  (`aria-invalid`, `aria-describedby`), and focus moves to the first invalid
+  field. Sign-in never enforces the password length.
+- **Errors in the product's words:** `lib/authErrors.ts` maps Supabase's
+  strings to plain-language copy and a recovery action: reset the password
+  (keeping the email), resend confirmation, or sign in instead. The error box
+  takes focus.
+- **Busy state:** a solid `brew-800` fill with `panel-200` text (5.70:1) and
+  `aria-busy` on the form. Opacity-50 had dropped the label to 3.49:1.
+- **Sent states:** "Check your inbox" replaces the form entirely, with the
+  address (wrapping), a resend action and "Use a different email". No live
+  submit button is left under a "we sent it" message.
+- **Mark motion:** the glow now fades up (a `filter` transition from a 0px to
+  a 3px drop-shadow) as the needle arrives, instead of switching on.
+- **Browser surfaces:** `color-scheme: dark` on `:root`, and autofill is
+  restyled to the panel ground with a brew caret.

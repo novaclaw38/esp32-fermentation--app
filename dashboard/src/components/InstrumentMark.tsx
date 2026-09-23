@@ -62,8 +62,11 @@ export default function InstrumentMark({ size = 40 }: { size?: number }) {
         style={{
           transform: `rotate(${needleAngle}deg)`,
           transformOrigin: `${CX}px ${CY}px`,
-          transition: "transform 900ms cubic-bezier(0.16, 1, 0.3, 1)",
-          filter: settled ? `drop-shadow(0 0 3px ${palette.brew[400]})` : undefined,
+          // The glow fades up as the needle arrives rather than switching on:
+          // filter only transitions between matching function lists, so it's
+          // a 0px drop-shadow at rest, not `undefined`.
+          transition: "transform 900ms cubic-bezier(0.16, 1, 0.3, 1), filter 600ms ease-out 450ms",
+          filter: `drop-shadow(0 0 ${settled ? 3 : 0}px ${palette.brew[400]})`,
         }}
       >
         <line x1={CX} y1={CY - R + 4} x2={CX} y2={CY - 3} stroke={palette.brew[400]} strokeWidth={2} strokeLinecap="round" />
