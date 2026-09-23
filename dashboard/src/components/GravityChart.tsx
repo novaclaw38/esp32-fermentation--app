@@ -1,31 +1,22 @@
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
+import { Link } from "react-router-dom";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import type { ReadingWithGravity } from "../types/database";
 import { formatSg, formatPoints } from "../lib/gravity";
+import { useTempUnit } from "../lib/tempUnitContext";
+import { formatTemp } from "../lib/units";
+import { chartTheme } from "../lib/tokens";
+import { formatAxisTime, withGaps } from "../lib/chartTime";
 
 interface Props {
   readings: ReadingWithGravity[];
   /** False until the device has calibration coefficients set. */
   calibrated: boolean;
+  deviceId: string;
 }
 
-function axisLabel(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+export default function GravityChart({ readings, calibrated, deviceId }: Props) {
+  const { unit: tempUnit } = useTempUnit();
 
-export default function GravityChart({ readings, calibrated }: Props) {
   // Hub rows (and any tilt row the accelerometer read failed on) carry a null
   // tilt; they'd render as gaps, so drop them rather than plot holes.
   const points = readings
@@ -46,14 +37,14 @@ export default function GravityChart({ readings, calibrated }: Props) {
   // proceeds, just on an arbitrary scale), so plot that and say why.
   const showingTilt = !calibrated;
 
-  const data = points.map((r) => ({
-    time: axisLabel(r.created_at),
-    value: showingTilt ? Number(r.tilt_deg) : Number(r.gravity_sg),
-  }));
-
   // A tilt device that reported before calibration was entered still has null
   // gravity on those rows even though the device is now calibrated.
-  const plotted = data.filter((d) => Number.isFinite(d.value));
+  const plotted = points
+    .map((r) => ({
+      t: new Date(r.created_at).getTime(),
+      value: showingTilt ? Number(r.tilt_deg) : r.gravity_sg == null ? NaN : Number(r.gravity_sg),
+    }))
+    .filter((d) => Number.isFinite(d.value)) as { t: number; value: number | null }[];
 
   if (plotted.length === 0) {
     return (
@@ -63,8 +54,8 @@ export default function GravityChart({ readings, calibrated }: Props) {
     );
   }
 
-  const first = plotted[0].value;
-  const latest = plotted[plotted.length - 1].value;
+  const first = plotted[0].value as number;
+  const latest = plotted[plotted.length - 1].value as number;
   const delta = latest - first;
 
   // Show how much the temperature correction actually moved the latest reading,
@@ -78,7 +69,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
   // Pad the domain so a nearly-flat series doesn't render as a jagged line
   // across the full height of the chart, which reads as violent movement when
   // the actual change is a couple of gravity points.
-  const values = plotted.map((d) => d.value);
+  const values = plotted.map((d) => d.value as number);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const floor = showingTilt ? 1 : 0.004;
@@ -86,6 +77,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
 
   const unit = showingTilt ? "°" : "";
   const format = (v: number) => (showingTilt ? `${v.toFixed(1)}°` : formatSg(v));
+  const data = withGaps(plotted, (t) => ({ t, value: null }));
 
   return (
     <div className="space-y-2">
@@ -94,47 +86,52 @@ export default function GravityChart({ readings, calibrated }: Props) {
           <span className="font-medium">Showing raw tilt angle, not gravity.</span> This device has
           no calibration curve yet, so there's no way to convert its tilt angle into a specific
           gravity. The trend below is still real — tilt falls as the wort thins out — but the
-          numbers aren't SG. Enter the coefficients under <em>Gravity calibration</em> below and
-          this chart switches to SG, for the whole history at once.
+          numbers aren't SG.{" "}
+          <Link to={`/devices/${deviceId}/settings?tab=setup`} className="font-medium underline">
+            Enter the calibration coefficients
+          </Link>{" "}
+          and this chart switches to SG, for the whole history at once.
         </p>
       )}
 
       <div className="h-64 rounded-lg border border-panel-700 bg-panel-900 p-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={plotted} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#262019" />
-            <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#9c8a6e" }} minTickGap={40} stroke="#453829" />
+          <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
+            <XAxis
+              dataKey="t"
+              type="number"
+              scale="time"
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={formatAxisTime}
+              tick={chartTheme.tick}
+              minTickGap={40}
+              stroke={chartTheme.axis}
+            />
             <YAxis
-              tick={{ fontSize: 11, fill: "#9c8a6e" }}
+              tick={chartTheme.tick}
               unit={unit}
               width={showingTilt ? 44 : 56}
               domain={[min - pad, max + pad]}
               tickFormatter={(v: number) => (showingTilt ? v.toFixed(0) : formatSg(v))}
-              stroke="#453829"
+              stroke={chartTheme.axis}
             />
             <Tooltip
+              labelFormatter={(t: number) => formatAxisTime(t)}
               formatter={(value: number) => [format(value), showingTilt ? "Tilt" : "Gravity"]}
-              contentStyle={{ background: "#1c1712", border: "1px solid #332a20", borderRadius: 6 }}
-              labelStyle={{ color: "#d9cbb0" }}
-              itemStyle={{ color: "#4ade80" }}
+              {...chartTheme.tooltip}
+              itemStyle={{ color: chartTheme.gravity }}
             />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#4ade80"
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
-            />
+            <Line type="monotone" dataKey="value" stroke={chartTheme.gravity} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       {!showingTilt && correction != null && (
         <p className="text-xs text-panel-400">
-          Latest reading corrected to 20°C: {formatSg(latestRow.gravity_sg_raw as number)} raw →{" "}
+          Latest reading corrected to {formatTemp(20, tempUnit, 0)}: {formatSg(latestRow.gravity_sg_raw as number)} raw →{" "}
           <span className="text-panel-200">{formatSg(latestRow.gravity_sg as number)}</span> (
-          {formatPoints(correction)} points at {(latestRow.temperature_c ?? 0).toFixed(1)}°C).
+          {formatPoints(correction)} points at {formatTemp(latestRow.temperature_c, tempUnit)}).
         </p>
       )}
 
@@ -145,9 +142,7 @@ export default function GravityChart({ readings, calibrated }: Props) {
             the batch's true original gravity (see the Fermentation section
             above), not from the first point in whatever window this chart
             happens to be showing -- this line stays scoped to the window. */}
-        <span className="text-panel-400">
-          Change is measured over this window only, not from the batch's original gravity.
-        </span>
+        Change is measured over this window only, not from the batch's original gravity.
       </p>
     </div>
   );

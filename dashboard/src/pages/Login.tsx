@@ -4,11 +4,26 @@ import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
 import InstrumentMark from "../components/InstrumentMark";
 
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "forgot";
 
 // Supabase's default minimum. Surfaced here so the form can reject a short
 // password before a round-trip rather than after one.
-const MIN_PASSWORD_LENGTH = 6;
+export const MIN_PASSWORD_LENGTH = 6;
+
+const SUBTITLE: Record<Mode, string> = {
+  signin: "Sign in to your panel",
+  signup: "Create an account",
+  forgot: "Reset your password",
+};
+
+const SUBMIT_LABEL: Record<Mode, [idle: string, busy: string]> = {
+  signin: ["Sign in", "Signing in…"],
+  signup: ["Create account", "Creating account…"],
+  forgot: ["Send reset link", "Sending…"],
+};
+
+const inputClass = "mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200";
+const textButton = "inline-flex min-h-11 items-center font-medium text-brew-400 underline";
 
 export default function Login() {
   const { session } = useAuth();
@@ -34,6 +49,22 @@ export default function Login() {
     setError(null);
     setNotice(null);
 
+    if (mode === "forgot") {
+      setLoading(true);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      setLoading(false);
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+      // Same message whether or not the address has an account, so this form
+      // can't be used to find out who's signed up.
+      setNotice(`If ${email} has an account, a reset link is on its way. It expires in an hour.`);
+      return;
+    }
+
     if (password.length < MIN_PASSWORD_LENGTH) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
@@ -50,7 +81,11 @@ export default function Login() {
       return;
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/devices` },
+    });
     setLoading(false);
 
     if (signUpError) {
@@ -58,30 +93,26 @@ export default function Login() {
       return;
     }
 
-    // A signup that succeeds but returns no session means the project still
-    // requires email confirmation — the account exists but can't be used until
-    // a confirmation email arrives. Say so plainly instead of silently doing
-    // nothing, which is what the magic-link flow used to do.
+    // No session back means the project requires email confirmation (as it
+    // should in production). Tell the person what to do next, in their
+    // terms -- not how to reconfigure the backend.
     if (!data.session) {
-      setNotice(
-        "Account created, but this project still requires email confirmation, " +
-          "so you can't sign in yet. Turn off Authentication → Sign In / Providers → " +
-          "Email → \"Confirm email\" in the Supabase dashboard, then sign in here.",
-      );
+      setNotice(`Check ${email} for a confirmation link. Once you've clicked it, sign in here.`);
       setMode("signin");
+      setPassword("");
     }
   }
 
+  const [idleLabel, busyLabel] = SUBMIT_LABEL[mode];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-panel-950 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-panel-950 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-start gap-3">
           <InstrumentMark />
           <div>
             <h1 className="text-xl font-semibold uppercase tracking-wide text-panel-200">Fermentation Monitor</h1>
-            <p className="text-sm text-panel-400">
-              {mode === "signin" ? "Sign in to your panel" : "Create an account"}
-            </p>
+            <p className="text-sm text-panel-400">{SUBTITLE[mode]}</p>
           </div>
         </div>
 
@@ -95,43 +126,54 @@ export default function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1.5 text-panel-200"
+              className={inputClass}
             />
           </label>
 
-          <label className="block text-sm text-panel-200">
-            Password
-            <input
-              type="password"
-              required
-              minLength={MIN_PASSWORD_LENGTH}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1.5 text-panel-200"
-            />
-          </label>
-
-          {error && <p className="text-sm text-breach-400">{error}</p>}
-          {notice && (
-            <p className="rounded-md border border-approach-500/40 bg-panel-950 p-3 text-sm text-approach-400">
-              {notice}
-            </p>
+          {mode !== "forgot" && (
+            <label className="block text-sm text-panel-200">
+              <span className="flex items-baseline justify-between">
+                Password
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode("forgot")}
+                    className="text-xs font-medium text-brew-400 underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </span>
+              <input
+                type="password"
+                required
+                minLength={MIN_PASSWORD_LENGTH}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass}
+              />
+            </label>
           )}
+
+          <div aria-live="polite">
+            {error && (
+              <p role="alert" className="text-sm text-breach-400">
+                {error}
+              </p>
+            )}
+            {notice && (
+              <p className="rounded-md border border-brew-600/60 bg-panel-950 p-3 text-sm text-panel-200">{notice}</p>
+            )}
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+            className="min-h-11 w-full rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
           >
-            {loading
-              ? mode === "signin"
-                ? "Signing in…"
-                : "Creating account…"
-              : mode === "signin"
-                ? "Sign in"
-                : "Create account"}
+            {loading ? busyLabel : idleLabel}
           </button>
         </form>
 
@@ -139,20 +181,20 @@ export default function Login() {
           {mode === "signin" ? (
             <>
               No account yet?{" "}
-              <button type="button" onClick={() => switchMode("signup")} className="font-medium text-brew-400 underline">
+              <button type="button" onClick={() => switchMode("signup")} className={textButton}>
                 Create one
               </button>
             </>
           ) : (
             <>
-              Already have an account?{" "}
-              <button type="button" onClick={() => switchMode("signin")} className="font-medium text-brew-400 underline">
+              {mode === "signup" ? "Already have an account?" : "Remembered it?"}{" "}
+              <button type="button" onClick={() => switchMode("signin")} className={textButton}>
                 Sign in
               </button>
             </>
           )}
         </p>
       </div>
-    </div>
+    </main>
   );
 }

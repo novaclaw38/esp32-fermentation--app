@@ -36,8 +36,7 @@ export default function BatchForm({ device, onSaved }: Props) {
 
   return (
     <div className="rounded-lg border border-panel-700 bg-panel-900 p-4">
-      <p className="text-sm font-medium text-panel-200">Batch</p>
-      <p className="mt-1 text-xs text-panel-400">
+      <p className="text-xs text-panel-400">
         Original gravity is captured automatically from the first calibrated reading after this
         device is claimed, and every ABV/attenuation/stage figure is measured against it until you
         reset it here. Reset when you rack the same unit into a new batch — not needed between
@@ -54,7 +53,11 @@ export default function BatchForm({ device, onSaved }: Props) {
         </p>
       )}
 
-      {error && <p className="mt-2 text-sm text-breach-400">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-breach-400">
+          {error}
+        </p>
+      )}
 
       {og == null ? null : !confirming ? (
         <button
@@ -68,13 +71,13 @@ export default function BatchForm({ device, onSaved }: Props) {
           <button
             onClick={handleReset}
             disabled={resetting}
-            className="rounded-md bg-breach-500 px-3 py-2 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
+            className="min-h-11 rounded-md bg-breach-700 px-3 py-2 text-sm font-medium text-white hover:brightness-90 disabled:opacity-40"
           >
             {resetting ? "Resetting…" : "Yes, start a new batch"}
           </button>
           <button
             onClick={() => setConfirming(false)}
-            className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
+            className="min-h-11 rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
           >
             Cancel
           </button>

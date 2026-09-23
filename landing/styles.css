@@ -28,6 +28,9 @@ body {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--brew-800);
@@ -75,6 +78,36 @@ h1 {
   max-width: 480px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.signup-form.stacked label {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-top: 0.25rem;
+}
+
+.signup-form .optional {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brew-600);
+  outline-offset: 2px;
+}
+
 .signup-form input,
 .signup-form textarea {
   flex: 1;
@@ -94,6 +127,11 @@ h1 {
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
+}
+
+.signup-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .signup-form button:hover {
@@ -135,6 +173,10 @@ h2 {
 }
 
 .steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
@@ -147,9 +189,13 @@ h2 {
 
 .step {
   text-align: center;
+  counter-increment: step;
 }
 
-.step-num {
+/* The order is real (put it in, it reports, you get warned), so the steps
+   are an <ol> and the numbers come from the list rather than typed spans. */
+.step::before {
+  content: counter(step);
   display: inline-flex;
   align-items: center;
   justify-content: center;

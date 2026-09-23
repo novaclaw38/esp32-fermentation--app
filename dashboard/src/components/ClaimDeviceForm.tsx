@@ -2,7 +2,8 @@ import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 interface Props {
-  onClaimed: () => void;
+  /** Receives the claimed device's id; the parent owns the confirmation, since it closes this form. */
+  onClaimed: (deviceId: string) => void;
 }
 
 /**
@@ -34,12 +35,10 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [claimed, setClaimed] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setClaimed(null);
 
     // The server normalises too; doing it here as well means the length check
     // below matches what the server will actually look up.
@@ -71,9 +70,8 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
       return;
     }
 
-    setClaimed(result.device_id ?? "");
     setCode("");
-    onClaimed();
+    onClaimed(result.device_id ?? "");
   }
 
   return (
@@ -85,7 +83,7 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
         </p>
       </div>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-panel-200">
         Claim code
         <input
           value={code}
@@ -93,21 +91,20 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
           placeholder="ABCD-EFGH"
           autoComplete="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 font-gauge tabular uppercase tracking-widest text-panel-200"
+          className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 font-gauge tabular uppercase tracking-widest text-panel-200"
         />
       </label>
 
-      {error && <p className="text-sm text-breach-400">{error}</p>}
-      {claimed && (
-        <p className="text-sm text-brew-400">
-          Claimed <code>{claimed}</code>. Readings appear after its next wake cycle.
+      {error && (
+        <p role="alert" className="text-sm text-breach-400">
+          {error}
         </p>
       )}
 
       <button
         type="submit"
         disabled={busy}
-        className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+        className="min-h-11 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
       >
         {busy ? "Claiming…" : "Claim device"}
       </button>

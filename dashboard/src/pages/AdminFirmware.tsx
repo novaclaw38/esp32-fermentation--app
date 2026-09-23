@@ -17,6 +17,16 @@ function binPath(deviceType: DeviceType, version: number) {
   return `${deviceType}/v${version}.bin`;
 }
 
+/**
+ * Hex SHA-256 of the build. It goes into manifest.json, and the device hashes
+ * the image as it downloads and refuses to boot one that doesn't match -- so
+ * a swapped or truncated binary in the bucket can't brick or hijack a unit.
+ */
+async function sha256Hex(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 interface SectionState {
   file: File | null;
   version: string;
@@ -84,6 +94,7 @@ export default function AdminFirmware() {
 
     setSection(type, { uploading: true });
 
+    const sha256 = await sha256Hex(section.file);
     const path = binPath(type, version);
     // upsert: false -- a version number is immutable once uploaded. Fixing a
     // bad build means bumping the version and uploading again, not silently
@@ -102,16 +113,19 @@ export default function AdminFirmware() {
       device_type: type,
       version,
       storage_path: path,
+      sha256,
       notes: section.notes.trim() || null,
       created_by: session?.user.id,
     });
 
-    setSection(type, { uploading: false });
-
     if (insertError) {
-      setSection(type, { error: insertError.message });
+      // Take the binary back out, or this version number stays blocked by
+      // upsert:false with no release row pointing at it.
+      await supabase.storage.from("firmware").remove([path]);
+      setSection(type, { uploading: false, error: insertError.message });
       return;
     }
+    setSection(type, { uploading: false });
 
     setSection(type, { ...emptySection });
     const input = fileInputRefs.current[type];
@@ -121,10 +135,19 @@ export default function AdminFirmware() {
 
   async function handlePublish(release: FirmwareRelease) {
     setPublishError(null);
+
+    // Devices refuse a manifest without a hash, so publishing one would look
+    // like it worked while no unit ever updated.
+    if (!release.sha256) {
+      setPublishError(
+        `v${release.version} was uploaded before builds were hashed, and devices will refuse it. Upload the build again as a new version.`,
+      );
+      return;
+    }
     setPublishingId(release.id);
 
     const { data: urlData } = supabase.storage.from("firmware").getPublicUrl(release.storage_path);
-    const manifest = JSON.stringify({ version: release.version, url: urlData.publicUrl });
+    const manifest = JSON.stringify({ version: release.version, url: urlData.publicUrl, sha256: release.sha256 });
     const manifestBlob = new Blob([manifest], { type: "application/json" });
 
     // Write the manifest first -- this is the object devices actually poll.
@@ -158,8 +181,8 @@ export default function AdminFirmware() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <Link to="/devices" className="text-sm text-panel-400 hover:text-panel-200">
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <Link to="/devices" className="inline-flex min-h-11 items-center text-sm text-panel-400 hover:text-panel-200">
         ← All devices
       </Link>
 
@@ -168,11 +191,13 @@ export default function AdminFirmware() {
         Publishing here rewrites the public <code className="rounded bg-panel-800 px-1">manifest.json</code> each
         device type's OTA check polls — see <code className="rounded bg-panel-800 px-1">checkForOTAUpdate()</code> in
         the firmware. Nothing here pushes to a device directly; it takes up to a device's own OTA check interval
-        (once/day by default) to pick up a newly published version.
+        (once/day by default) to pick up a newly published version. Each build's SHA-256 goes into the manifest,
+        and devices only install an image that matches it (and only over a verified connection — see{" "}
+        <code className="rounded bg-panel-800 px-1">ROOT_CA_PEM</code>).
       </p>
 
       {loadError && (
-        <div className="mb-6 rounded-lg border border-breach-500/40 bg-panel-900 p-4">
+        <div role="alert" className="mb-6 rounded-lg border border-breach-500/40 bg-panel-900 p-4">
           <p className="text-sm font-medium text-breach-400">Couldn't load releases</p>
           <p className="mt-1 text-sm text-panel-400">{loadError}</p>
           <button
@@ -185,7 +210,7 @@ export default function AdminFirmware() {
       )}
 
       {publishError && (
-        <div className="mb-6 rounded-lg border border-approach-500/40 bg-panel-900 p-4 text-sm text-approach-400">
+        <div role="alert" className="mb-6 rounded-lg border border-approach-500/40 bg-panel-900 p-4 text-sm text-approach-400">
           {publishError}
         </div>
       )}
@@ -233,7 +258,7 @@ export default function AdminFirmware() {
                         value={section.version}
                         onChange={(e) => setSection(type, { version: e.target.value })}
                         placeholder="Matches FIRMWARE_VERSION in the sketch"
-                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-1 text-panel-200"
+                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-2 text-panel-200"
                       />
                     </label>
                     <label className="text-sm text-panel-200">
@@ -243,7 +268,7 @@ export default function AdminFirmware() {
                         value={section.notes}
                         onChange={(e) => setSection(type, { notes: e.target.value })}
                         placeholder="What changed"
-                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-1 text-panel-200"
+                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-2 text-panel-200"
                       />
                     </label>
                   </div>
@@ -251,7 +276,7 @@ export default function AdminFirmware() {
                   <button
                     onClick={() => handleUpload(type)}
                     disabled={section.uploading}
-                    className="rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
+                    className="min-h-11 rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
                   >
                     {section.uploading ? "Uploading…" : "Upload"}
                   </button>
@@ -271,6 +296,9 @@ export default function AdminFirmware() {
                             {new Date(r.created_at).toLocaleString()}
                           </span>
                           {r.notes && <p className="text-xs text-panel-400">{r.notes}</p>}
+                          <p className="font-gauge text-[11px] text-panel-400">
+                            {r.sha256 ? `sha256 ${r.sha256.slice(0, 12)}…` : "No hash (legacy upload) — can't be published"}
+                          </p>
                         </div>
                         {r.published ? (
                           <span className="shrink-0 rounded bg-panel-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brew-400">
@@ -280,7 +308,7 @@ export default function AdminFirmware() {
                           <button
                             onClick={() => handlePublish(r)}
                             disabled={publishingId === r.id}
-                            className="shrink-0 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+                            className="shrink-0 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
                           >
                             {publishingId === r.id ? "Publishing…" : "Publish"}
                           </button>
@@ -294,6 +322,6 @@ export default function AdminFirmware() {
           })}
         </div>
       )}
-    </div>
+    </main>
   );
 }

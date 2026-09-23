@@ -12,10 +12,14 @@
 //                              WEBHOOK_SECRET=$(openssl rand -hex 32)
 //      (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are already injected
 //      automatically into every Edge Function.)
-//   3. In the Supabase dashboard: Database > Webhooks > Create a new hook
-//        - Table: alerts, Event: Insert
-//        - Type: HTTP Request -> Edge Function -> alert-notify
-//        - Add header: x-webhook-secret: <same value as WEBHOOK_SECRET>
+//      Optionally DASHBOARD_URL (e.g. https://app.example.com) so the email
+//      links straight to the device.
+//   3. The alerts-insert trigger calls this function. Store the same secret
+//      and this function's URL in Vault (see supabase/README.md).
+//
+// WEBHOOK_SECRET is required: with it unset every request is refused. The
+// previous behaviour (skip the check when unset) turned a missed setup step
+// into an open relay that would email any device's owner on request.
 //
 // This function intentionally does its own header-secret check because
 // verify_jwt is disabled for it (see supabase/config.toml) -- database
@@ -28,6 +32,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const ALERT_FROM_EMAIL = Deno.env.get("ALERT_FROM_EMAIL") ?? "alerts@fermentation-monitor.local";
 const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET");
+const DASHBOARD_URL = Deno.env.get("DASHBOARD_URL")?.replace(/\/$/, "");
 
 interface AlertRow {
   id: number;
@@ -46,25 +51,72 @@ interface WebhookPayload {
   old_record: AlertRow | null;
 }
 
+function formatTemp(tempC: number): string {
+  return `${tempC.toFixed(1)}°C (${((tempC * 9) / 5 + 32).toFixed(1)}°F)`;
+}
+
 function reasonToText(reason: string, tempC: number | null): string {
-  if (reason === "below_min" && tempC != null) return `dropped to ${tempC.toFixed(1)}°C, below your minimum threshold`;
-  if (reason === "above_max" && tempC != null) return `rose to ${tempC.toFixed(1)}°C, above your maximum threshold`;
+  if (reason === "below_min" && tempC != null) return `dropped to ${formatTemp(tempC)}, below your minimum threshold`;
+  if (reason === "above_max" && tempC != null) return `rose to ${formatTemp(tempC)}, above your maximum threshold`;
   if (reason === "battery_low") return "is reporting a low battery";
   if (reason === "sensor_fault") return "failed to get a temperature reading -- check the sensor's wiring";
-  return `reported an out-of-range reading${tempC != null ? ` of ${tempC.toFixed(1)}°C` : ""} (${reason})`;
+  return `reported a problem${tempC != null ? ` at ${formatTemp(tempC)}` : ""} (${reason})`;
+}
+
+// Subject names the actual problem -- "out of range" was wrong for a low
+// battery or a dead sensor, which are exactly the alerts easiest to ignore.
+function subjectFor(reason: string, deviceName: string): string {
+  switch (reason) {
+    case "below_min":
+      return `${deviceName} is too cold`;
+    case "above_max":
+      return `${deviceName} is too warm`;
+    case "battery_low":
+      return `${deviceName} battery is low`;
+    case "sensor_fault":
+      return `${deviceName} sensor stopped reading`;
+    default:
+      return `${deviceName} needs attention`;
+  }
+}
+
+function formatTime(iso: string): string {
+  // No per-user time zone on file, so say plainly which zone this is rather
+  // than printing a raw ISO string.
+  return new Date(iso).toUTCString().replace("GMT", "UTC");
+}
+
+// Constant-time so the comparison can't be timed byte by byte.
+function secretsMatch(provided: string | null, expected: string): boolean {
+  if (provided == null) return false;
+  const a = new TextEncoder().encode(provided);
+  const b = new TextEncoder().encode(expected);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
 }
 
 async function sendEmail(to: string, deviceName: string, deviceId: string, alert: AlertRow) {
   const tempC = alert.temperature_c != null ? Number(alert.temperature_c) : null;
+  const what = reasonToText(alert.reason, tempC);
 
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set -- skipping email send, logging only");
-    console.log(`[alert-notify] would email ${to}: ${deviceName} (${deviceId}) ${reasonToText(alert.reason, tempC)}`);
+    console.log(`[alert-notify] would email ${to}: ${deviceName} (${deviceId}) ${what}`);
     return;
   }
 
-  const subject = `Fermentation alert: ${deviceName} out of range`;
-  const body = `Your fermentation monitor "${deviceName}" (${deviceId}) ${reasonToText(alert.reason, tempC)}.\n\nTime: ${alert.created_at}\n\nOpen the dashboard to view the full temperature history and adjust thresholds.`;
+  const link = DASHBOARD_URL ? `${DASHBOARD_URL}/devices/${encodeURIComponent(deviceId)}` : null;
+  const body = [
+    `Your fermentation monitor "${deviceName}" (${deviceId}) ${what}.`,
+    "",
+    `Time: ${formatTime(alert.created_at)}`,
+    "",
+    link ? `See the history and acknowledge it: ${link}` : "Open the dashboard to see the history and acknowledge it.",
+    "",
+    "You're getting this because email alerts are on for this device. Turn them off under Settings > Data.",
+  ].join("\n");
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -75,7 +127,7 @@ async function sendEmail(to: string, deviceName: string, deviceId: string, alert
     body: JSON.stringify({
       from: ALERT_FROM_EMAIL,
       to: [to],
-      subject,
+      subject: subjectFor(alert.reason, deviceName),
       text: body,
     }),
   });
@@ -91,11 +143,14 @@ Deno.serve(async (req) => {
     return new Response("method not allowed", { status: 405 });
   }
 
-  if (WEBHOOK_SECRET) {
-    const provided = req.headers.get("x-webhook-secret");
-    if (provided !== WEBHOOK_SECRET) {
-      return new Response("unauthorized", { status: 401 });
-    }
+  // Fail closed: an unconfigured secret refuses everything rather than
+  // accepting everything.
+  if (!WEBHOOK_SECRET) {
+    console.error("alert-notify: WEBHOOK_SECRET is not set -- refusing all requests");
+    return new Response("not configured", { status: 500 });
+  }
+  if (!secretsMatch(req.headers.get("x-webhook-secret"), WEBHOOK_SECRET)) {
+    return new Response("unauthorized", { status: 401 });
   }
 
   let payload: WebhookPayload;
@@ -109,8 +164,23 @@ Deno.serve(async (req) => {
     return new Response("ignored (not an alert insert)", { status: 200 });
   }
 
-  const alert = payload.record;
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+  // Re-read the alert rather than trusting the posted body: the payload only
+  // names which alert, the database says what it is.
+  const alertId = Number(payload.record?.id);
+  if (!Number.isInteger(alertId)) {
+    return new Response("missing alert id", { status: 400 });
+  }
+  const { data: alert, error: alertError } = await supabase
+    .from("alerts")
+    .select("id, device_id, temperature_c, reason, created_at")
+    .eq("id", alertId)
+    .single<AlertRow>();
+  if (alertError || !alert) {
+    console.error("alert-notify: alert lookup failed", alertError);
+    return new Response("alert not found", { status: 404 });
+  }
 
   const { data: device, error: deviceError } = await supabase
     .from("devices")

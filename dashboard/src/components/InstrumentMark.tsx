@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "../lib/useReducedMotion";
+import { palette } from "../lib/tokens";
 
 // Same 240°-sweep grammar as Gauge.tsx (duplicated, not imported -- Gauge's
 // geometry is a live-reading instrument; this is a static wordmark glyph, a
@@ -50,28 +51,28 @@ export default function InstrumentMark({ size = 40 }: { size?: number }) {
 
   return (
     <svg width={size} height={size} viewBox="0 0 40 38" role="img" aria-label="Fermentation Monitor">
-      <path d={describeArc(START_ANGLE, START_ANGLE + SWEEP)} fill="none" stroke="#7a654c" strokeWidth={2.5} strokeLinecap="round" />
+      <path d={describeArc(START_ANGLE, START_ANGLE + SWEEP)} fill="none" stroke={palette.panel[500]} strokeWidth={2.5} strokeLinecap="round" />
       {[0, 1, 2, 3, 4].map((i) => {
         const angle = START_ANGLE + (SWEEP / 4) * i;
         const inner = pointOnCircle(angle, R - 3);
         const outer = pointOnCircle(angle, R - 0.5);
-        return <line key={i} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke="#9c8a6e" strokeWidth={1.2} />;
+        return <line key={i} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={palette.panel[400]} strokeWidth={1.2} />;
       })}
       <g
         style={{
           transform: `rotate(${needleAngle}deg)`,
           transformOrigin: `${CX}px ${CY}px`,
           transition: "transform 900ms cubic-bezier(0.16, 1, 0.3, 1)",
-          filter: settled ? "drop-shadow(0 0 3px #dd9834)" : undefined,
+          filter: settled ? `drop-shadow(0 0 3px ${palette.brew[400]})` : undefined,
         }}
       >
-        <line x1={CX} y1={CY - R + 4} x2={CX} y2={CY - 3} stroke="#dd9834" strokeWidth={2} strokeLinecap="round" />
+        <line x1={CX} y1={CY - R + 4} x2={CX} y2={CY - 3} stroke={palette.brew[400]} strokeWidth={2} strokeLinecap="round" />
       </g>
       <circle
         cx={CX}
         cy={CY}
         r={2.3}
-        fill="#dd9834"
+        fill={palette.brew[400]}
         style={{ opacity: settled ? 1 : 0, transition: "opacity 500ms ease-out 400ms" }}
       />
     </svg>

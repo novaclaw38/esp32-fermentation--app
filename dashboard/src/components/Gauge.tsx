@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { GaugeState } from "../lib/gaugeState";
 import { usePrefersReducedMotion } from "../lib/useReducedMotion";
+import { fontGauge, palette } from "../lib/tokens";
 
 interface Props {
   /** Raw value in the same unit as min/max -- needle position is threshold-relative, so this stays °C even when displayValue shows °F. */
@@ -47,11 +48,13 @@ const SWEEP = 240;
 const APPROACH_FRACTION = 0.1;
 
 const STATE_COLOR: Record<GaugeState, string> = {
-  nominal: "#dd9834", // brew-400
-  approaching: "#fb923c", // approach-400
-  breached: "#f87171", // breach-400
-  offline: "#9c8a6e", // panel-400
+  nominal: palette.brew[400],
+  approaching: palette.approach[400],
+  breached: palette.breach[400],
+  offline: palette.panel[400],
 };
+
+const GAUGE_FONT = fontGauge.join(", ");
 
 // The "alert-brightness hierarchy" raise: a breached needle isn't just a
 // different color, its glow is measurably bigger than nominal's -- severity
@@ -142,12 +145,16 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
   const approachSpan = SWEEP * APPROACH_FRACTION;
 
   const dims = size === "lg" ? "h-56 w-56" : "h-28 w-28";
+  // Printed scale endpoints only fit the large dial: at 112px a 10px label
+  // was either clipped by the box edge or collided with the track's end caps
+  // (the audit's 375px render showed "0.99" cut in half). The small gravity
+  // dial keeps its finer minor-tick graduation, which is what distinguishes
+  // it from Temp/Battery at that size anyway.
+  const showEndLabels = endLabels != null && size === "lg";
   const numeralClass = size === "lg" ? "text-3xl" : "text-lg";
   const labelClass = size === "lg" ? "text-xs" : "text-[10px]";
-  // endLabels crowded the track's rounded end-caps at sm -- same fixed 15px
-  // font the lg dial uses, on a dial with less than half the radius to fit it.
-  const endLabelFontSize = size === "lg" ? 15 : 10;
-  const endLabelOffset = size === "lg" ? 12 : 8;
+  const endLabelFontSize = 15;
+  const endLabelOffset = 12;
 
   const announcement = dim ? "" : stateAnnouncement(state, value, min, max);
 
@@ -170,8 +177,8 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               the document, silently sharing one gauge's gradient with all
               the others. */}
           <radialGradient id={`dial-face-${gradId}`} cx="35%" cy="28%" r="80%">
-            <stop offset="0%" stopColor="#262019" />
-            <stop offset="100%" stopColor="#14110e" />
+            <stop offset="0%" stopColor={palette.panel[800]} />
+            <stop offset="100%" stopColor={palette.panel[950]} />
           </radialGradient>
         </defs>
         <circle cx={CX} cy={CY} r={TRACK_R - 6} fill={`url(#dial-face-${gradId})`} />
@@ -184,7 +191,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + SWEEP)}
           fill="none"
-          stroke="#7a654c"
+          stroke={palette.panel[500]}
           strokeWidth={10}
           strokeLinecap="round"
         />
@@ -196,7 +203,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + approachSpan)}
           fill="none"
-          stroke="#f87171"
+          stroke={palette.breach[400]}
           strokeWidth={4}
           strokeLinecap="round"
           opacity={0.55}
@@ -204,7 +211,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE + SWEEP - approachSpan, START_ANGLE + SWEEP)}
           fill="none"
-          stroke="#f87171"
+          stroke={palette.breach[400]}
           strokeWidth={4}
           strokeLinecap="round"
           opacity={0.55}
@@ -228,7 +235,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               y1={inner.y}
               x2={outer.x}
               y2={outer.y}
-              stroke="#9c8a6e"
+              stroke={palette.panel[400]}
               strokeWidth={isMajor ? 2.5 : 1.5}
             />
           );
@@ -243,24 +250,23 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               y1={inner.y}
               x2={outer.x}
               y2={outer.y}
-              stroke="#9c8a6e"
+              stroke={palette.panel[400]}
               strokeWidth={1}
               opacity={0.6}
             />
           );
         })}
-        {/* Scale endpoints -- see the endLabels prop doc. Font size/offset
-            scale with `size`; the lg dial's fixed 15px crowded the track's
-            rounded end-caps once reused on the sm dial's less-than-half radius. */}
-        {endLabels && (
+        {/* Scale endpoints -- see the endLabels prop doc. Large dial only
+            (showEndLabels above). */}
+        {showEndLabels && endLabels && (
           <>
             <text
               x={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).x}
               y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).y}
               textAnchor="middle"
               fontSize={endLabelFontSize}
-              fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-              fill="#9c8a6e"
+              fontFamily={GAUGE_FONT}
+              fill={palette.panel[400]}
             >
               {endLabels[0]}
             </text>
@@ -269,48 +275,56 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE + SWEEP).y}
               textAnchor="middle"
               fontSize={endLabelFontSize}
-              fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-              fill="#9c8a6e"
+              fontFamily={GAUGE_FONT}
+              fill={palette.panel[400]}
             >
               {endLabels[1]}
             </text>
           </>
         )}
-        {/* Needle -- rotated via transform, eased, around the dial center.
-            This is the "moving gauge." A tapered polygon rather than a
-            uniform-width line, with a thin off-center highlight suggesting a
-            machined ridge rather than flat vector art. */}
-        <g
-          style={{
-            transform: `rotate(${needleAngle}deg)`,
-            transformOrigin: `${CX}px ${CY}px`,
-            transition: reducedMotion ? "none" : "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
-            filter: glow ? `drop-shadow(0 0 ${glow}px ${color})` : undefined,
-          }}
-        >
-          <polygon
-            points={`${CX - NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y} ${CX - NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y}`}
-            fill={color}
-          />
-          <line
-            x1={CX - 0.6}
-            y1={NEEDLE_BASE_Y - 1}
-            x2={CX - 0.2}
-            y2={NEEDLE_TIP_Y + 1}
-            stroke="#ffffff"
-            strokeOpacity={0.3}
-            strokeWidth={0.7}
-            strokeLinecap="round"
-          />
-        </g>
-        {/* Hub -- layered rather than a flat filled dot: a base disc, a dark
-            inset ring standing in for a bezel edge, and a small off-center
-            highlight standing in for a glossy dome. Cheap to render, doesn't
-            need per-state gradient defs since only the base disc carries the
-            state color. */}
-        <circle cx={CX} cy={CY} r={7} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
-        <circle cx={CX} cy={CY} r={7} fill="none" stroke="#000000" strokeOpacity={0.4} strokeWidth={1} />
-        <circle cx={CX - 1.8} cy={CY - 1.8} r={2} fill="#ffffff" fillOpacity={0.4} />
+        {/* Offline: no needle at all. A needle left resting at the
+            bottom of its travel reads as "reading at the minimum", which is
+            a claim about the fermenter this gauge has no data to make. The
+            empty dial plus the "—" numeral says "no reading" instead. */}
+        {!dim && (
+          <>
+            {/* Needle -- rotated via transform, eased, around the dial center.
+                This is the "moving gauge." A tapered polygon rather than a
+                uniform-width line, with a thin off-center highlight suggesting a
+                machined ridge rather than flat vector art. */}
+            <g
+              style={{
+                transform: `rotate(${needleAngle}deg)`,
+                transformOrigin: `${CX}px ${CY}px`,
+                transition: reducedMotion ? "none" : "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
+                filter: glow ? `drop-shadow(0 0 ${glow}px ${color})` : undefined,
+              }}
+            >
+              <polygon
+                points={`${CX - NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y} ${CX - NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y}`}
+                fill={color}
+              />
+              <line
+                x1={CX - 0.6}
+                y1={NEEDLE_BASE_Y - 1}
+                x2={CX - 0.2}
+                y2={NEEDLE_TIP_Y + 1}
+                stroke="#ffffff"
+                strokeOpacity={0.3}
+                strokeWidth={0.7}
+                strokeLinecap="round"
+              />
+            </g>
+            {/* Hub -- layered rather than a flat filled dot: a base disc, a dark
+                inset ring standing in for a bezel edge, and a small off-center
+                highlight standing in for a glossy dome. Cheap to render, doesn't
+                need per-state gradient defs since only the base disc carries the
+                state color. */}
+            <circle cx={CX} cy={CY} r={7} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
+            <circle cx={CX} cy={CY} r={7} fill="none" stroke="#000000" strokeOpacity={0.4} strokeWidth={1} />
+            <circle cx={CX - 1.8} cy={CY - 1.8} r={2} fill="#ffffff" fillOpacity={0.4} />
+          </>
+        )}
       </svg>
 
       {/* Positioned to the dial's actual clear zone (below the arc's lower
@@ -324,7 +338,7 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[66%] flex flex-col items-center justify-center text-center">
         <span
           className={`font-gauge tabular font-semibold leading-none ${numeralClass}`}
-          style={{ color: dim ? "#9c8a6e" : "#d9cbb0" }}
+          style={{ color: dim ? palette.panel[400] : palette.panel[200] }}
         >
           {dim ? "—" : displayValue}
         </span>

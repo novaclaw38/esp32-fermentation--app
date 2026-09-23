@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
-import type { Device, DeviceType, Reading } from "../types/database";
+import { useNow } from "../lib/useNow";
+import { DEVICE_COLUMNS, type Device, type DeviceType, type Reading } from "../types/database";
 import ClaimDeviceForm from "../components/ClaimDeviceForm";
 import UnitToggle from "../components/UnitToggle";
 import Gauge from "../components/Gauge";
@@ -18,15 +19,28 @@ function randomSecret(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Devices report every ~15 minutes, so a minute between background refreshes
+// is plenty to catch a new reading or a new alert without hammering the API.
+const REFRESH_MS = 60_000;
+
+const inputClass = "mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200";
+const primaryButton =
+  "inline-flex min-h-11 items-center rounded-md bg-brew-600 px-3 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50";
+const secondaryButton =
+  "inline-flex min-h-11 items-center rounded-md border border-panel-600 px-3 text-sm font-medium text-panel-200 hover:bg-panel-800";
+const quietLink = "inline-flex min-h-11 items-center px-2 text-sm text-panel-400 hover:text-panel-200";
+
 export default function Devices() {
   const { session } = useAuth();
   const { unit } = useTempUnit();
+  const now = useNow();
   const [devices, setDevices] = useState<Device[]>([]);
   const [latestReadings, setLatestReadings] = useState<Record<string, Reading>>({});
   const [openAlertDeviceIds, setOpenAlertDeviceIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
+  const [claimedNotice, setClaimedNotice] = useState<string | null>(null);
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<DeviceType>("hub");
@@ -39,6 +53,10 @@ export default function Devices() {
   // to answer "is my batch okay" without the owner checking manually, and a
   // calm "No devices yet" during an outage is the opposite of that.
   const [loadError, setLoadError] = useState<string | null>(null);
+  // Same rule for the two side queries: if readings or open alerts fail to
+  // load, the tiles would otherwise show "—" or a calm nominal gauge for a
+  // device that may well have an open alert.
+  const [partialError, setPartialError] = useState<string | null>(null);
   // Focus-dim: hovering/focusing one tile dims the rest of the panel so the
   // one you're reading pops, the way a lit instrument recedes its neighbors.
   const [focusedId, setFocusedId] = useState<string | null>(null);
@@ -46,17 +64,13 @@ export default function Devices() {
   // actually gates the page, so a false positive here can't grant access.
   const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    loadDevices();
-    supabase.rpc("is_admin").then(({ data }) => setIsAdmin(Boolean(data)));
-  }, []);
-
-  async function loadDevices() {
-    setLoading(true);
-    setLoadError(null);
+  const loadDevices = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    // A background refresh keeps what's on screen rather than flashing the
+    // skeleton every minute.
+    if (!silent) setLoading(true);
     const { data, error: devicesError } = await supabase
       .from("devices")
-      .select("*")
+      .select(DEVICE_COLUMNS)
       .order("created_at", { ascending: false });
 
     if (devicesError) {
@@ -64,29 +78,50 @@ export default function Devices() {
       setLoading(false);
       return;
     }
-    setDevices((data as Device[]) ?? []);
+    setLoadError(null);
+    setDevices((data as unknown as Device[]) ?? []);
 
-    // Latest reading per device: RLS already scopes rows to owned devices,
-    // so pull a recent batch and reduce to one row per device_id client-side
-    // -- simpler than a per-device round trip for a handful of devices.
-    const { data: readingsData } = await supabase
-      .from("readings")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
+    // latest_readings is DISTINCT ON (device_id): exactly one row per device,
+    // however busy its siblings are.
+    const [{ data: readingsData, error: readingsError }, { data: alertsData, error: alertsError }] = await Promise.all([
+      supabase.from("latest_readings").select("*"),
+      supabase.from("alerts").select("device_id").eq("acknowledged", false),
+    ]);
+
     if (readingsData) {
       const latest: Record<string, Reading> = {};
-      for (const r of readingsData as Reading[]) {
-        if (!latest[r.device_id]) latest[r.device_id] = r;
-      }
+      for (const r of readingsData as Reading[]) latest[r.device_id] = r;
       setLatestReadings(latest);
     }
-
-    const { data: alertsData } = await supabase.from("alerts").select("device_id").eq("acknowledged", false);
     if (alertsData) setOpenAlertDeviceIds(new Set(alertsData.map((a) => a.device_id as string)));
 
+    const sideError = readingsError ?? alertsError;
+    setPartialError(
+      sideError
+        ? `${readingsError ? "Latest readings" : "Open alerts"} couldn't be loaded, so these gauges may be out of date or miss an alert. ${sideError.message}`
+        : null,
+    );
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    loadDevices();
+    supabase.rpc("is_admin").then(({ data }) => setIsAdmin(Boolean(data)));
+  }, [loadDevices]);
+
+  // Keep the panel current while it's left open -- see lib/useNow.ts for why
+  // that matters here in particular.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") loadDevices({ silent: true });
+    };
+    const id = window.setInterval(refresh, REFRESH_MS);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [loadDevices]);
 
   async function handleAddDevice(e: FormEvent) {
     e.preventDefault();
@@ -94,6 +129,8 @@ export default function Devices() {
     if (!session) return;
 
     const secret = randomSecret();
+    // The database hashes device_secret on insert; this is the only moment
+    // the plaintext exists anywhere but the unit itself.
     const { error: insertError } = await supabase.from("devices").insert({
       id: newId.trim(),
       user_id: session.user.id,
@@ -111,45 +148,72 @@ export default function Devices() {
     setNewId("");
     setNewName("");
     setNewType("hub");
+    setShowAddForm(false);
     loadDevices();
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <main className="mx-auto max-w-3xl px-4 py-6">
+      {/* Utility row first, on its own line: at phone width the title, two
+          actions, the unit toggle, Firmware and Sign out can't share one row
+          (it overflowed a 375px screen by 96px and pushed Sign out offscreen). */}
+      <nav aria-label="Account" className="-mr-2 mb-2 flex items-center justify-end gap-1">
+        <UnitToggle />
+        {isAdmin && (
+          <Link to="/admin/firmware" className={quietLink}>
+            Firmware
+          </Link>
+        )}
+        <button onClick={() => supabase.auth.signOut()} className={quietLink}>
+          Sign out
+        </button>
+      </nav>
+
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold uppercase tracking-wide text-panel-200">Your devices</h1>
-        <div className="flex items-center gap-3">
-          <UnitToggle />
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => { setShowClaimForm((v) => !v); setShowAddForm(false); }}
-            className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500"
+            onClick={() => {
+              setShowClaimForm((v) => !v);
+              setShowAddForm(false);
+            }}
+            aria-expanded={showClaimForm}
+            className={primaryButton}
           >
             {showClaimForm ? "Cancel" : "Claim device"}
           </button>
           <button
-            onClick={() => { setShowAddForm((v) => !v); setShowClaimForm(false); }}
-            className="rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800"
+            onClick={() => {
+              setShowAddForm((v) => !v);
+              setShowClaimForm(false);
+            }}
+            aria-expanded={showAddForm}
+            className={secondaryButton}
           >
             {showAddForm ? "Cancel" : "Add manually"}
           </button>
-          {isAdmin && (
-            <Link to="/admin/firmware" className="text-sm text-panel-400 hover:text-panel-200">
-              Firmware
-            </Link>
-          )}
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="text-sm text-panel-400 hover:text-panel-200"
-          >
-            Sign out
-          </button>
         </div>
+      </header>
+
+      <div aria-live="polite">
+        {claimedNotice && (
+          <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-brew-600 bg-panel-900 p-4 text-sm">
+            <p className="text-panel-200">
+              Claimed <code className="text-brew-400">{claimedNotice}</code>. Its first reading shows up after its next
+              wake cycle, usually within 15 minutes.
+            </p>
+            <button onClick={() => setClaimedNotice(null)} className="shrink-0 text-xs font-medium text-brew-400 underline">
+              Dismiss
+            </button>
+          </div>
+        )}
       </div>
 
       {showClaimForm && (
         <ClaimDeviceForm
-          onClaimed={() => {
+          onClaimed={(deviceId) => {
             setShowClaimForm(false);
+            setClaimedNotice(deviceId);
             loadDevices();
           }}
         />
@@ -167,7 +231,7 @@ export default function Devices() {
               required
               value={newId}
               onChange={(e) => setNewId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
+              className={inputClass}
               placeholder="ferm-monitor-002"
             />
           </label>
@@ -176,18 +240,18 @@ export default function Devices() {
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
+              className={inputClass}
               placeholder="Kitchen Kombucha"
             />
           </label>
           <fieldset className="text-sm text-panel-200">
             <legend>Device type</legend>
             <div className="mt-1 space-y-1">
-              <label className="flex items-start gap-2">
+              <label className="flex items-start gap-2 py-1">
                 <input
                   type="radio"
                   name="device_type"
-                  className="mt-1"
+                  className="mt-1 accent-brew-500"
                   checked={newType === "hub"}
                   onChange={() => setNewType("hub")}
                 />
@@ -196,31 +260,35 @@ export default function Devices() {
                   Flash <code>fermentation_monitor_v1</code>.
                 </span>
               </label>
-              <label className="flex items-start gap-2">
+              <label className="flex items-start gap-2 py-1">
                 <input
                   type="radio"
                   name="device_type"
-                  className="mt-1"
+                  className="mt-1 accent-brew-500"
                   checked={newType === "tilt"}
                   onChange={() => setNewType("tilt")}
                 />
                 <span>
                   <span className="font-medium">Temp + Gravity</span> — the floating module:
                   temperature <em>and</em> gravity. Flash <code>fermentation_tilt_v1</code>, then
-                  enter its calibration curve on the device page.
+                  enter its calibration curve in the device's settings.
                 </span>
               </label>
             </div>
           </fieldset>
-          {error && <p className="text-sm text-breach-400">{error}</p>}
-          <button type="submit" className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500">
+          {error && (
+            <p role="alert" className="text-sm text-breach-400">
+              {error}
+            </p>
+          )}
+          <button type="submit" className={primaryButton}>
             Create device
           </button>
         </form>
       )}
 
       {createdSecret && (
-        <div className="mb-6 rounded-lg border border-approach-500 bg-panel-900 p-4 text-sm">
+        <div role="status" className="mb-6 rounded-lg border border-approach-500 bg-panel-900 p-4 text-sm">
           <p className="font-medium text-approach-400">Save this device secret now — it won't be shown again:</p>
           <code className="mt-2 block break-all rounded bg-panel-950 p-2 text-panel-200">{createdSecret}</code>
           <p className="mt-2 text-panel-400">
@@ -229,26 +297,35 @@ export default function Devices() {
           </p>
           <button
             onClick={() => setCreatedSecret(null)}
-            className="mt-2 text-xs font-medium text-approach-400 underline"
+            className="mt-2 min-h-11 text-xs font-medium text-approach-400 underline"
           >
-            Dismiss
+            I've saved it
+          </button>
+        </div>
+      )}
+
+      {partialError && !loading && !loadError && (
+        <div role="alert" className="mb-4 rounded-lg border border-approach-500/40 bg-panel-900 p-3 text-sm text-approach-400">
+          {partialError}{" "}
+          <button onClick={() => loadDevices()} className="font-medium underline">
+            Retry
           </button>
         </div>
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div role="status" aria-label="Loading devices" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }, (_, i) => (
             <GaugeTileSkeleton key={i} />
           ))}
         </div>
       ) : loadError ? (
-        <div className="rounded-lg border border-breach-500/40 bg-panel-900 p-4 text-sm">
+        <div role="alert" className="rounded-lg border border-breach-500/40 bg-panel-900 p-4 text-sm">
           <p className="font-medium text-breach-400">Couldn't load your devices</p>
           <p className="mt-1 text-panel-400">{loadError}</p>
           <button
-            onClick={loadDevices}
-            className="mt-3 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            onClick={() => loadDevices()}
+            className="mt-3 min-h-11 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -265,10 +342,10 @@ export default function Devices() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {devices.map((d) => {
             const reading = latestReadings[d.id];
-            const connection = getConnectionInfo(d, new Date());
+            const connection = getConnectionInfo(d, now);
             const state = getGaugeState(
               reading ? reading.temperature_c : null,
               d.temp_min_c,
@@ -279,45 +356,53 @@ export default function Devices() {
             const dimmed = focusedId !== null && focusedId !== d.id;
 
             return (
-              <Link
-                key={d.id}
-                to={`/devices/${d.id}`}
-                onMouseEnter={() => setFocusedId(d.id)}
-                onMouseLeave={() => setFocusedId(null)}
-                onFocus={() => setFocusedId(d.id)}
-                onBlur={() => setFocusedId(null)}
-                className={`flex items-center gap-4 rounded-lg border border-panel-700 bg-panel-900 p-4 transition-[opacity,border-color] duration-300 hover:border-brew-600 ${dimmed ? "opacity-50" : "opacity-100"}`}
-              >
-                <Gauge
-                  value={reading ? reading.temperature_c : null}
-                  min={d.temp_min_c}
-                  max={d.temp_max_c}
-                  displayValue={formatTemp(reading?.temperature_c, unit)}
-                  label="TEMP"
-                  state={state}
-                  stale={connection.status === "stale"}
-                  subLabel={connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined}
-                  size="sm"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-panel-200">{d.name}</p>
-                  <p className="truncate text-xs text-panel-400">
-                    {d.id}
-                    {d.device_type === "tilt" && (
-                      <span className="ml-2 rounded bg-panel-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brew-400">
-                        Temp + Gravity
-                      </span>
-                    )}
-                  </p>
-                  <p className="mt-1 text-xs text-panel-400">
-                    {formatTemp(d.temp_min_c, unit)} – {formatTemp(d.temp_max_c, unit)}
-                  </p>
-                </div>
-              </Link>
+              <li key={d.id}>
+                <Link
+                  to={`/devices/${d.id}`}
+                  onMouseEnter={() => setFocusedId(d.id)}
+                  onMouseLeave={() => setFocusedId(null)}
+                  onFocus={() => setFocusedId(d.id)}
+                  onBlur={() => setFocusedId(null)}
+                  // 70%, not 50%: at half opacity the neighbours' secondary
+                  // text fell below AA contrast while one tile was hovered.
+                  className={`flex h-full items-center gap-4 rounded-lg border border-panel-700 bg-panel-900 p-4 transition-[opacity,border-color] duration-300 hover:border-brew-600 ${dimmed ? "opacity-70" : "opacity-100"}`}
+                >
+                  <Gauge
+                    value={reading ? reading.temperature_c : null}
+                    min={d.temp_min_c}
+                    max={d.temp_max_c}
+                    displayValue={formatTemp(reading?.temperature_c, unit)}
+                    label="Temp"
+                    state={state}
+                    stale={connection.status === "stale"}
+                    subLabel={connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-panel-200">{d.name}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-panel-400">
+                      <span className="truncate">{d.id}</span>
+                      {d.device_type === "tilt" && (
+                        <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brew-400">
+                          Temp + Gravity
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-1 text-xs text-panel-400">
+                      {formatTemp(d.temp_min_c, unit)} – {formatTemp(d.temp_max_c, unit)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-panel-400">
+                      {connection.secondsSinceLastSeen != null
+                        ? `Last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
+                        : "Hasn't reported yet"}
+                    </p>
+                  </div>
+                </Link>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
-    </div>
+    </main>
   );
 }

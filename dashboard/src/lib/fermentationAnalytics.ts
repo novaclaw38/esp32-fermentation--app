@@ -47,7 +47,7 @@ export function computeAttenuation(og: number, fg: number): { apparent: number; 
   return { apparent, real: apparent * 0.8114 };
 }
 
-interface GravityPoint {
+export interface GravityPoint {
   t: number;
   sg: number;
 }
@@ -91,11 +91,9 @@ function fermentationRate(points: GravityPoint[]): number {
  */
 export function computeFermentationRateSeries(
   readings: ReadingWithGravity[],
+  batchStartedAt: string | null = null,
 ): { t: number; ratePer24h: number }[] {
-  const points = readings
-    .filter((r) => r.gravity_sg != null)
-    .map((r) => ({ t: new Date(r.created_at).getTime(), sg: r.gravity_sg as number }))
-    .sort((a, b) => a.t - b.t);
+  const points = batchGravityPoints(readings, batchStartedAt);
 
   const MIN_SPAN_MS = 2 * 60 * 60 * 1000;
   const series: { t: number; ratePer24h: number }[] = [];
@@ -106,11 +104,34 @@ export function computeFermentationRateSeries(
   return series;
 }
 
+/**
+ * Gravity points belonging to the current batch, oldest first. Readings from
+ * before fermentation_started_at are the previous batch in the same vessel
+ * (or the unit sitting in water before pitching) -- mixing them in let an old
+ * batch's finished plateau decide the new batch's stage.
+ */
+export function batchGravityPoints(readings: ReadingWithGravity[], batchStartedAt: string | null): GravityPoint[] {
+  const start = batchStartedAt ? new Date(batchStartedAt).getTime() : -Infinity;
+  return readings
+    .filter((r) => r.gravity_sg != null)
+    .map((r) => ({ t: new Date(r.created_at).getTime(), sg: r.gravity_sg as number }))
+    .filter((p) => p.t >= start)
+    .sort((a, b) => a.t - b.t);
+}
+
 const LAG_ATTENUATION_MAX = 5;
 const LAG_RATE_MAX = 0.002;
 const ACTIVE_RATE_MIN = 0.005;
 const SLOWING_RATE_MIN = 0.001;
 const PLATEAU_WINDOW_MS = 48 * 60 * 60 * 1000;
+
+/**
+ * How much history the detail page loads for analytics. It has to exceed the
+ * 48h plateau window: loading exactly 48h (as the page once did) meant no
+ * point could ever sit at or before the window's start, so COMPLETED was
+ * unreachable. 72h leaves a full day of margin for sparse or missed wakes.
+ */
+export const ANALYTICS_HISTORY_HOURS = 72;
 const PLATEAU_VARIANCE_MAX = 0.0015;
 
 function determineStage(
@@ -149,6 +170,10 @@ function determineStage(
 }
 
 /**
+ * `readings` must reach back at least PLATEAU_WINDOW_MS before the latest
+ * reading (see ANALYTICS_HISTORY_HOURS), or COMPLETED can never be confirmed:
+ * the plateau check needs a point at or before that edge.
+ *
  * Returns null when analytics can't be computed honestly yet: no OG anchor
  * captured (uncalibrated device, or no calibrated reading has posted since
  * the batch started), or no gravity reading loaded to compare it against.
@@ -164,10 +189,7 @@ export function computeFermentationAnalytics(
   const og = computeGravitySg(device, device.og_tilt_deg, device.og_temp_c);
   if (og == null) return null;
 
-  const points = readings
-    .filter((r) => r.gravity_sg != null)
-    .map((r) => ({ t: new Date(r.created_at).getTime(), sg: r.gravity_sg as number }))
-    .sort((a, b) => a.t - b.t);
+  const points = batchGravityPoints(readings, device.fermentation_started_at);
   if (points.length === 0) return null;
 
   const latest = points[points.length - 1];
