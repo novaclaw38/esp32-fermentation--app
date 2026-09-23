@@ -27,7 +27,7 @@ resistors) verified live against JLCPCB per the usual sourcing rules.
 
 | Selection | Status | Notes |
 |---|---|---|
-| **DHT11 breakout** (user-supplied) | ⚠️ Not yet verified against a photo | Replaces the MCP9808 as this build's temperature sensor. Two common physical variants exist: a 3-pin blue-PCB breakout (onboard pull-up already fitted) or a bare 4-pin sensor (needs an external 10kΩ pull-up between `DATA` and `3V3`) — the SKiDL circuit models the 3-pin variant; confirm which one you have before wiring, see `datasheets/DHT11_SUMMARY.md`. |
+| **DHT11, Asair, bare 4-pin** (user-supplied) | ✅ Confirmed by photo | Replaces the MCP9808 as this build's temperature sensor. No onboard pull-up (unlike the common 3-pin blue-PCB breakout) — `R3` (10kΩ) added between `DATA` and `3V3` in the SKiDL circuit. See `datasheets/DHT11_SUMMARY.md`. |
 
 ## Passives (verified live against JLCPCB)
 
@@ -35,6 +35,7 @@ resistors) verified live against JLCPCB per the usual sourcing rules.
 |---|---|---|---|
 | Battery divider top (R1) | 0603WAF1003T5E, 100kΩ | C25803 | Same part already sourced and verified for the production PCB's own R1/R2 (`../sourcing/sourced_bom.md`) — reused here since the ESP32's native 0-3.3V ADC needs the exact same 1:1 ratio, no ESP8266-style redesign required. |
 | Battery divider bottom (R2) | 0603WAF1003T5E, 100kΩ | C25803 | Same MPN as R1 (1:1 ratio) |
+| DHT11 pull-up (R3) | 0603WAF1002T5E, 10kΩ | C25804 | Same MPN already sourced and verified for the ESP8266 rig's original battery divider top (`../../esp8266-tilt-prototype/architecture/module_selection.md`) — reused here for a different purpose (DHT11 data pull-up), same value. |
 
 These are SMD 0603 values given for BOM consistency with the rest of
 the repo; for an actual breadboard build, any through-hole 1/4W

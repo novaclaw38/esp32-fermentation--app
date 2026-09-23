@@ -48,8 +48,10 @@ wiring-only substitution the way MCP9808↔DS18B20 is on the sibling rigs.
 - TP4056 breakout protection status and GY-291 `SDO`/`CS` pin behavior
   carry over the ESP8266 rig's findings *only if these are literally
   the same physical modules*. Re-verify if not.
-- DHT11 breakout variant (3-pin with onboard pull-up, vs. bare 4-pin
-  needing an external one) — see `datasheets/DHT11_SUMMARY.md`.
+
+**Verified by user photo:**
+- DHT11 is the bare 4-pin Asair variant (no onboard pull-up) — `R3`
+  (10kΩ) added to the circuit. See `datasheets/DHT11_SUMMARY.md`.
 
 ## Quick start
 

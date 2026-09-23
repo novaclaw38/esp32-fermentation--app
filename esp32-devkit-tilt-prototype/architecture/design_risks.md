@@ -34,10 +34,10 @@ library, its own read function, see `net_plan.md`).
 3. **GY-291's `SDO`/`CS` pull** — carry over the ESP8266 rig's
    confirmed-dedicated-pins verification only if it's the same physical
    board; otherwise re-check per `hardware/PROTOTYPE_TEMP_GRAVITY.md`.
-4. **DHT11 breakout variant** — confirm whether the specific unit is the
-   common 3-pin breakout (onboard pull-up) or a bare 4-pin sensor
-   (needs an external 10kΩ pull-up on `DATA`) before wiring; the SKiDL
-   circuit models the 3-pin variant. See `datasheets/DHT11_SUMMARY.md`.
+4. ~~**DHT11 breakout variant.**~~ ✅ **Confirmed by photo** — bare
+   4-pin Asair DHT11, no onboard pull-up. `R3` (10kΩ) added to the
+   SKiDL circuit between `DATA` and `3V3`. See
+   `datasheets/DHT11_SUMMARY.md`.
 5. **DHT11 accuracy is genuinely lower than the MCP9808 it replaced** —
    ±2°C and integer-only resolution, vs. the MCP9808's ±0.5°C and
    0.0625°C steps. Not a wiring/verification risk, just a real

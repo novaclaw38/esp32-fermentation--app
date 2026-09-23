@@ -1,4 +1,4 @@
-# DHT11 — Temperature + Humidity Breakout
+# DHT11 — Temperature + Humidity Sensor (Asair, bare 4-pin)
 
 Replaces the MCP9808 as this build's only temperature sensor. Unlike
 the MCP9808↔DS18B20 swap on the sibling rigs (both I2C/1-Wire sensors
@@ -6,29 +6,35 @@ sharing firmware auto-detect logic), this is a genuinely different
 sensor family — its own protocol, its own library, its own read
 function in the firmware.
 
+**Confirmed by photo**: an Asair-branded bare 4-pin DHT11 (no PCB),
+printed spec block reads `OC: 3.3-5.5V`, `U1: 5-95%RH`, `U2: -20-60°C`,
+`U3: ±5%RH ±2°C`.
+
 | Spec | Value |
 |------|-------|
 | Interface | Single-wire, proprietary timing protocol (not I2C, not Dallas 1-Wire — needs its own library, not `OneWire`/`DallasTemperature`) |
-| Accuracy | ±2°C — notably worse than the MCP9808 it replaced (±0.5°C) |
+| Accuracy | ±2°C / ±5%RH — notably worse than the MCP9808 it replaced (±0.5°C) |
 | Resolution | Integer only — no fractional degrees, unlike the MCP9808's 0.0625°C steps |
-| Range | 0-50°C, 20-80% RH |
-| Vcc | 3-5.5V (fine off this board's 3V3 rail) |
+| Range | -20 to 60°C, 5-95% RH (per this unit's printed spec — some datasheets list 0-50°C/20-80%RH for DHT11 generally; trust the part in hand) |
+| Vcc | 3.3-5.5V (fine off this board's 3V3 rail) |
 | Sample rate | Max ~1 reading/second — irrelevant here (one read per wake cycle) |
-| Also reports | Relative humidity (0-100% RH claimed, ±5% typical accuracy) |
 
-## Two common physical variants — confirm which one you have
+## Physical variant — confirmed bare 4-pin, needs an external pull-up
 
-| Variant | Pins | Pull-up |
-|---|---|---|
-| **3-pin breakout** (blue PCB, most common for hobbyist use) | VCC, DATA, GND | **Onboard** — no external resistor needed. This is what the SKiDL circuit (`circuits/esp32_devkit_tilt_prototype/dht11.py`) models. |
-| **Bare 4-pin sensor** (no PCB) | VCC, DATA, NC, GND | **External** — needs a 10kΩ resistor between `DATA` and `3V3`. Not modeled in the current SKiDL circuit; add `R3` yourself if this is what you have. |
+This is the **bare 4-pin sensor** (no PCB, no onboard pull-up) — pins
+`VDD` / `DATA` / `NC` / `GND` left to right, per the datasheet's
+standard silkscreen order. Unlike the common 3-pin blue-PCB breakout
+(which carries its own pull-up), this variant needs an **external 10kΩ
+resistor between `DATA` and `3V3`** — modeled as `R3` in
+`circuits/esp32_devkit_tilt_prototype/dht11.py`.
 
-## Pinout used here (3-pin breakout)
+## Pinout used here
 
 | Pin | Function here |
 |-----|----------------|
-| VCC | `DEVKIT_3V3` |
-| DATA | `DHT_DATA` net → Dev Kit V1 `GPIO4` |
+| VDD | `DEVKIT_3V3` |
+| DATA | `DHT_DATA` net → Dev Kit V1 `GPIO4`, pulled up to `3V3` through `R3` (10kΩ) |
+| NC | Not connected — some datasheets list this as a factory-test pin, not user-connectable |
 | GND | `GND` |
 
 ## Firmware

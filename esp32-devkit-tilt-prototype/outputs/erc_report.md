@@ -2,7 +2,7 @@
 
 **0 errors, 0 warnings. Circuit is PASS.**
 
-Run: `KICAD7_SYMBOL_DIR=/usr/share/kicad/symbols KICAD7_FOOTPRINT_DIR=/usr/share/kicad/footprints .venv/bin/python -m circuits.esp32_devkit_tilt_prototype` — 2026-09-23 (re-run after the DHT11 swap, see Revision history below).
+Run: `KICAD7_SYMBOL_DIR=/usr/share/kicad/symbols KICAD7_FOOTPRINT_DIR=/usr/share/kicad/footprints .venv/bin/python -m circuits.esp32_devkit_tilt_prototype` — 2026-09-23 (re-run after the DHT11 swap and again after adding its pull-up resistor, see Revision history below).
 
 ## Findings
 
@@ -15,7 +15,7 @@ final run:
 
 ## Footprint validation
 
-`✓ All footprints valid (6 checked across 6 files)`.
+`✓ All footprints valid (7 checked across 6 files)`.
 
 ## Verdict
 
@@ -65,3 +65,12 @@ have reappeared here too.
   doesn't hit either crash pattern above. Re-verified: ERC still 0
   errors/0 warnings, footprints still 6/6 valid (GY-291 + DHT11 +
   ESP32 Dev Kit V1 + TP4056 + R1 + R2).
+- **DHT11 pull-up resistor (`R3`, 10kΩ) added.** A user photo confirmed
+  the actual part is a bare 4-pin Asair DHT11 (no onboard pull-up),
+  not the 3-pin breakout `dht11.py` originally assumed. Added between
+  `DHT_DATA` and `DEVKIT_3V3`. `DEVKIT_3V3` still has the same
+  same-part fan-out (GY-291's `VCC`+`CS`) the `symio="output"` fix
+  above addresses — `R3` and the DHT11's `VDD` are each single
+  endpoints on that net, so no new crash risk. Re-verified: ERC still
+  0 errors/0 warnings, footprints 7/7 valid, schematic SVG/PDF
+  regenerated clean on the first attempt.

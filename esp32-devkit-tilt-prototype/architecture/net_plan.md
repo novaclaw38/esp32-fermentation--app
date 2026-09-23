@@ -6,12 +6,12 @@
 | `BAT_PLUS` | Power, 3.0-4.2V | TP4056 breakout `B+` → 18650 cell `+`; TP4056 breakout `OUT+` → Dev Kit V1 `VIN`; also → R1 (battery-sense divider top, 100kΩ) |
 | `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, Dev Kit V1 `GND`, GY-291 `GND`, DHT11 `GND`, R2 bottom |
 | `DEVKIT_5V` | Power | = TP4056 `OUT+` (same node as BAT_PLUS — the board's onboard regulator runs from this) |
-| `DEVKIT_3V3` | Power, regulated | Dev Kit V1 `3V3` pin (output of its onboard regulator) → GY-291 `VCC`, GY-291 `CS`, DHT11 `VCC` |
+| `DEVKIT_3V3` | Power, regulated | Dev Kit V1 `3V3` pin (output of its onboard regulator) → GY-291 `VCC`, GY-291 `CS`, DHT11 `VDD`, R3 (DHT11 pull-up top, 10kΩ) |
 | `SDA` | I2C | Dev Kit V1 `GPIO21` → GY-291 `SDA` |
 | `SCL` | I2C | Dev Kit V1 `GPIO22` → GY-291 `SCL` |
 | `SDO` | Signal | GY-291 `SDO` → `GND` — required for I2C address 0x53. Same gotcha as the ESP8266 rig: verify this is a dedicated pin on your specific GY-291 board before trusting it (not all clones expose it separately). |
 | `CS` | Signal | GY-291 `CS` → `3V3` — forces I2C mode, avoids a floating CMOS input. Same verification caveat as `SDO`. |
-| `DHT_DATA` | Signal, single-wire | Dev Kit V1 `GPIO4` → DHT11 `DATA` |
+| `DHT_DATA` | Signal, single-wire | Dev Kit V1 `GPIO4` → DHT11 `DATA`, pulled up to `3V3` through R3 (10kΩ) |
 | `BATT_SENSE_ADC` | Signal, analog | R1 (100kΩ) from `BAT_PLUS` → node → R2 (100kΩ) → `GND`; node → Dev Kit V1 `GPIO34` (ADC1_CH6, input-only) |
 
 ## Temperature sensor — DHT11
@@ -22,10 +22,10 @@ Not a wiring-only swap like MCP9808↔DS18B20 was on the sibling rigs
 (those share firmware auto-detect logic and both sit on a bus/pin the
 other already used) — the DHT11 is a genuinely different sensor family
 with its own library and read function. See
-`datasheets/DHT11_SUMMARY.md`. The common 3-pin breakout already
-carries a pull-up resistor onboard; the bare 4-pin sensor needs an
-external 10kΩ pull-up between `DHT_DATA` and `3V3`, which this circuit
-does not add — check which variant you have.
+`datasheets/DHT11_SUMMARY.md`. **Confirmed by photo**: this is the bare
+4-pin Asair DHT11 (no onboard pull-up, unlike the common 3-pin
+blue-PCB breakout) — R3 (10kΩ) adds the external pull-up this variant
+needs between `DHT_DATA` and `3V3`.
 
 DHT11 also reports humidity, posted alongside temperature via
 `ingest_reading`'s `p_humidity_pct` parameter and stored in
