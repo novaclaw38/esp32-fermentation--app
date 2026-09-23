@@ -57,3 +57,7 @@ provisioning/
 .impeccable/live/deferred-svelte-component-accepts.json
 .impeccable/live/*.png
 # impeccable-ignore-end
+
+# Impeccable's detector engine is platform-specific and ~16MB; the launcher
+# (.claude/skills/impeccable/scripts/impeccable) downloads it on first run.
+.claude/skills/impeccable/scripts/bin/
