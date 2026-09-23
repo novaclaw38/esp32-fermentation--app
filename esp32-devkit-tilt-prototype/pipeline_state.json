@@ -1,0 +1,63 @@
+{
+  "version": "4.0",
+  "circuit_name": "esp32_devkit_tilt_prototype",
+  "stage": "design_review",
+  "last_updated": "2026-09-23",
+  "active_circuit_file": "circuits/esp32_devkit_tilt_prototype/__main__.py",
+  "requirements_complete": true,
+  "architecture_complete": true,
+  "sourcing_complete": true,
+  "datasheets_complete": true,
+  "erc_status": {
+    "last_run": "2026-09-23",
+    "errors": 0,
+    "warnings": 0,
+    "pass": true,
+    "report_path": "outputs/erc_report.md"
+  },
+  "sourced_bom_version": "1.0",
+  "last_modified_circuit": "circuits/esp32_devkit_tilt_prototype/",
+  "coding_mode": "modular",
+  "block_manifest": [
+    {
+      "block_id": "charger",
+      "block_name": "Charger Module (TP4056 breakout)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/charger.py",
+      "interface_nets": ["BAT_PLUS", "GND"],
+      "parts": ["MOD1"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "mcu_core",
+      "block_name": "ESP32 Dev Kit V1",
+      "filename": "circuits/esp32_devkit_tilt_prototype/mcu_core.py",
+      "interface_nets": ["BAT_PLUS", "DEVKIT_3V3", "GND", "SDA", "SCL", "BATT_SENSE_ADC"],
+      "parts": ["U1"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "battery_sense",
+      "block_name": "Battery Voltage Sense (ungated, single-stage)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/battery_sense.py",
+      "interface_nets": ["BAT_PLUS", "GND", "BATT_SENSE_ADC"],
+      "parts": ["R1", "R2"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "sensor_bus",
+      "block_name": "Sensor Bus (GY-291 + MCP9808)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/sensor_bus.py",
+      "interface_nets": ["DEVKIT_3V3", "GND", "SDA", "SCL"],
+      "parts": ["MOD2", "MOD3"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    }
+  ],
+  "sourcing_escalation_count": 0,
+  "erc_iteration_count": 1,
+  "architecture_rework_count": 0,
+  "notes": "Sibling project to ../esp8266-tilt-prototype/, same three user-supplied breakouts (TP4056, GY-291, MCP9808) but on a generic ESP32 Dev Kit V1 instead of an ESP8266 D1 Mini. Firmware needed almost no porting -- the production board's own fermentation_tilt_v1.ino already targets a bare ESP32 with the same GPIO numbers this design uses (4, 21, 22, 25, 34); only the battery-sense path changed (ungated, single-stage 100k/100k divider vs the production board's gated divider). Both known netlistsvg/elkjs rendering crash patterns discovered during the ESP8266 rig's development (NOCONNECT-vs-typed-pin-wired-to-NC; single driver fanning into two same-part inputs) were fixed proactively in mcu_core.py and sensor_bus.py, so the schematic SVG/PDF generated clean on the first attempt. Firmware compiles clean against esp32:esp32 core 3.3.12, board esp32doit-devkit-v1 (85% flash, 15% RAM -- comfortable headroom, unlike the ESP8266 rig's tight 93% IRAM). Hardware is entirely unverified pending a photo of the actual board -- see architecture/design_risks.md's note on ESP32 Dev Kit V1 pin-layout variance across vendors. No physical build/mounting guide yet (SPEC.md scopes that out for now, unlike the ESP8266 rig's Prototype Shield guide) -- add one if requested."
+}
