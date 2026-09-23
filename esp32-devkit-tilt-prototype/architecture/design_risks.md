@@ -9,9 +9,11 @@ targets a bare ESP32: `RTC_DATA_ATTR` for persistent state,
 `Preferences` (NVS) for WiFi credentials, a native 12-bit/0-3.3V ADC,
 single-argument `HTTPClient::begin()`, and no 32-bit microsecond
 deep-sleep wraparound to work around. A Dev Kit V1 is the same
-ESP32-WROOM-32 chip with those same GPIOs broken out directly. The only
-functional delta from the production firmware is the battery-sense
-change below.
+ESP32-WROOM-32 chip with those same GPIOs broken out directly. Two
+functional deltas from the production firmware: the battery-sense
+change below, and the DHT11 temperature sensor (a genuinely different
+part from the production board's MCP9808, not a drop-in — its own
+library, its own read function, see `net_plan.md`).
 
 ## Hardware, unverified
 
@@ -32,9 +34,14 @@ change below.
 3. **GY-291's `SDO`/`CS` pull** — carry over the ESP8266 rig's
    confirmed-dedicated-pins verification only if it's the same physical
    board; otherwise re-check per `hardware/PROTOTYPE_TEMP_GRAVITY.md`.
-4. **MCP9808 breakout address pins** — verify `A0`/`A1`/`A2` default
-   grounded (address `0x18`) on the specific board used, same caveat as
-   the ESP8266 rig and the production board's own datasheet summary.
+4. **DHT11 breakout variant** — confirm whether the specific unit is the
+   common 3-pin breakout (onboard pull-up) or a bare 4-pin sensor
+   (needs an external 10kΩ pull-up on `DATA`) before wiring; the SKiDL
+   circuit models the 3-pin variant. See `datasheets/DHT11_SUMMARY.md`.
+5. **DHT11 accuracy is genuinely lower than the MCP9808 it replaced** —
+   ±2°C and integer-only resolution, vs. the MCP9808's ±0.5°C and
+   0.0625°C steps. Not a wiring/verification risk, just a real
+   measurement-quality tradeoff worth knowing going in.
 
 ## Battery sense: ungated, single-stage (simpler than the ESP8266 rig)
 

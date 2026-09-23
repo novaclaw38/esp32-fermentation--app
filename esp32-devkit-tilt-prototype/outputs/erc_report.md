@@ -2,7 +2,7 @@
 
 **0 errors, 0 warnings. Circuit is PASS.**
 
-Run: `KICAD7_SYMBOL_DIR=/usr/share/kicad/symbols KICAD7_FOOTPRINT_DIR=/usr/share/kicad/footprints .venv/bin/python -m circuits.esp32_devkit_tilt_prototype` — 2026-09-23.
+Run: `KICAD7_SYMBOL_DIR=/usr/share/kicad/symbols KICAD7_FOOTPRINT_DIR=/usr/share/kicad/footprints .venv/bin/python -m circuits.esp32_devkit_tilt_prototype` — 2026-09-23 (re-run after the DHT11 swap, see Revision history below).
 
 ## Findings
 
@@ -15,7 +15,7 @@ final run:
 
 ## Footprint validation
 
-`✓ All footprints valid (6 checked across 5 files)`.
+`✓ All footprints valid (6 checked across 6 files)`.
 
 ## Verdict
 
@@ -29,14 +29,15 @@ development history (see
 `../../esp8266-tilt-prototype/outputs/erc_report.md`'s revision history
 for the full diagnostic story). Both were applied here from the start,
 so the schematic SVG/PDF generated clean on the first attempt with no
-crash-and-fix cycle needed:
+crash-and-fix cycle needed, both before and after the DHT11 swap below:
 
-- **`mcu_core.py`**: `GPIO25_BATTERY_EN` and `GPIO4_ONE_WIRE` are
-  genuinely unused on this ungated, MCP9808-only build. Both are
-  declared `Pin.types.NOCONNECT` directly, rather than a
+- **`mcu_core.py`**: `GPIO25_BATTERY_EN` is genuinely unused on this
+  ungated build. Declared `Pin.types.NOCONNECT` directly, rather than a
   functionally-typed pin (`OUTPUT`, etc.) wired only to the `NC` net —
   the latter pattern produces a netlist/port-direction mismatch that
-  crashes netlistsvg's ELK-based layout engine.
+  crashes netlistsvg's ELK-based layout engine. (`GPIO4` was the same
+  story before the DHT11 swap; it's now a genuinely-used `BIDIR` pin —
+  see Revision history.)
 - **`sensor_bus.py`**: `GY-291["CS"]` gets a schematic-render-only
   `symio="output"` hint before being wired to `DEVKIT_3V3`. Without it,
   a single driver pin (the Dev Kit V1's `3V3` output) fanning out to two
@@ -48,6 +49,19 @@ crash-and-fix cycle needed:
   electrical change.
 
 This design carries the same `DEVKIT_3V3` fan-out topology as the
-ESP8266 rig (one driver, three sinks, two of which share a part), so
+ESP8266 rig (one driver, multiple sinks, two of which share a part), so
 without these fixes applied up front the same crash would very likely
 have reappeared here too.
+
+## Revision history
+
+- **MCP9808 removed, DHT11 added as the primary (and only) temperature
+  sensor.** `sensor_bus.py` no longer includes the MCP9808 breakout
+  (GY-291/tilt only now); a new `dht11.py` block adds a DHT11 breakout
+  (`MOD4`) on its own single-wire pin. `mcu_core.py`'s `GPIO4` pin
+  changed from `NOCONNECT` (previously the unused DS18B20 fallback pin)
+  to `BIDIR` (the DHT11's genuinely-used data line) — no netlistsvg
+  regression, since a real `BIDIR` pin wired to a real 2-endpoint net
+  doesn't hit either crash pattern above. Re-verified: ERC still 0
+  errors/0 warnings, footprints still 6/6 valid (GY-291 + DHT11 +
+  ESP32 Dev Kit V1 + TP4056 + R1 + R2).

@@ -4,11 +4,12 @@
 
 Sibling project to [`../esp8266-tilt-prototype/`](../esp8266-tilt-prototype/)
 — same bench-testing goal (temp + gravity module, off-PCB, breakout
-modules on a breadboard), same three user-supplied breakouts (TP4056
-charger, GY-291/ADXL345, MCP9808 I2C temp sensor), same ungated battery
-divider philosophy. The only thing that changes is the MCU: a generic
-**ESP32 Dev Kit V1** (WROOM-32 module on a 30-pin breakout board) instead
-of an ESP8266 D1 Mini.
+modules on a breadboard), same ungated battery divider philosophy, same
+TP4056 charger and GY-291/ADXL345. Two things change from the ESP8266
+sibling: the MCU is a generic **ESP32 Dev Kit V1** (WROOM-32 module on a
+30-pin breakout board) instead of an ESP8266 D1 Mini, and the
+temperature sensor is a **DHT11** (single-wire, `GPIO4`) instead of an
+MCP9808/DS18B20 pairing — see `datasheets/DHT11_SUMMARY.md`.
 
 Unlike the ESP8266 port, this does **not** need firmware rewritten from
 scratch: the production board's own firmware
@@ -32,10 +33,10 @@ different physical artifact from this breadboard rig.
 ## Functional
 
 - Same behavior as `fermentation_tilt_v1.ino`: wake from deep sleep, read
-  temperature (MCP9808 I2C breakout, preferred; DS18B20 1-Wire probe as
-  automatic fallback if no MCP9808 answers) + tilt angle (ADXL345 via
-  the GY-291 breakout), connect WiFi, fetch remote config, POST a
-  reading via the `ingest_reading` RPC, check thresholds, sleep.
+  temperature (DHT11, single-wire — also reports humidity, logged to
+  serial but not posted) + tilt angle (ADXL345 via the GY-291 breakout),
+  connect WiFi, fetch remote config, POST a reading via the
+  `ingest_reading` RPC, check thresholds, sleep.
 - **No gravity computed on-device** — raw tilt angle posted, calibration
   curve applied server-side, unchanged from the production design.
 - Bench-only: for the axis-test and gravity-sweep calibration steps in
@@ -63,10 +64,11 @@ different physical artifact from this breadboard rig.
 ## Interface
 
 - I2C: `GPIO21` = SDA, `GPIO22` = SCL — matches the production board's
-  own pin choice, so the same firmware constants apply unchanged.
-- MCP9808 (preferred) / DS18B20 (fallback, `GPIO4`, needs a 4.7kΩ
-  pull-up to 3V3 if the probe doesn't carry one) — both share the
-  firmware's existing auto-detect logic, unchanged from production.
+  own pin choice, so the same firmware constants apply unchanged. Only
+  the GY-291 is on this bus now (MCP9808 removed).
+- DHT11 on `GPIO4` (previously the unused DS18B20 fallback pin) — the
+  common 3-pin breakout has an onboard pull-up; a bare 4-pin sensor
+  needs an external 10kΩ pull-up to 3V3 that this design doesn't add.
 - Battery sense: `GPIO34` (ADC1_CH6, input-only), through the external
   100kΩ/100kΩ divider from `BAT+` (not gated).
 - `BATTERY_EN_PIN` = `GPIO25` — toggled for structural/behavioral parity

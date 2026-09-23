@@ -22,7 +22,12 @@ resistors) verified live against JLCPCB per the usual sourcing rules.
 | Selection | Status | Notes |
 |---|---|---|
 | **GY-291 (ADXL345) breakout** (user-supplied) | Carry over the ESP8266 rig's verification if it's the same physical board (confirmed `SDO`/`CS` dedicated pins, printed axis diagram) — otherwise re-verify per `design_risks.md`. |
-| **MCP9808 I2C breakout** (e.g. Adafruit #1782 or clone) | Same part as the ESP8266 rig — reuse if you have one, or source another. Verify `A0`/`A1`/`A2` default grounded (address `0x18`) on the specific board before assuming it. |
+
+## Block 5 — Temperature
+
+| Selection | Status | Notes |
+|---|---|---|
+| **DHT11 breakout** (user-supplied) | ⚠️ Not yet verified against a photo | Replaces the MCP9808 as this build's temperature sensor. Two common physical variants exist: a 3-pin blue-PCB breakout (onboard pull-up already fitted) or a bare 4-pin sensor (needs an external 10kΩ pull-up between `DATA` and `3V3`) — the SKiDL circuit models the 3-pin variant; confirm which one you have before wiring, see `datasheets/DHT11_SUMMARY.md`. |
 
 ## Passives (verified live against JLCPCB)
 

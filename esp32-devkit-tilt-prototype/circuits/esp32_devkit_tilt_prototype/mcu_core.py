@@ -1,6 +1,6 @@
 """ESP32 Dev Kit V1 — module pin header, logical (GPIO-number) view only.
 Block from: architecture/block_diagram.md (block 2)
-Interface nets: devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc
+Interface nets: devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc, dht_data
 
 Modeled by GPIO NUMBER, not physical header position -- unlike the
 ESP8266 rig's D1 Mini part (a standardized silkscreen this project could
@@ -16,14 +16,18 @@ from skidl import *
 
 
 @SubCircuit
-def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc):
+def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc, dht_data):
     """ESP32 Dev Kit V1. GPIO25 (BATTERY_EN) is toggled by firmware for
     structural parity with the production/ESP8266 sketches but drives
     nothing physical on this ungated build -- declared NOCONNECT
     directly (not a typed pin wired to NC) to avoid the netlistsvg/elkjs
-    rendering crash documented in the ESP8266 rig's d1_mini.py. Same
-    reasoning for GPIO4: only needed if a DS18B20 fallback probe is
-    wired, unused (and NOCONNECT) on the MCP9808-only default build.
+    rendering crash documented in the ESP8266 rig's d1_mini.py.
+
+    GPIO4 was the DS18B20 fallback pin (unused/NOCONNECT) before the
+    DHT11 swap; it's now the DHT11's single data line -- genuinely used,
+    so BIDIR (the DHT protocol's host-writes-then-releases-to-read
+    pattern is the same open-drain shape as I2C SDA, modeled the same
+    way here).
     """
     u1 = Part(
         tool=SKIDL, name="ESP32_DevKit_V1", ref="U1", ref_prefix="U",
@@ -36,7 +40,7 @@ def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc):
             Pin(num=5, name="GPIO22_SCL", func=Pin.types.BIDIR, orientation="L"),  # master clock-drives SCL; BIDIR (not INPUT) so ERC sees a driver -- matches the ESP8266 rig's D1/SCL pin
             Pin(num=6, name="GPIO34_ADC", func=Pin.types.INPUT, orientation="L"),   # input-only pin, by design
             Pin(num=7, name="GPIO25_BATTERY_EN", func=Pin.types.NOCONNECT, orientation="L"),  # toggled but unwired -- ungated build
-            Pin(num=8, name="GPIO4_ONE_WIRE", func=Pin.types.NOCONNECT, orientation="L"),     # DS18B20 fallback only, unused by default
+            Pin(num=8, name="GPIO4_DHT_DATA", func=Pin.types.BIDIR, orientation="L"),  # DHT11 single-wire data
         ],
     )
 
@@ -46,8 +50,8 @@ def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc):
     sda += u1["GPIO21_SDA"]
     scl += u1["GPIO22_SCL"]
     batt_sense_adc += u1["GPIO34_ADC"]
+    dht_data += u1["GPIO4_DHT_DATA"]
 
     # Explicitly tied to NC (matching the ESP8266 rig's d1_mini.py
-    # convention) even though both are already NOCONNECT-typed above.
+    # convention) even though already NOCONNECT-typed above.
     u1["GPIO25_BATTERY_EN"] += NC
-    u1["GPIO4_ONE_WIRE"] += NC

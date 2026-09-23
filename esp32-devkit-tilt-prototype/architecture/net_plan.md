@@ -4,24 +4,32 @@
 |---|---|---|
 | `VBUS_5V` | Power, 5V | Micro-USB J1 → TP4056 breakout VIN |
 | `BAT_PLUS` | Power, 3.0-4.2V | TP4056 breakout `B+` → 18650 cell `+`; TP4056 breakout `OUT+` → Dev Kit V1 `VIN`; also → R1 (battery-sense divider top, 100kΩ) |
-| `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, Dev Kit V1 `GND`, GY-291 `GND`, MCP9808 `GND`, R2 bottom |
+| `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, Dev Kit V1 `GND`, GY-291 `GND`, DHT11 `GND`, R2 bottom |
 | `DEVKIT_5V` | Power | = TP4056 `OUT+` (same node as BAT_PLUS — the board's onboard regulator runs from this) |
-| `DEVKIT_3V3` | Power, regulated | Dev Kit V1 `3V3` pin (output of its onboard regulator) → GY-291 `VCC`, GY-291 `CS`, MCP9808 `VDD` |
-| `SDA` | I2C | Dev Kit V1 `GPIO21` → GY-291 `SDA`, MCP9808 `SDA` |
-| `SCL` | I2C | Dev Kit V1 `GPIO22` → GY-291 `SCL`, MCP9808 `SCL` |
+| `DEVKIT_3V3` | Power, regulated | Dev Kit V1 `3V3` pin (output of its onboard regulator) → GY-291 `VCC`, GY-291 `CS`, DHT11 `VCC` |
+| `SDA` | I2C | Dev Kit V1 `GPIO21` → GY-291 `SDA` |
+| `SCL` | I2C | Dev Kit V1 `GPIO22` → GY-291 `SCL` |
 | `SDO` | Signal | GY-291 `SDO` → `GND` — required for I2C address 0x53. Same gotcha as the ESP8266 rig: verify this is a dedicated pin on your specific GY-291 board before trusting it (not all clones expose it separately). |
 | `CS` | Signal | GY-291 `CS` → `3V3` — forces I2C mode, avoids a floating CMOS input. Same verification caveat as `SDO`. |
+| `DHT_DATA` | Signal, single-wire | Dev Kit V1 `GPIO4` → DHT11 `DATA` |
 | `BATT_SENSE_ADC` | Signal, analog | R1 (100kΩ) from `BAT_PLUS` → node → R2 (100kΩ) → `GND`; node → Dev Kit V1 `GPIO34` (ADC1_CH6, input-only) |
 
-## Temperature sensor — MCP9808 preferred, DS18B20 fallback
+## Temperature sensor — DHT11
 
-Same auto-detect firmware pattern as both the production board and the
-ESP8266 bench rig: `mcp9808Begin()` runs first in `setup()`, and the
-DS18B20 path (`GPIO4`, 1-Wire) only runs if no MCP9808 answers at I2C
-address `0x18`. The MCP9808 shares `SDA`/`SCL` with the GY-291 — no
-extra GPIO, no extra pull-up. If you wire a DS18B20 instead/as well, it
-needs its own 4.7kΩ pull-up between `GPIO4` and `3V3` unless the probe
-already carries one.
+Swapped in for the MCP9808 (previously shared the GY-291's I2C bus) —
+the DHT11 sits on its own single-wire pin (`GPIO4`) instead, not I2C.
+Not a wiring-only swap like MCP9808↔DS18B20 was on the sibling rigs
+(those share firmware auto-detect logic and both sit on a bus/pin the
+other already used) — the DHT11 is a genuinely different sensor family
+with its own library and read function. See
+`datasheets/DHT11_SUMMARY.md`. The common 3-pin breakout already
+carries a pull-up resistor onboard; the bare 4-pin sensor needs an
+external 10kΩ pull-up between `DHT_DATA` and `3V3`, which this circuit
+does not add — check which variant you have.
+
+DHT11 also reports humidity, read and logged to serial by the firmware
+but not posted to Supabase (the `readings` table has no humidity
+column).
 
 ## Deliberately NOT populated (vs. the production board)
 
@@ -30,8 +38,11 @@ already carries one.
   breadboard builds. `BATTERY_EN_PIN` (`GPIO25`) is still toggled by
   firmware for structural parity with the production sketch, but is
   left unconnected on this build (`NC`).
-- **No potted DS18B20 against a housing wall** — this is a bare bench
-  rig, not a sealed unit. Whichever temp sensor is fitted sits loose.
+- **No MCP9808 or DS18B20** — DHT11 is this build's only temperature
+  sensor, wired on its own pin rather than sharing the I2C bus or
+  falling back through firmware auto-detect.
+- **No potted sensor against a housing wall** — this is a bare bench
+  rig, not a sealed unit. The DHT11 sits loose.
 
 ## Divider ratio — single stage, unlike the ESP8266 rig
 

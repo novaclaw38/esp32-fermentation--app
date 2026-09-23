@@ -10,7 +10,7 @@ on-hand/hobbyist parts, not a JLCPCB batch order.
 | ESP32 Dev Kit V1 (30-pin, WROOM-32) | ⚠️ Not yet verified against a photo | Confirm GPIO4/21/22/25/34/3V3/VIN/GND are present and locate them by label — see `architecture/design_risks.md` |
 | TP4056 micro-USB charger breakout | Carry over ESP8266 rig's verification if same physical board, else re-verify | Count ICs (3 = protected, 1 = unprotected) |
 | GY-291 (ADXL345) breakout | Carry over ESP8266 rig's verification if same physical board, else re-verify | Confirm `SDO`/`CS` are dedicated pins |
-| MCP9808 I2C breakout | Carry over ESP8266 rig's verification if same physical board, else re-verify | Confirm `A0`/`A1`/`A2` default grounded (address `0x18`) |
+| DHT11 breakout | ⚠️ Not yet verified against a photo | Confirm 3-pin (onboard pull-up) vs. bare 4-pin (needs external 10kΩ pull-up) variant — see `datasheets/DHT11_SUMMARY.md` |
 
 ## Still needed
 
@@ -25,9 +25,8 @@ on-hand/hobbyist parts, not a JLCPCB batch order.
 
 - Q1/Q2 gating transistors (AO3401A/MMBT3904) — ungated divider on this
   build, per the prototype doc's own guidance.
-- DS18B20 TO-92 probe + pull-up resistor — MCP9808 is the primary
-  sensor here; a DS18B20 is only needed if you want to test the
-  firmware's fallback path specifically.
+- MCP9808 I2C breakout, DS18B20 TO-92 probe + pull-up resistor — DHT11
+  is this build's only temperature sensor.
 - USB-C connector, TP4056 bare IC/DW01A/FS8205A discrete ICs — superseded
   by the user's TP4056 breakout module.
 

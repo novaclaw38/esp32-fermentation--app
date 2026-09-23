@@ -2,22 +2,31 @@
   Fermentation Monitor - Temp + Gravity Module Firmware (v1, ESP32 Dev Kit V1 bench build)
   --------------------------------------------------------------------------------------
   Hardware: generic ESP32 Dev Kit V1 (WROOM-32, 30-pin breakout) + TP4056
-  micro-USB charger breakout + GY-291 (ADXL345, I2C) + MCP9808 breakout
-  (I2C, preferred) with a DS18B20 (1-Wire, GPIO4) as an available fallback.
+  micro-USB charger breakout + GY-291 (ADXL345, I2C) + DHT11 (single-wire
+  temp/humidity, GPIO4).
   See ../../esp32-devkit-tilt-prototype/ for the full SKiDL wiring
   diagram, BOM, and design-risk writeup this sketch was adapted alongside.
 
   This is NOT a from-scratch port like the ESP8266 sibling sketch needed --
   it's the production sketch (../fermentation_tilt_v1/fermentation_tilt_v1.ino)
-  almost unchanged. The production board already targets a bare ESP32 (raw
-  GPIO numbers, RTC_DATA_ATTR, Preferences/NVS, native 12-bit/0-3.3V ADC,
-  single-argument HTTPClient::begin()) -- a Dev Kit V1 is the same
-  ESP32-WROOM-32 chip with those same GPIOs broken out directly. The ONLY
-  functional difference from the production sketch is the battery-sense
-  path below: this bench rig's divider is ungated (no Q1/Q2 switching
-  transistors), so BATTERY_EN_PIN drives nothing physical here -- it's
-  still toggled for structural/behavioral parity with the production
-  sketch, same convention the ESP8266 sibling sketch uses.
+  adapted, not rewritten. The production board already targets a bare ESP32
+  (raw GPIO numbers, RTC_DATA_ATTR, Preferences/NVS, native 12-bit/0-3.3V
+  ADC, single-argument HTTPClient::begin()) -- a Dev Kit V1 is the same
+  ESP32-WROOM-32 chip with those same GPIOs broken out directly. Two
+  differences from the production sketch:
+    1. Battery-sense: this bench rig's divider is ungated (no Q1/Q2
+       switching transistors), so BATTERY_EN_PIN drives nothing physical
+       here -- it's still toggled for structural/behavioral parity with
+       the production sketch, same convention the ESP8266 sibling uses.
+    2. Temperature sensor: DHT11 instead of MCP9808/DS18B20. This is a
+       genuinely different sensor family (not a wiring-only swap like
+       MCP9808<->DS18B20 was on the sibling rigs, which share the same
+       auto-detect logic) -- it needs its own library (Adafruit's "DHT
+       sensor library" + its "Adafruit Unified Sensor" dependency) and
+       its own read function, both below. DHT11 also reports humidity;
+       this sketch reads and logs it to serial but does NOT post it
+       (the `readings` table has no humidity column -- would need a
+       Supabase migration + dashboard change to store it for real).
 
   ############################################################################
   # Hardware verification status: UNVERIFIED. No photo of the actual board #
@@ -32,7 +41,7 @@
 
   Behavior each wake cycle (unchanged from the production sketch):
     1. Wake from deep sleep
-    2. Read temp sensor (MCP9808 preferred, DS18B20 fallback) + average N
+    2. Read DHT11 (temperature; humidity logged only) + average N
        accelerometer samples -> tilt angle
     3. Connect to WiFi
     4. Fetch remote config (thresholds, sleep interval) via get_device_config
@@ -50,8 +59,7 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#include <DHT.h>
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <Preferences.h>
@@ -97,7 +105,10 @@ const int OTA_CHECK_EVERY_N_CYCLES = 96;
 // See esp32-devkit-tilt-prototype/datasheets/ESP32_DEVKIT_V1_SUMMARY.md
 // for the full pin reference and the pin-layout-varies-by-vendor caveat.
 
-#define ONE_WIRE_BUS    4   // DS18B20 fallback data (4.7k pull-up to 3V3 if the probe lacks one) -- unwired on the MCP9808-only default build
+#define DHT_PIN         4   // DHT11 single-wire data (external 10k pull-up to 3V3 needed
+                            // on the bare 4-pin sensor; the common 3-pin breakout already
+                            // has one onboard -- see datasheets/DHT11_SUMMARY.md)
+#define DHT_TYPE     DHT11
 #define I2C_SDA        21
 #define I2C_SCL        22
 #define BATTERY_ADC_PIN 34  // ADC1_CH6, input-only
@@ -112,17 +123,6 @@ const uint8_t ADXL345_REG_FORMAT  = 0x31;
 const uint8_t ADXL345_REG_DATAX0  = 0x32;
 const uint8_t ADXL345_DEVID_VALUE = 0xE5;
 
-// MCP9808 breakout -- the preferred sensor on this build. Shares the
-// ADXL345's I2C bus, so it costs no extra GPIO and no 1-Wire pull-up.
-// A0/A1/A2 tied low on the breakout gives address 0x18 -- verify on the
-// specific board bought, see datasheets/MCP9808_Breakout_SUMMARY.md.
-const uint8_t MCP9808_ADDR         = 0x18;
-const uint8_t MCP9808_REG_CONFIG   = 0x01;
-const uint8_t MCP9808_REG_AMBIENT  = 0x05;
-const uint8_t MCP9808_REG_MANUF_ID = 0x06;
-const uint16_t MCP9808_MANUF_ID    = 0x0054;
-const uint8_t MCP9808_REG_RESOLUTION = 0x08;
-
 // Full-resolution mode is 3.9 mg per LSB regardless of range (256 LSB/g).
 const float ADXL345_G_PER_LSB = 0.0039;
 
@@ -133,14 +133,7 @@ const int TILT_SAMPLE_DELAY_MS = 10;
 
 // ---------------------------------------------------------------------------
 
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
-
-// Which temperature sensor was actually found this boot. Probing for the
-// MCP9808 and falling back to DS18B20 means one binary runs whichever
-// sensor is actually wired, rather than a compile-time switch someone
-// forgets to flip.
-bool mcp9808Present = false;
+DHT dht(DHT_PIN, DHT_TYPE);
 
 RTC_DATA_ATTR int consecutiveBreaches = 0;
 RTC_DATA_ATTR bool alertActive = false;
@@ -187,97 +180,31 @@ bool connectWiFi() {
   return true;
 }
 
-// --- MCP9808 -------------------------------------------------------------
+// --- DHT11 -----------------------------------------------------------------
+// Reads both temperature and humidity in a single transaction (the sensor's
+// protocol always returns both). Humidity is logged to serial for visibility
+// but not posted -- the `readings` table has no humidity column, so storing
+// it for real needs a Supabase migration + dashboard change first.
+//
+// DHT11 caveats worth knowing: +-2C accuracy, integer-only temperature
+// resolution (no fractional degrees, unlike the MCP9808's 0.0625C steps),
+// 0-50C range, and the library itself enforces a minimum ~1s gap between
+// reads (irrelevant here -- this only reads once per wake cycle).
+float lastHumidityPct = NAN;
 
-void mcp9808Write16(uint8_t reg, uint16_t value) {
-  Wire.beginTransmission(MCP9808_ADDR);
-  Wire.write(reg);
-  Wire.write((uint8_t)(value >> 8));
-  Wire.write((uint8_t)(value & 0xFF));
-  Wire.endTransmission();
-}
-
-bool mcp9808Read16(uint8_t reg, uint16_t* out) {
-  Wire.beginTransmission(MCP9808_ADDR);
-  Wire.write(reg);
-  if (Wire.endTransmission() != 0) return false;
-  Wire.requestFrom((uint8_t)MCP9808_ADDR, (uint8_t)2);
-  if (Wire.available() < 2) return false;
-  uint8_t hi = Wire.read();
-  uint8_t lo = Wire.read();
-  *out = ((uint16_t)hi << 8) | lo;
-  return true;
-}
-
-// Returns true if a real MCP9808 answered. The manufacturer ID is checked
-// rather than just the ACK, so another device sitting at 0x18 can't be
-// mistaken for one.
-bool mcp9808Begin() {
-  Wire.begin(I2C_SDA, I2C_SCL);
-
-  uint16_t manuf;
-  if (!mcp9808Read16(MCP9808_REG_MANUF_ID, &manuf)) return false;
-  if (manuf != MCP9808_MANUF_ID) {
-    Serial.println("Device at 0x18 is not an MCP9808 (manuf 0x" + String(manuf, HEX) + ")");
-    return false;
-  }
-
-  // 0x03 = 0.0625 C resolution. The slowest setting at ~250 ms, which is
-  // irrelevant once per wake and gives the part's full accuracy.
-  Wire.beginTransmission(MCP9808_ADDR);
-  Wire.write(MCP9808_REG_RESOLUTION);
-  Wire.write(0x03);
-  Wire.endTransmission();
-
-  mcp9808Write16(MCP9808_REG_CONFIG, 0x0000); // continuous conversion
-  return true;
-}
-
-// ~200 uA running vs ~0.1 uA shut down. Trivial while awake, but this board is
-// asleep 99.5% of the time, so leaving it converting would cost more over a
-// day than every reading it takes.
-void mcp9808Sleep() {
-  mcp9808Write16(MCP9808_REG_CONFIG, 0x0100); // SHDN
-}
-
-float mcp9808ReadC() {
-  delay(260); // one full conversion at 0.0625 C resolution
-
-  uint16_t raw;
-  if (!mcp9808Read16(MCP9808_REG_AMBIENT, &raw)) {
-    Serial.println("Error: MCP9808 ambient read failed");
-    return NAN;
-  }
-
-  // 13-bit two's complement in bits 12:0; bits 15:13 are alert flags.
-  float tempC = (raw & 0x0FFF) / 16.0;
-  if (raw & 0x1000) tempC -= 256.0;
-  return tempC;
-}
-
-// --- DS18B20 fallback ----------------------------------------------------
-
-float ds18b20ReadC() {
-  sensors.requestTemperatures();
-  float tempC = sensors.getTempCByIndex(0);
-
-  if (tempC == DEVICE_DISCONNECTED_C) {
-    Serial.println("Error: could not read DS18B20 (check the sensor's solder joints "
-                    "and the 4.7k pull-up on GPIO4)");
-    return NAN;
-  }
-  return tempC;
-}
-
-// Prefers the MCP9808 when one is fitted; falls back to a DS18B20 otherwise.
-// `mcp9808Present` is set during setup().
 float readTemperature() {
-  if (mcp9808Present) {
-    float tempC = mcp9808ReadC();
-    mcp9808Sleep();
-    return tempC;
+  float tempC = dht.readTemperature();
+  lastHumidityPct = dht.readHumidity();
+
+  if (isnan(tempC)) {
+    Serial.println("Error: could not read DHT11 (check wiring on GPIO4 and, "
+                    "if using the bare 4-pin sensor, its 10k pull-up to 3V3)");
+    return NAN;
   }
-  return ds18b20ReadC();
+  if (!isnan(lastHumidityPct)) {
+    Serial.println("Humidity: " + String(lastHumidityPct, 1) + "% (not posted)");
+  }
+  return tempC;
 }
 
 // Reads battery voltage through the ungated external 100k/100k divider.
@@ -765,11 +692,8 @@ void setup() {
     return;
   }
 
-  sensors.begin();
-
-  mcp9808Present = mcp9808Begin();
-  Serial.println(mcp9808Present ? "Temperature sensor: MCP9808 (I2C)"
-                                : "Temperature sensor: DS18B20 (1-Wire fallback)");
+  dht.begin();
+  Serial.println("Temperature sensor: DHT11 (GPIO4)");
 
   float tempC = readTemperature();
 

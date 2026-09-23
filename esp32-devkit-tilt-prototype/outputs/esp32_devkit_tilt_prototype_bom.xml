@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>/home/user/fermentation-/esp32-devkit-tilt-prototype/circuits/esp32_devkit_tilt_prototype/__main__.py</source>
-    <date>09/23/2026 07:10 PM</date>
+    <date>09/23/2026 11:26 PM</date>
     <tool>SKiDL (2.3.0)</tool>
   </design>
   <components>
@@ -31,48 +31,50 @@
       <footprint>Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical</footprint>
       <libsource lib="NO_LIB" part=""GY-291_Breakout""/>
     </comp>
-    <comp ref="MOD3">
-      <value>"MCP9808_Breakout"</value>
-      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical</footprint>
-      <libsource lib="NO_LIB" part=""MCP9808_Breakout""/>
+    <comp ref="MOD4">
+      <value>"DHT11_Breakout"</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical</footprint>
+      <libsource lib="NO_LIB" part=""DHT11_Breakout""/>
     </comp>
   </components>
   <nets>
     <net code="0" name="BAT_PLUS">
-      <node ref="R1" pin="1"/>
       <node ref="MOD1" pin="1"/>
-      <node ref="U1" pin="1"/>
       <node ref="MOD1" pin="3"/>
+      <node ref="U1" pin="1"/>
+      <node ref="R1" pin="1"/>
     </net>
     <net code="1" name="GND">
+      <node ref="MOD1" pin="2"/>
+      <node ref="MOD2" pin="5"/>
+      <node ref="MOD4" pin="3"/>
+      <node ref="MOD1" pin="4"/>
       <node ref="MOD2" pin="2"/>
       <node ref="R2" pin="2"/>
-      <node ref="MOD3" pin="2"/>
-      <node ref="MOD2" pin="5"/>
       <node ref="U1" pin="3"/>
-      <node ref="MOD1" pin="2"/>
-      <node ref="MOD1" pin="4"/>
     </net>
     <net code="2" name="DEVKIT_3V3">
-      <node ref="MOD2" pin="6"/>
       <node ref="U1" pin="2"/>
-      <node ref="MOD3" pin="1"/>
+      <node ref="MOD4" pin="1"/>
       <node ref="MOD2" pin="1"/>
+      <node ref="MOD2" pin="6"/>
     </net>
     <net code="3" name="SDA">
       <node ref="MOD2" pin="3"/>
       <node ref="U1" pin="4"/>
-      <node ref="MOD3" pin="4"/>
     </net>
     <net code="4" name="SCL">
-      <node ref="MOD3" pin="3"/>
       <node ref="U1" pin="5"/>
       <node ref="MOD2" pin="4"/>
     </net>
     <net code="5" name="BATT_SENSE_ADC">
-      <node ref="R2" pin="1"/>
       <node ref="R1" pin="2"/>
       <node ref="U1" pin="6"/>
+      <node ref="R2" pin="1"/>
+    </net>
+    <net code="6" name="DHT_DATA">
+      <node ref="U1" pin="8"/>
+      <node ref="MOD4" pin="2"/>
     </net>
   </nets>
 </export>

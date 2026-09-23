@@ -2,12 +2,12 @@
   (version "D")
   (design
     (source "__main__.py")
-    (date "09/23/2026 07:10 PM")
+    (date "09/23/2026 11:26 PM")
     (tool "SKiDL (2.3.0)")
     (sheet
       (number 1)
-      (name "/sensor_bus1/")
-      (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/")
+      (name "/dht11_1/")
+      (tstamps "/ef84146c-b816-519d-b288-e6b01255606d/")
       (title_block
         (title)
         (company)
@@ -43,8 +43,8 @@
           (value ""))))
     (sheet
       (number 2)
-      (name "/")
-      (tstamps "/")
+      (name "/battery_sense1/")
+      (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/")
       (title_block
         (title)
         (company)
@@ -117,8 +117,8 @@
           (value ""))))
     (sheet
       (number 4)
-      (name "/battery_sense1/")
-      (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/")
+      (name "/")
+      (tstamps "/")
       (title_block
         (title)
         (company)
@@ -154,6 +154,43 @@
           (value ""))))
     (sheet
       (number 5)
+      (name "/sensor_bus1/")
+      (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "../../__main__.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value ""))))
+    (sheet
+      (number 6)
       (name "/mcu_core1/")
       (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/")
       (title_block
@@ -203,7 +240,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "6YX_nesI27")
+          (name "SKiDL Tag") "RI6o_yLBeD")
         (field
           (name "SKiDL Line") "charger.py:21"))
       (libsource
@@ -212,7 +249,7 @@
       (sheetpath
         (names "/charger1/")
         (tstamps "/a628876e-7e19-535e-ad39-8fe0e5116836/"))
-      (tstamps "a91737a5-3401-5e3f-8b6c-cde10436a70c"))
+      (tstamps "07d25247-bfd5-58f0-bd79-25ba8c935f31"))
     (comp
       (ref "MOD2")
       (value "GY-291_Breakout")
@@ -226,39 +263,39 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "R3W8uNaY3L")
+          (name "SKiDL Tag") "15TkE6LStk")
         (field
-          (name "SKiDL Line") "sensor_bus.py:22"))
+          (name "SKiDL Line") "sensor_bus.py:18"))
       (libsource
         (lib "NO_LIB")
         (part "GY-291_Breakout"))
       (sheetpath
         (names "/sensor_bus1/")
         (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "deff0550-cad5-5547-87bf-18b40ac9c398"))
+      (tstamps "b626f978-854c-5c1b-bde2-5f80c66929d5"))
     (comp
-      (ref "MOD3")
-      (value "MCP9808_Breakout")
+      (ref "MOD4")
+      (value "DHT11_Breakout")
       (description "")
-      (footprint "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical")
+      (footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical")
+          (name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "sJCVZrvM5Q")
+          (name "SKiDL Tag") "MpJAdGrCZS")
         (field
-          (name "SKiDL Line") "sensor_bus.py:34"))
+          (name "SKiDL Line") "dht11.py:24"))
       (libsource
         (lib "NO_LIB")
-        (part "MCP9808_Breakout"))
+        (part "DHT11_Breakout"))
       (sheetpath
-        (names "/sensor_bus1/")
-        (tstamps "/03431c58-59ba-5fba-b451-64c60b31521a/"))
-      (tstamps "355d0614-cbc8-542a-8b08-4354cebff4b2"))
+        (names "/dht11_1/")
+        (tstamps "/ef84146c-b816-519d-b288-e6b01255606d/"))
+      (tstamps "277c875e-ad6c-5714-bb80-1c04f18589f3"))
     (comp
       (ref "R1")
       (value "100k")
@@ -272,7 +309,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "aujvBYXfIT")
+          (name "SKiDL Tag") "VwtTXpHCIR")
         (field
           (name "SKiDL Line") "battery_sense.py:15"))
       (libsource
@@ -281,7 +318,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "8ed3ff28-c026-5483-b4da-b943893de646"))
+      (tstamps "89a6d9e8-c6a5-5e50-8734-d7cbe49ddbd6"))
     (comp
       (ref "R2")
       (value "100k")
@@ -295,7 +332,7 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "LLHlfhnQ7L")
+          (name "SKiDL Tag") "65pOeYK7ck")
         (field
           (name "SKiDL Line") "battery_sense.py:16"))
       (libsource
@@ -304,7 +341,7 @@
       (sheetpath
         (names "/battery_sense1/")
         (tstamps "/94f9edaf-980d-5b11-b6fc-e8702b13d17f/"))
-      (tstamps "a829f2a9-7216-58dc-9be3-f067f26904c5"))
+      (tstamps "d2d88017-6e0e-5afe-b944-075c5b2e1a4c"))
     (comp
       (ref "U1")
       (value "ESP32_DevKit_V1")
@@ -318,16 +355,16 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "Vp90g3L7Xn")
+          (name "SKiDL Tag") "TVzLs_QGj7")
         (field
-          (name "SKiDL Line") "mcu_core.py:28"))
+          (name "SKiDL Line") "mcu_core.py:32"))
       (libsource
         (lib "NO_LIB")
         (part "ESP32_DevKit_V1"))
       (sheetpath
         (names "/mcu_core1/")
         (tstamps "/b4f01aaf-c49c-52fe-bbb7-4c6969fe60ca/"))
-      (tstamps "a663991a-2313-5228-b759-35ebb32f812b")))
+      (tstamps "5db7abd6-5d7c-5bed-a58c-d378bafafb74")))
   (nets
     (net
       (code 1)
@@ -366,13 +403,22 @@
         (ref "MOD2")
         (pin "6"))
       (node
-        (ref "MOD3")
+        (ref "MOD4")
         (pin "1"))
       (node
         (ref "U1")
         (pin "2")))
     (net
       (code 4)
+      (name "DHT_DATA")
+      (node
+        (ref "MOD4")
+        (pin "2"))
+      (node
+        (ref "U1")
+        (pin "8")))
+    (net
+      (code 5)
       (name "GND")
       (node
         (ref "MOD1")
@@ -387,8 +433,8 @@
         (ref "MOD2")
         (pin "5"))
       (node
-        (ref "MOD3")
-        (pin "2"))
+        (ref "MOD4")
+        (pin "3"))
       (node
         (ref "R2")
         (pin "2"))
@@ -396,26 +442,20 @@
         (ref "U1")
         (pin "3")))
     (net
-      (code 5)
+      (code 6)
       (name "SCL")
       (node
         (ref "MOD2")
         (pin "4"))
       (node
-        (ref "MOD3")
-        (pin "3"))
-      (node
         (ref "U1")
         (pin "5")))
     (net
-      (code 6)
+      (code 7)
       (name "SDA")
       (node
         (ref "MOD2")
         (pin "3"))
-      (node
-        (ref "MOD3")
-        (pin "4"))
       (node
         (ref "U1")
         (pin "4")))))

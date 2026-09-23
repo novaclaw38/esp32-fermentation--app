@@ -21,13 +21,13 @@ vendors.
 | Label | Function here | Notes |
 |---|---|---|
 | `VIN` (or `5V`) | TP4056 `OUT+` | Cell voltage in, ahead of the onboard regulator |
-| `3V3` | GY-291 `VCC`/`CS`, MCP9808 `VDD` | Regulated output — confirm current headroom is adequate for two small I2C breakouts (it is; both draw low mA) |
+| `3V3` | GY-291 `VCC`/`CS`, DHT11 `VCC` | Regulated output — confirm current headroom is adequate for these small peripherals (it is; all draw low mA) |
 | `GND` | Common ground | Multiple GND pins usually broken out — any works |
-| `GPIO21` | I2C `SDA` | Matches the production board's own I2C pin choice |
-| `GPIO22` | I2C `SCL` | Matches the production board's own I2C pin choice |
+| `GPIO21` | I2C `SDA` | GY-291 only now (MCP9808 removed) — matches the production board's own I2C pin choice |
+| `GPIO22` | I2C `SCL` | GY-291 only now (MCP9808 removed) — matches the production board's own I2C pin choice |
 | `GPIO25` | `BATTERY_EN_PIN` | Toggled for structural parity with the production/ESP8266 firmware; drives nothing physical on this ungated build |
 | `GPIO34` | Battery-sense ADC | **Input-only pin** (no internal pull-up/down, can't be used as an output) — matches the production board's own choice, deliberately picked for exactly this reason |
-| `GPIO4` | DS18B20 1-Wire (fallback sensor only) | Only wire this if testing the DS18B20 fallback path; unused if only the MCP9808 is fitted |
+| `GPIO4` | DHT11 single-wire data | Was the unused DS18B20 fallback pin before the DHT11 swap; now genuinely used |
 
 ## Boot-strapping pins — avoid for anything else on this design
 
