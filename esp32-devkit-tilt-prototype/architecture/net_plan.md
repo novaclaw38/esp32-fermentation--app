@@ -27,9 +27,10 @@ carries a pull-up resistor onboard; the bare 4-pin sensor needs an
 external 10kΩ pull-up between `DHT_DATA` and `3V3`, which this circuit
 does not add — check which variant you have.
 
-DHT11 also reports humidity, read and logged to serial by the firmware
-but not posted to Supabase (the `readings` table has no humidity
-column).
+DHT11 also reports humidity, posted alongside temperature via
+`ingest_reading`'s `p_humidity_pct` parameter and stored in
+`readings.humidity_pct` (`supabase/migrations/20260923120000_dht11_humidity.sql`)
+— null for every other device type on this project.
 
 ## Deliberately NOT populated (vs. the production board)
 

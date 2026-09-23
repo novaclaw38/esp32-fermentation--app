@@ -38,9 +38,11 @@ Sensor"** dependency) — install both via Arduino IDE's Library Manager.
 `readTemperature()` in `firmware/fermentation_tilt_v1_esp32_devkit/`
 calls `dht.readTemperature()` and `dht.readHumidity()` together (the
 sensor's protocol always returns both in one transaction). Humidity is
-logged to serial but **not posted** to Supabase — the `readings` table
-has no humidity column, so storing it for real would need a schema
-migration and a dashboard change first.
+posted alongside temperature via `ingest_reading`'s `p_humidity_pct`
+parameter, stored in `readings.humidity_pct` — added specifically for
+this sensor in `supabase/migrations/20260923120000_dht11_humidity.sql`;
+null for every other device type on this project (all temperature-only
+sensors).
 
 ## What changed vs. the MCP9808 it replaced
 

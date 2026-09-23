@@ -33,8 +33,8 @@ different physical artifact from this breadboard rig.
 ## Functional
 
 - Same behavior as `fermentation_tilt_v1.ino`: wake from deep sleep, read
-  temperature (DHT11, single-wire — also reports humidity, logged to
-  serial but not posted) + tilt angle (ADXL345 via the GY-291 breakout),
+  temperature (DHT11, single-wire — also reports humidity, posted
+  alongside temperature) + tilt angle (ADXL345 via the GY-291 breakout),
   connect WiFi, fetch remote config, POST a reading via the
   `ingest_reading` RPC, check thresholds, sleep.
 - **No gravity computed on-device** — raw tilt angle posted, calibration

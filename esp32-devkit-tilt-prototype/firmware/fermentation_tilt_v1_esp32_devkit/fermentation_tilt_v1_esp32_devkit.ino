@@ -23,10 +23,11 @@
        MCP9808<->DS18B20 was on the sibling rigs, which share the same
        auto-detect logic) -- it needs its own library (Adafruit's "DHT
        sensor library" + its "Adafruit Unified Sensor" dependency) and
-       its own read function, both below. DHT11 also reports humidity;
-       this sketch reads and logs it to serial but does NOT post it
-       (the `readings` table has no humidity column -- would need a
-       Supabase migration + dashboard change to store it for real).
+       its own read function, both below. DHT11 also reports humidity,
+       posted alongside temperature via ingest_reading's p_humidity_pct
+       (see supabase/migrations/20260923120000_dht11_humidity.sql) --
+       null for every other device type on this project, which are all
+       temperature-only sensors.
 
   ############################################################################
   # Hardware verification status: UNVERIFIED. No photo of the actual board #
@@ -182,9 +183,10 @@ bool connectWiFi() {
 
 // --- DHT11 -----------------------------------------------------------------
 // Reads both temperature and humidity in a single transaction (the sensor's
-// protocol always returns both). Humidity is logged to serial for visibility
-// but not posted -- the `readings` table has no humidity column, so storing
-// it for real needs a Supabase migration + dashboard change first.
+// protocol always returns both). Humidity is posted alongside temperature
+// via ingest_reading's p_humidity_pct parameter (readings.humidity_pct
+// column, added specifically for this sensor -- every other device type on
+// this project is temperature-only, so it's null for them).
 //
 // DHT11 caveats worth knowing: +-2C accuracy, integer-only temperature
 // resolution (no fractional degrees, unlike the MCP9808's 0.0625C steps),
@@ -202,7 +204,7 @@ float readTemperature() {
     return NAN;
   }
   if (!isnan(lastHumidityPct)) {
-    Serial.println("Humidity: " + String(lastHumidityPct, 1) + "% (not posted)");
+    Serial.println("Humidity: " + String(lastHumidityPct, 1) + "%");
   }
   return tempC;
 }
@@ -385,12 +387,14 @@ bool postReading(float tempC, float tiltDeg, float batteryV) {
   addSupabaseHeaders(http);
 
   String tiltField = isnan(tiltDeg) ? String("null") : String(tiltDeg, 2);
+  String humidityField = isnan(lastHumidityPct) ? String("null") : String(lastHumidityPct, 1);
 
   String payload = "{\"p_device_id\":\"" + String(DEVICE_ID) +
                     "\",\"p_device_secret\":\"" + String(DEVICE_SECRET) +
                     "\",\"p_temperature_c\":" + String(tempC, 2) +
                     ",\"p_battery_v\":" + String(batteryV, 2) +
-                    ",\"p_tilt_deg\":" + tiltField + "}";
+                    ",\"p_tilt_deg\":" + tiltField +
+                    ",\"p_humidity_pct\":" + humidityField + "}";
 
   int httpCode = http.POST(payload);
   bool success = (httpCode == 200 || httpCode == 201 || httpCode == 204);

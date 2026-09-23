@@ -8,7 +8,7 @@ the firmware and dashboard.
 | Table | Purpose | Write access |
 |---|---|---|
 | `devices` | One row per physical unit: owner, `device_type`, thresholds, sleep interval, per-device secret, gravity calibration coefficients | Dashboard user (own rows only) |
-| `readings` | Temperature/battery/tilt time series | Only via `ingest_reading()` RPC |
+| `readings` | Temperature/battery/tilt/humidity time series (`humidity_pct` is null except on the ESP32 Dev Kit V1 bench rig's DHT11) | Only via `ingest_reading()` RPC |
 | `alerts` | Threshold-breach events | Only via `ingest_alert()` RPC (insert); dashboard user can update `acknowledged` |
 | `waitlist` | Landing page pre-order/signup emails | Anyone can insert, nobody can read via API |
 | `readings_with_gravity` (view) | `readings` plus `gravity_sg` (corrected to 20 °C) and `gravity_sg_raw` (uncorrected), computed from each device's calibration curve | Read-only; `security_invoker = true` so RLS still applies |
