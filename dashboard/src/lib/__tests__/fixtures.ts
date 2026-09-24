@@ -44,6 +44,7 @@ export function reading(t: number, sg: number | null, tempC = 20): ReadingWithGr
     device_id: "ferm-test",
     temperature_c: tempC,
     battery_v: null,
+    humidity_pct: null,
     tilt_deg: sg == null ? null : tiltFor(sg),
     created_at: new Date(t).toISOString(),
     gravity_sg: sg,
