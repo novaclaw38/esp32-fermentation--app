@@ -15,13 +15,13 @@ resistors) verified live against JLCPCB per the usual sourcing rules.
 
 | Selection | Status | Notes |
 |---|---|---|
-| **TP4056 micro-USB breakout** (user-supplied, reused from the ESP8266 rig if it's the same physical unit) | Carry over the ESP8266 rig's verification if it's literally the same board — otherwise re-count ICs: protected boards have three (TP4056 + DW01A + FS8205), unprotected have one. See `hardware/PROTOTYPE_TEMP_GRAVITY.md`. |
+| **TP4056 micro-USB breakout** (user-supplied, reused from the ESP8266 rig if it's the same physical unit) | ⚠️ Carry over the ESP8266 rig's verification if same physical board, else re-verify | Otherwise re-count ICs: protected boards have three (TP4056 + DW01A + FS8205), unprotected have one. See `hardware/PROTOTYPE_TEMP_GRAVITY.md`. |
 
 ## Block 4 — Sensor Bus
 
 | Selection | Status | Notes |
 |---|---|---|
-| **GY-291 (ADXL345) breakout** (user-supplied) | Carry over the ESP8266 rig's verification if it's the same physical board (confirmed `SDO`/`CS` dedicated pins, printed axis diagram) — otherwise re-verify per `design_risks.md`. |
+| **GY-291 (ADXL345) breakout** (user-supplied) | ✅ Confirmed by photo | Silkscreen `GND VCC CS INT1 INT2 SDO SDA SCL` — `SDO`/`CS` are dedicated pins, not internally tied; printed X/Y/Z axis diagram present. |
 
 ## Block 5 — Temperature
 

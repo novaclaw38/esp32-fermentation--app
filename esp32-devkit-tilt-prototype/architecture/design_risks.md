@@ -31,9 +31,10 @@ library, its own read function, see `net_plan.md`).
    confirmed-protected verification only if it's literally the same
    physical board; otherwise re-count ICs (protected = 3, unprotected =
    1) before trusting the battery/float test.
-3. **GY-291's `SDO`/`CS` pull** — carry over the ESP8266 rig's
-   confirmed-dedicated-pins verification only if it's the same physical
-   board; otherwise re-check per `hardware/PROTOTYPE_TEMP_GRAVITY.md`.
+3. ~~**GY-291's `SDO`/`CS` pull.**~~ ✅ **Confirmed by photo** —
+   silkscreen `GND VCC CS INT1 INT2 SDO SDA SCL`, `SDO`/`CS` both
+   dedicated pins (not internally tied), printed X/Y/Z axis diagram
+   present.
 4. ~~**DHT11 breakout variant.**~~ ✅ **Confirmed by photo** — bare
    4-pin Asair DHT11, no onboard pull-up. `R3` (10kΩ) added to the
    SKiDL circuit between `DATA` and `3V3`. See

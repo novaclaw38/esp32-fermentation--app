@@ -45,13 +45,16 @@ wiring-only substitution the way MCP9808↔DS18B20 is on the sibling rigs.
   `GPIO4`/`21`/`22`/`25`/`34`/`3V3`/`VIN`/`GND` where expected — "Dev
   Kit V1" is a cloned form factor with real layout variance across
   vendors, see `architecture/design_risks.md`.
-- TP4056 breakout protection status and GY-291 `SDO`/`CS` pin behavior
-  carry over the ESP8266 rig's findings *only if these are literally
-  the same physical modules*. Re-verify if not.
+- TP4056 breakout protection status carries over the ESP8266 rig's
+  finding *only if it's literally the same physical module*. Re-verify
+  if not.
 
 **Verified by user photo:**
 - DHT11 is the bare 4-pin Asair variant (no onboard pull-up) — `R3`
   (10kΩ) added to the circuit. See `datasheets/DHT11_SUMMARY.md`.
+- GY-291's `SDO`/`CS` are dedicated pins (silkscreen `GND VCC CS INT1
+  INT2 SDO SDA SCL`), not internally tied, and the printed X/Y/Z axis
+  diagram is present.
 
 ## Quick start
 
