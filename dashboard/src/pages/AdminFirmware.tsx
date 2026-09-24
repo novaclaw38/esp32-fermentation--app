@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/auth";
 import type { DeviceType, FirmwareRelease } from "../types/database";
+import { formatDateTime } from "../lib/chartTime";
 
 const DEVICE_TYPES: { value: DeviceType; label: string }[] = [
   { value: "hub", label: "Hub" },
@@ -186,7 +187,7 @@ export default function AdminFirmware() {
         ← All devices
       </Link>
 
-      <h1 className="mt-2 mb-1 text-2xl font-semibold uppercase tracking-wide text-panel-200">Firmware</h1>
+      <h1 className="mt-2 mb-1 text-2xl font-semibold text-panel-200">Firmware</h1>
       <p className="mb-6 text-sm text-panel-400">
         Publishing here rewrites the public <code className="rounded bg-panel-800 px-1">manifest.json</code> each
         device type's OTA check polls — see <code className="rounded bg-panel-800 px-1">checkForOTAUpdate()</code> in
@@ -226,7 +227,7 @@ export default function AdminFirmware() {
 
             return (
               <section key={type} className="rounded-lg border border-panel-700 bg-panel-900 p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-panel-400">{label}</h2>
+                <h2 className="text-base font-semibold text-panel-200">{label}</h2>
 
                 {current ? (
                   <p className="mt-2 text-sm text-panel-200">
@@ -238,7 +239,7 @@ export default function AdminFirmware() {
                 )}
 
                 <div className="mt-4 space-y-2 rounded-md border border-panel-700 bg-panel-950 p-3">
-                  <p className="text-xs font-medium uppercase tracking-wide text-panel-400">Upload a build</p>
+                  <p className="text-xs font-medium text-panel-400">Upload a build</p>
                   <input
                     ref={(el) => {
                       fileInputRefs.current[type] = el;
@@ -258,7 +259,7 @@ export default function AdminFirmware() {
                         value={section.version}
                         onChange={(e) => setSection(type, { version: e.target.value })}
                         placeholder="Matches FIRMWARE_VERSION in the sketch"
-                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-2 text-panel-200"
+                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 min-h-11 px-2 py-2 text-panel-200"
                       />
                     </label>
                     <label className="text-sm text-panel-200">
@@ -268,7 +269,7 @@ export default function AdminFirmware() {
                         value={section.notes}
                         onChange={(e) => setSection(type, { notes: e.target.value })}
                         placeholder="What changed"
-                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 px-2 py-2 text-panel-200"
+                        className="mt-1 w-full rounded-md border border-panel-600 bg-panel-900 min-h-11 px-2 py-2 text-panel-200"
                       />
                     </label>
                   </div>
@@ -284,7 +285,7 @@ export default function AdminFirmware() {
 
                 {typeReleases.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-panel-400">History</p>
+                    <p className="text-xs font-medium text-panel-400">History</p>
                     {typeReleases.map((r) => (
                       <div
                         key={r.id}
@@ -293,7 +294,7 @@ export default function AdminFirmware() {
                         <div className="min-w-0">
                           <span className="font-gauge tabular text-panel-200">v{r.version}</span>
                           <span className="ml-2 text-xs text-panel-400">
-                            {new Date(r.created_at).toLocaleString()}
+                            {formatDateTime(r.created_at)}
                           </span>
                           {r.notes && <p className="text-xs text-panel-400">{r.notes}</p>}
                           <p className="font-gauge text-[11px] text-panel-400">
@@ -301,7 +302,7 @@ export default function AdminFirmware() {
                           </p>
                         </div>
                         {r.published ? (
-                          <span className="shrink-0 rounded bg-panel-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brew-400">
+                          <span className="shrink-0 rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium text-brew-400">
                             Published
                           </span>
                         ) : (

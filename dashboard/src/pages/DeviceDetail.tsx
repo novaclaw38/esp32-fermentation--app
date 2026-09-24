@@ -56,7 +56,7 @@ function mergeReadings(a: ReadingWithGravity[], b: ReadingWithGravity[]): Readin
   return [...byId.values()].sort((x, y) => x.created_at.localeCompare(y.created_at));
 }
 
-const sectionHeading = "mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400";
+const sectionHeading = "mb-2 text-base font-semibold text-panel-200";
 
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
@@ -243,6 +243,23 @@ export default function DeviceDetail() {
         ? "breached"
         : "nominal";
 
+  const gravityHero = showGravity && latest?.gravity_sg != null;
+  const freshness =
+    connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined;
+  const tempGauge = (size: "sm" | "lg") => (
+    <Gauge
+      value={latest ? latest.temperature_c : null}
+      min={device.temp_min_c}
+      max={device.temp_max_c}
+      displayValue={formatTemp(latest?.temperature_c, unit)}
+      label="Temp"
+      state={tempState}
+      stale={connection.status === "stale"}
+      subLabel={size === "lg" ? freshness : undefined}
+      size={size}
+    />
+  );
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-center justify-between">
@@ -254,11 +271,11 @@ export default function DeviceDetail() {
 
       <div className="mt-2 mb-6 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="break-words text-2xl font-semibold uppercase tracking-wide text-panel-200">{device.name}</h1>
+          <h1 className="break-words text-2xl font-semibold text-panel-200">{device.name}</h1>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-panel-400">
             <span className="break-all">{device.id}</span>
             {showGravity && (
-              <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brew-400">
+              <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium text-brew-400">
                 Temp + Gravity
               </span>
             )}
@@ -276,32 +293,44 @@ export default function DeviceDetail() {
         aria-label="Current readings"
         className="mb-8 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-panel-700 bg-panel-900 p-6 sm:justify-start"
       >
-        <Gauge
-          value={latest ? latest.temperature_c : null}
-          min={device.temp_min_c}
-          max={device.temp_max_c}
-          displayValue={formatTemp(latest?.temperature_c, unit)}
-          label="Temp"
-          state={tempState}
-          stale={connection.status === "stale"}
-          subLabel={connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined}
-          size="lg"
-        />
-        {showGravity && latest && (
-          <Gauge
-            value={latest.gravity_sg ?? latest.gravity_sg_raw}
-            min={GRAVITY_GAUGE_MIN}
-            max={GRAVITY_GAUGE_MAX}
-            displayValue={latest.gravity_sg != null ? `${formatSg(latest.gravity_sg)}` : latest.tilt_deg != null ? `${latest.tilt_deg.toFixed(1)}°` : "—"}
-            label={latest.gravity_sg != null ? "Gravity" : "Tilt"}
-            state={secondaryOffline}
-            // SG-notation graduation only when the dial is actually reading
-            // gravity -- raw tilt degrees have no such convention, and
-            // printing "0.990"/"1.120" next to a tilt-angle needle would be
-            // an outright wrong reading, not just an inconsistent one.
-            endLabels={latest.gravity_sg != null ? [formatSg(GRAVITY_GAUGE_MIN), formatSg(GRAVITY_GAUGE_MAX)] : undefined}
-            size="sm"
-          />
+        {gravityHero ? (
+          <>
+            {/* The float's whole job is gravity -- one device instead of a
+                probe plus a hydrometer -- so gravity gets the big dial and the
+                freshness line. Temperature moves to a small dial but keeps its
+                own state glow, which is where alerts show. */}
+            <Gauge
+              value={latest.gravity_sg}
+              min={GRAVITY_GAUGE_MIN}
+              max={GRAVITY_GAUGE_MAX}
+              displayValue={formatSg(latest.gravity_sg as number)}
+              label="Gravity"
+              state={secondaryOffline}
+              stale={connection.status === "stale"}
+              subLabel={freshness}
+              endLabels={[formatSg(GRAVITY_GAUGE_MIN), formatSg(GRAVITY_GAUGE_MAX)]}
+              size="lg"
+            />
+            {tempGauge("sm")}
+          </>
+        ) : (
+          <>
+            {tempGauge("lg")}
+            {showGravity && latest && (
+              // Uncalibrated: raw tilt degrees have no SG graduation, and
+              // printing "0.990"/"1.120" beside a tilt needle would be a wrong
+              // reading, not just an inconsistent one.
+              <Gauge
+                value={latest.gravity_sg_raw}
+                min={GRAVITY_GAUGE_MIN}
+                max={GRAVITY_GAUGE_MAX}
+                displayValue={latest.tilt_deg != null ? `${latest.tilt_deg.toFixed(1)}°` : "—"}
+                label="Tilt"
+                state={secondaryOffline}
+                size="sm"
+              />
+            )}
+          </>
         )}
         {latest?.battery_v != null && (
           <Gauge
@@ -348,7 +377,7 @@ export default function DeviceDetail() {
             calibrated &&
             (fermentationAnalytics ? (
               <section className="mb-6 space-y-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-panel-400">Fermentation</h2>
+                <h2 className="text-base font-semibold text-panel-200">Fermentation</h2>
                 <FermentationSummary analytics={fermentationAnalytics} />
                 <FermentationStageBar
                   analytics={fermentationAnalytics}
@@ -364,35 +393,26 @@ export default function DeviceDetail() {
               </section>
             ))}
 
-          <section className="mb-6">
-            <h2 className={sectionHeading}>Temperature · last {CHART_HOURS}h</h2>
-            <Suspense fallback={<ChartFallback height="h-64" />}>
-              <TemperatureChart readings={chartReadings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
-            </Suspense>
-          </section>
-
-          {showGravity && (
-            <section className="mb-6">
-              <h2 className={sectionHeading}>
-                {calibrated ? "Gravity" : "Tilt"} · last {CHART_HOURS}h
-              </h2>
-              <Suspense fallback={<ChartFallback height="h-64" />}>
-                <GravityChart readings={chartReadings} calibrated={calibrated} deviceId={device.id} />
-              </Suspense>
-            </section>
-          )}
-
-          {showGravity && calibrated && (
+          {showGravity && calibrated ? (
             <>
+              {/* One chart for the batch, not three: gravity is the story,
+                  temperature is the context, and the temperature limits are
+                  drawn on it. Separate temperature, gravity and combined
+                  charts repeated the same two lines. */}
               <section className="mb-6">
-                <h2 className={sectionHeading}>Gravity + Temperature · last {CHART_HOURS}h</h2>
+                <h2 className={sectionHeading}>Gravity and temperature, last {CHART_HOURS} hours</h2>
                 <Suspense fallback={<ChartFallback height="h-72" />}>
-                  <FermentationChart readings={chartReadings} />
+                  <FermentationChart
+                    readings={chartReadings}
+                    tempMinC={device.temp_min_c}
+                    tempMaxC={device.temp_max_c}
+                  />
                 </Suspense>
               </section>
 
               <section className="mb-6">
-                <h2 className={sectionHeading}>Fermentation rate · gravity points per 24h</h2>
+                <h2 className={sectionHeading}>Fermentation rate</h2>
+                <p className="-mt-1 mb-2 text-sm text-panel-400">Gravity points dropped per 24 hours.</p>
                 <Suspense fallback={<ChartFallback height="h-40" />}>
                   <FermentationRateChart
                     readings={readings}
@@ -401,6 +421,24 @@ export default function DeviceDetail() {
                   />
                 </Suspense>
               </section>
+            </>
+          ) : (
+            <>
+              <section className="mb-6">
+                <h2 className={sectionHeading}>Temperature, last {CHART_HOURS} hours</h2>
+                <Suspense fallback={<ChartFallback height="h-64" />}>
+                  <TemperatureChart readings={chartReadings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
+                </Suspense>
+              </section>
+
+              {showGravity && (
+                <section className="mb-6">
+                  <h2 className={sectionHeading}>Tilt, last {CHART_HOURS} hours</h2>
+                  <Suspense fallback={<ChartFallback height="h-64" />}>
+                    <GravityChart readings={chartReadings} calibrated={calibrated} deviceId={device.id} />
+                  </Suspense>
+                </section>
+              )}
             </>
           )}
 

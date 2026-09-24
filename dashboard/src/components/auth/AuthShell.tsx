@@ -12,7 +12,7 @@ export default function AuthShell({ children, footer }: { children: ReactNode; f
       <div className="mx-auto w-full max-w-sm">
         <div className="mb-6 flex items-center gap-3">
           <InstrumentMark size={48} />
-          <p className="whitespace-nowrap text-lg font-semibold uppercase tracking-wider text-panel-200 sm:text-xl sm:tracking-wide">
+          <p className="whitespace-nowrap text-lg font-semibold text-panel-200 sm:text-xl">
             Fermentation Monitor
           </p>
         </div>

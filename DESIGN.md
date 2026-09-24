@@ -107,7 +107,7 @@ The system stays deliberately quiet everywhere it isn't the gauge. Cards, button
 **Key Characteristics:**
 - Warm dark charcoal panel ground, never cold or pure black
 - One state vocabulary — nominal / approaching / breached / offline — expressed as glow color *and* glow intensity, reused identically everywhere a reading appears
-- Tabular monospace numerals on every live digit; uppercase tracked labels beneath them
+- Tabular monospace numerals on every live digit; uppercase tracked labels beneath them on the gauge only — everything else is sentence case
 - Flat, unshadowed containers; glow is a state signal, not ambient depth
 - Focus-dim: bringing one instrument forward dims its neighbors instead of a badge or modal calling it out
 
@@ -145,10 +145,10 @@ A single warm charcoal scale carries the whole interface; amber is the one recur
 **Character:** Plain system sans for everything that's prose or label; monospace tabular numerals reserved strictly for live instrument readings, so the two faces stay legible as two different kinds of information (words vs. measurements) rather than a stylistic pairing.
 
 ### Hierarchy
-- **Headline** (600, 1.5rem/24px, uppercase, tracked 0.025em): page titles ("Your devices", a device name).
-- **Title** (600, 0.875rem/14px, uppercase, tracked 0.05em): section headers (Alerts, Settings, chart titles).
+- **Headline** (600, 1.5rem/24px, sentence case): page titles ("Your devices", a device name).
+- **Title** (600, 1rem/16px, sentence case, `panel-200`): section headers (Alerts, Fermentation, chart titles).
 - **Body** (400, 0.875rem/14px): device metadata, form copy, alert reasons.
-- **Label** (500, 0.625rem/10px, uppercase, tracked 0.1em): gauge instrument labels (TEMP, GRAVITY, BATTERY) and device-type chips.
+- **Label** (500, 0.625rem/10px, uppercase, tracked 0.1em): gauge instrument labels (TEMP, GRAVITY, BATTERY) only. The one place all-caps survives — it's the gauge's printed face.
 - **Numeral** (600, monospace, 1.125rem sm / 1.875rem lg, `font-variant-numeric: tabular-nums`): the live digit at a gauge's center. Fixed digit width so an update never reflows its label.
 
 ### Named Rules
@@ -184,7 +184,7 @@ Two radius steps: `6px` (buttons, inputs, chips — the interactive/small scale)
 - Both variants share `px-3 py-2 text-sm font-medium`; no size variant beyond this. Raised from `py-1.5` (34px rendered height) after an audit measured every button in the app under the 44px touch-target guideline — `py-2` (38px) is a verified, real improvement, not a full 44px, a deliberate stop short of visibly bloating the instrument-panel's compact control scale for a P2 finding.
 
 ### Chips
-- **Style:** `panel-800` background, `brew-400` uppercase tracked text, 10px label type, `rounded` (not pill). Used exclusively for the device-type badge ("TEMP + GRAVITY") next to a device name/ID — not used as a general-purpose tag.
+- **Style:** `panel-800` background, `brew-400` sentence-case text, 12px, `rounded` (not pill). Used exclusively for the device-type badge ("TEMP + GRAVITY") next to a device name/ID — not used as a general-purpose tag.
 
 ### Cards / Containers
 - **Corner Style:** 8px radius.
@@ -202,7 +202,7 @@ Two radius steps: `6px` (buttons, inputs, chips — the interactive/small scale)
 - Minimal: a "← All devices" / "← {device name}" text link (`panel-400`, hover `panel-200`) is the only back-navigation; no persistent nav bar. Section headers use Title type; no active/hover state beyond the link's own color shift.
 
 ### Tab Navigation
-Used once, on the device settings page: a flat row of uppercase Title-type buttons sharing a single `panel-700` bottom border. The active tab gets `brew-400` text and a 2px `brew-400` underline (the same "solid accent" color as a primary button, not a new hue); inactive tabs are `panel-400`, hovering to `panel-200` — no background fill or pill treatment on either state. This is the same "flat, color-carries-state" logic as the gauge system applied to wayfinding rather than a live reading.
+Used once, on the device settings page: a flat row of sentence-case buttons sharing a single `panel-700` bottom border. The active tab gets `brew-400` text and a 2px `brew-400` underline (the same "solid accent" color as a primary button, not a new hue); inactive tabs are `panel-400`, hovering to `panel-200` — no background fill or pill treatment on either state. This is the same "flat, color-carries-state" logic as the gauge system applied to wayfinding rather than a live reading.
 
 ### Gauge (signature component)
 The one component every surface composes. A 240°-sweep SVG dial: a dial face (a faint off-center radial dish, `panel-800`→`panel-950`, unique-gradient-ID'd per instance via `useId` so the device grid's several simultaneous gauges don't silently share one gradient definition), a static track (Gauge Track, `#7a654c`), two redline zones marking the device's own approach thresholds, tick marks with a major/minor hierarchy (the two end ticks — min/max — run longer and heavier than the four between them; `#9c8a6e`), an eased needle (700ms cubic-bezier, instant with no easing under `prefers-reduced-motion: reduce`) that pins at its travel limit rather than flying off-scale, and a tabular numeral + uppercase label positioned in the dial's actual clear zone below the arc's lower gap (not a naive full-box overlay — the hub sits at a fixed point regardless of needle angle, and the text has to stay clear of it in every state, not just the ones a screenshot happens to catch). Color and glow are driven entirely by `GaugeState` (nominal/approaching/breached/offline — see `lib/gaugeState.ts`); an offline gauge renders its numeral as "—" at 40% opacity instead of a stale value. Two sizes only: `sm` (112px, list tiles) and `lg` (224px, detail-page hero) — the freshness sub-label ("3m ago") only renders at `lg`, since the clear zone at `sm` holds the numeral and its label legibly but not a third line; staleness still reads through the gauge's own opacity at either size. A device that's overdue but not yet offline dims to 75% opacity rather than adopting a new hue — staleness is intensity, not a new signal. The `aria-label` states severity in words ("above maximum," "approaching threshold") alongside the number, not just the raw value, so the state the glow communicates to a sighted viewer also reaches a screen reader.
@@ -273,8 +273,8 @@ Both pages share `components/auth/AuthShell` (page frame) and
   one-line product name. Each mode has its own `h1` ("Sign in", "Create your
   account", "Reset your password", "Check your inbox") and its own
   `document.title`.
-- **Fields:** labels use the system's tracked-uppercase label voice
-  (`text-xs uppercase tracking-wider panel-400`) and are tied to their inputs
+- **Fields:** labels are sentence case (`text-sm font-medium panel-400`;
+  all-caps is the gauge's alone) and are tied to their inputs
   with `htmlFor`/`id`. Nothing else ever sits inside a `<label>`. Inputs are
   44px tall with a `panel-500` border (3.21:1 against the card, clearing the
   3:1 floor for UI boundaries) that turns `breach-400` in error. Placeholders
@@ -297,3 +297,42 @@ Both pages share `components/auth/AuthShell` (page frame) and
   a 3px drop-shadow) as the needle arrives, instead of switching on.
 - **Browser surfaces:** `color-scheme: dark` on `:root`, and autofill is
   restyled to the panel ground with a brew caret.
+
+## Atelier audit (2026-09-24)
+
+A full audit (`/atelier audit`, rendered at 375 and 1440px with fixture
+data) found the dashboard grounded but mis-weighted and the landing page on
+a different, generic system. Changes:
+
+- **Gravity is the hero on a calibrated float.** PRODUCT.md's second
+  principle is "one device replaces two", but gravity was a 112px dial the
+  size of battery. The `lg` dial now reads gravity (with the freshness line);
+  temperature moves to `sm` and keeps its state glow, which is where alerts
+  show. Hubs and uncalibrated floats keep temperature on the `lg` dial.
+  Gravity end labels now sit inside the ring above each foot: outside the
+  arc they hit the end caps; below the feet they lined up with the numeral.
+- **Device tiles** show a float's gravity as the tile's largest number
+  (hidden while the device is offline, so a days-old value can't read as
+  current). The gauge stays on temperature.
+- **Open alerts are named on the tile** in `breach-400` ("Sensor not
+  reading, last seen 3d ago"). An offline gauge carries no glow, so a dead
+  sensor used to look identical to a switched-off device — the one failure
+  the product exists to prevent.
+- **One chart, not three.** A calibrated float shows a single gravity +
+  temperature chart with the temperature limits drawn on it, then the rate
+  chart. The separate temperature, gravity and combined charts repeated the
+  same two lines. Hubs keep the temperature chart; uncalibrated floats keep
+  the tilt chart. The temperature-correction note is hidden below half a
+  gravity point. Rate-chart ticks are whole gravity points.
+- **One time format.** `formatDateTime` in `lib/chartTime.ts` ("Sep 23,
+  08:51") everywhere an absolute time appears; `formatDate` for date-only.
+  Alerts previously printed `9/23/2026, 8:51:16 AM`.
+- **Sentence case.** All-caps is reserved for gauge labels and claim codes.
+  Page titles, section heads, stat labels, stage names, tabs, chips, auth
+  field labels and the sign-in wordmark are sentence case; section heads
+  moved from `panel-400` 14px caps to `panel-200` 16px so they still lead.
+- **44px inputs** everywhere, not just the auth forms.
+- **Landing page** (`landing/`) now uses this palette and type, so a visitor
+  and a signed-in owner are in the same world. Its hero is an example
+  gravity curve on a hydrometer-style scale (labelled as an illustration),
+  drawn once on load with the gravity glow; copy is unchanged.

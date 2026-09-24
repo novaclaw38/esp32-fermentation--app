@@ -153,8 +153,13 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
   const showEndLabels = endLabels != null && size === "lg";
   const numeralClass = size === "lg" ? "text-3xl" : "text-lg";
   const labelClass = size === "lg" ? "text-xs" : "text-[10px]";
-  const endLabelFontSize = 15;
-  const endLabelOffset = 12;
+  // Printed inside the ring just above each foot, the way a real gauge
+  // prints its scale. Beyond the arc's ends they sat on the end caps and the
+  // redline ("0.9|90"); below the feet they lined up with the numeral and
+  // read as three numbers in a row.
+  const endLabelFontSize = 11;
+  const leftFoot = pointOnCircle(CX, CY, TRACK_R - 20, START_ANGLE + 8);
+  const rightFoot = pointOnCircle(CX, CY, TRACK_R - 20, START_ANGLE + SWEEP - 8);
 
   const announcement = dim ? "" : stateAnnouncement(state, value, min, max);
 
@@ -261,9 +266,9 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
         {showEndLabels && endLabels && (
           <>
             <text
-              x={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).x}
-              y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE).y}
-              textAnchor="middle"
+              x={leftFoot.x}
+              y={leftFoot.y}
+              textAnchor="start"
               fontSize={endLabelFontSize}
               fontFamily={GAUGE_FONT}
               fill={palette.panel[400]}
@@ -271,9 +276,9 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
               {endLabels[0]}
             </text>
             <text
-              x={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE + SWEEP).x}
-              y={pointOnCircle(CX, CY, TRACK_R + endLabelOffset, START_ANGLE + SWEEP).y}
-              textAnchor="middle"
+              x={rightFoot.x}
+              y={rightFoot.y}
+              textAnchor="end"
               fontSize={endLabelFontSize}
               fontFamily={GAUGE_FONT}
               fill={palette.panel[400]}

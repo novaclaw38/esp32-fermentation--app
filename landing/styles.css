@@ -1,81 +1,61 @@
+/* The landing page shares the dashboard's instrument-panel palette
+   (dashboard/src/lib/tokens.ts), so a visitor who signs in later arrives in
+   the same world instead of a different product. Keep these in step.
+   avoid-ai-design-ignore-file: SD2 -- the charcoal ground and the green
+   gravity series are the dashboard's documented system (DESIGN.md), and
+   amber, not green, is the accent. */
 :root {
-  --brew-50: #fdf7ed;
-  --brew-100: #f8e9cc;
-  --brew-600: #a8631c;
-  --brew-700: #84491a;
-  --brew-800: #6c3c1b;
-  --brew-900: #5b331a;
-  --ink: #292524;
-  --muted: #78716c;
-  color-scheme: light;
+  --panel-950: #14110e; /* page */
+  --panel-900: #1c1712; /* surface */
+  --panel-800: #262019; /* raised */
+  --panel-700: #332a20; /* border, never text */
+  --panel-600: #453829; /* rule, never text */
+  --panel-500: #7a654c; /* input border: 3:1 against the page */
+  --panel-400: #9c8a6e; /* secondary text, ~5.6:1 */
+  --panel-200: #d9cbb0; /* primary text */
+  --brew-400: #dd9834;  /* amber glow: marks, links, focus */
+  --brew-600: #a8631c;  /* primary button fill */
+  --brew-700: #84491a;  /* primary button hover */
+  --breach-400: #f87171; /* alerts and errors only */
+  --gravity-400: #4ade80; /* the gravity series, as on the dashboard charts */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-gauge: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* 1.25 type scale from a 17px body. */
+  --step-0: 1.0625rem;
+  --step-1: 1.328rem;
+  --step-2: 1.66rem;
+  --step-4: clamp(2.2rem, 1.4rem + 3.4vw, 3.6rem);
+
+  --measure: 62ch;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 
+html, body { overflow-x: clip; }
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--ink);
-  background: #fffdf9;
-  line-height: 1.5;
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  color: var(--panel-200);
+  background: var(--panel-950);
 }
 
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 5%;
+a { color: var(--brew-400); }
+
+:focus-visible {
+  outline: 2px solid var(--brew-400);
+  outline-offset: 2px;
 }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--brew-800);
-}
-
-.nav-cta {
-  color: var(--brew-700);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.hero {
-  background: linear-gradient(180deg, var(--brew-50) 0%, #fffdf9 100%);
-}
-
-.hero-content {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem 5% 4rem;
-  text-align: center;
-}
-
-h1 {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  color: var(--brew-900);
-  margin-bottom: 0.75rem;
-}
-
-.subhead {
-  color: var(--muted);
-  font-size: 1.05rem;
-  margin-bottom: 1.75rem;
-}
-
-.signup-form {
-  display: flex;
-  gap: 0.5rem;
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-.signup-form.stacked {
-  flex-direction: column;
-  max-width: 480px;
+::selection {
+  background: var(--brew-700);
+  color: var(--panel-200);
 }
 
 .visually-hidden {
@@ -90,175 +70,373 @@ h1 {
   border: 0;
 }
 
-.signup-form.stacked label {
-  text-align: left;
+/* ---- Top bar ---- */
+
+.top,
+main,
+footer {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 0.75rem;
+}
+
+.brand {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--ink);
-  margin-top: 0.25rem;
+  color: var(--panel-200);
 }
 
-.signup-form .optional {
-  font-weight: 400;
-  color: var(--muted);
+.brand-mark { color: var(--panel-400); flex: none; }
+
+.nav-link {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 0.25rem;
+  font-weight: 500;
+  text-decoration: none;
 }
 
-:focus-visible {
-  outline: 2px solid var(--brew-600);
-  outline-offset: 2px;
+.nav-link:hover { text-decoration: underline; }
+
+/* ---- Hero: the claim on the left, the evidence on the right ---- */
+
+.hero {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 3rem 4rem;
+  align-items: center;
 }
 
-.signup-form input,
-.signup-form textarea {
-  flex: 1;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: inherit;
+h1 {
+  margin: 0;
+  font-size: var(--step-4);
+  line-height: 1.05;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 20ch;
 }
 
-.signup-form button {
-  padding: 0.7rem 1.2rem;
-  background: var(--brew-600);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.signup-form button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.signup-form button:hover {
-  background: var(--brew-700);
-}
-
-.signup-message {
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-  color: var(--brew-800);
-}
-
-.signup-message.error {
-  color: #b91c1c;
+.lede {
+  margin: 0 0 1rem;
+  max-width: var(--measure);
+  color: var(--panel-400);
+  text-wrap: pretty;
 }
 
 .reassure {
-  margin-top: 1rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--panel-400);
+}
+
+/* ---- The instrument ---- */
+
+.instrument {
+  margin: 0;
+  padding: 1.25rem 1rem 1rem;
+  background: var(--panel-900);
+  border: 1px solid var(--panel-700);
+  border-radius: 8px;
+}
+
+.curve { display: block; width: 100%; height: auto; }
+
+.scale text {
+  font-family: var(--font-gauge);
+  font-size: 14px;
+  fill: var(--panel-400);
+  text-anchor: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.scale .day { text-anchor: start; font-family: var(--font-sans); }
+.scale .rule { stroke: var(--panel-800); stroke-width: 1; }
+.scale .minor { stroke: var(--panel-500); stroke-width: 1; }
+
+.limit {
+  stroke: var(--breach-400);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.temp {
+  fill: none;
+  stroke: var(--brew-400);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  stroke-linejoin: round;
+}
+
+.gravity {
+  fill: none;
+  stroke: var(--gravity-400);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* The dashboard's lit-from-within glow: the one glow on this page. */
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gravity-400) 55%, transparent));
+}
+
+.marks .dot { fill: var(--gravity-400); }
+.marks .alert {
+  fill: var(--breach-400);
+  filter: drop-shadow(0 0 5px var(--breach-400));
+}
+
+.marks text {
+  font-family: var(--font-gauge);
+  font-variant-numeric: tabular-nums;
+  fill: var(--panel-200);
+}
+
+.marks .reading { font-size: 18px; font-weight: 600; }
+.marks .note { font-family: var(--font-sans); font-size: 13px; fill: var(--panel-200); }
+
+figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.75rem;
+  padding-left: 0.25rem;
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--panel-400);
 }
 
-main {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 5%;
+/* Legend swatches, not card stripes. */
+.key::before {
+  content: "";
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  border-top: 3px solid var(--gravity-400); /* avoid-ai-design-ignore: K4 */
 }
 
-section {
-  padding: 3rem 0;
-  border-top: 1px solid #f0ebe3;
+.key-temp::before { border-top: 2px dashed var(--brew-400); }
+.key-limit::before { border-top: 1px dashed var(--breach-400); }
+.illustration { font-style: italic; }
+
+/* One orchestrated moment: the gravity line draws itself once on load.
+   Reduced motion gets the finished curve. */
+@media (prefers-reduced-motion: no-preference) {
+  .gravity {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 1.8s cubic-bezier(0.3, 0, 0.2, 1) 0.2s forwards;
+  }
+  .marks { opacity: 0; animation: appear 0.4s ease-out 1.9s forwards; }
+}
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes appear { to { opacity: 1; } }
+
+/* ---- Sections ---- */
+
+section + section {
+  border-top: 1px solid var(--panel-700);
+}
+
+.how,
+.pricing,
+.signup {
+  display: grid;
+  gap: 1.25rem 3rem;
+  padding-block: 3.5rem;
 }
 
 h2 {
-  color: var(--brew-900);
-  font-size: 1.5rem;
-  text-align: center;
-  margin-bottom: 2rem;
+  margin: 0;
+  font-size: var(--step-2);
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+h3 {
+  margin: 0 0 0.35rem;
+  font-size: var(--step-1);
+  line-height: 1.25;
+  font-weight: 600;
 }
 
 .steps {
   list-style: none;
-  padding: 0;
-  margin: 0;
   counter-reset: step;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
-@media (max-width: 640px) {
-  .steps, .price-cards { grid-template-columns: 1fr; }
-  .signup-form { flex-direction: column; }
-}
-
-.step {
-  text-align: center;
+.steps li {
   counter-increment: step;
-}
-
-/* The order is real (put it in, it reports, you get warned), so the steps
-   are an <ol> and the numbers come from the list rather than typed spans. */
-.step::before {
-  content: counter(step);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--brew-100);
-  color: var(--brew-800);
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.step h3 {
-  margin: 0.25rem 0;
-  color: var(--ink);
-}
-
-.step p {
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.price-cards {
+  align-content: start;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: 0.75rem;
 }
 
-.price-card {
-  border: 1px solid #f0ebe3;
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
+.steps li::before {
+  content: counter(step);
+  grid-row: span 2;
+  font-family: var(--font-gauge);
+  font-size: var(--step-2);
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--brew-400);
+  font-variant-numeric: tabular-nums;
 }
 
-.price-card h3 {
-  margin: 0 0 0.5rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.steps p,
+.prices dd:not(.price),
+.signup > p {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--panel-400);
 }
+
+.prices { margin: 0; display: grid; gap: 1.75rem; }
+.prices > div { display: grid; gap: 0.25rem; }
+
+.prices dt {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.prices dd { margin: 0; }
 
 .price {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--brew-800);
-  margin: 0 0 0.5rem;
+  font-family: var(--font-gauge);
+  color: var(--brew-400);
 }
 
-.signup {
-  text-align: center;
+/* ---- Forms ---- */
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 30rem;
 }
 
-.signup .signup-form {
-  margin-top: 1.5rem;
+.signup-form.inline { margin-top: 1.5rem; }
+
+.signup-form label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
 }
+
+.signup-form .optional { font-weight: 400; color: var(--panel-400); }
+
+.signup-form input,
+.signup-form textarea {
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: var(--panel-200);
+  background: var(--panel-950);
+  border: 1px solid var(--panel-500);
+  border-radius: 6px;
+  caret-color: var(--brew-400);
+}
+
+.signup-form input::placeholder,
+.signup-form textarea::placeholder { color: var(--panel-400); }
+
+.signup-form input:-webkit-autofill {
+  -webkit-text-fill-color: var(--panel-200);
+  box-shadow: 0 0 0 1000px var(--panel-950) inset;
+}
+
+.signup-form button {
+  min-height: 44px;
+  padding: 0.65rem 1.2rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brew-600);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.signup-form button:hover { background: var(--brew-700); }
+
+.signup-form button:disabled {
+  cursor: wait;
+  background: var(--panel-800);
+  color: var(--panel-200);
+}
+
+.signup-message {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+  color: var(--panel-200);
+}
+
+.signup-message.error { color: var(--breach-400); }
 
 footer {
-  text-align: center;
-  padding: 2rem 5% 3rem;
-  color: var(--muted);
-  font-size: 0.8rem;
+  padding-block: 2rem 3rem;
+  border-top: 1px solid var(--panel-700);
+  font-size: 0.85rem;
+  color: var(--panel-400);
+}
+
+footer p { margin: 0; }
+
+/* On a phone the curve renders at about half its drawn size, so its text is
+   set larger in the SVG's own units to land near 12px on screen. The
+   annotation is dropped there; the caption and the alert dot carry it. */
+@media (max-width: 39.99rem) {
+  .scale text { font-size: 26px; }
+  .scale .day { font-size: 24px; }
+  .marks .reading { font-size: 30px; }
+  .marks .note { display: none; }
+  .brand { font-size: 0.95rem; }
+}
+
+/* ---- Wider screens. Media queries come last so they win the cascade. ---- */
+
+@media (min-width: 40rem) {
+  .signup-form.inline { flex-direction: row; }
+  .signup-form.inline input { flex: 1; min-width: 0; }
+  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .prices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-areas: "title title" "copy figure";
+    column-gap: 4rem;
+    row-gap: 1rem;
+    align-items: start;
+    padding-block: 4.5rem 5.5rem;
+  }
+  .hero h1 { grid-area: title; margin-bottom: 1.5rem; }
+  .hero-copy { grid-area: copy; }
+  .instrument { grid-area: figure; margin-top: 0.4rem; }
+  .pricing,
+  .signup { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+  .signup > p,
+  .signup .signup-form,
+  .signup .signup-message { grid-column: 2; }
+  .signup > p { margin-top: 0.35rem; }
+  .signup .signup-form label:first-child { margin-top: 0; }
 }

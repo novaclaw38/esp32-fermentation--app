@@ -26,7 +26,7 @@ function isTab(value: string | null): value is Tab {
   return value != null && (TABS as readonly string[]).includes(value);
 }
 
-const subheading = "mb-2 text-xs font-semibold uppercase tracking-wide text-panel-400";
+const subheading = "mb-2 text-base font-semibold text-panel-200";
 
 export default function DeviceSettings() {
   const { deviceId } = useParams<{ deviceId: string }>();
@@ -113,7 +113,7 @@ export default function DeviceSettings() {
         ← {device.name}
       </Link>
 
-      <h1 className="mt-2 mb-6 text-2xl font-semibold uppercase tracking-wide text-panel-200">Settings</h1>
+      <h1 className="mt-2 mb-6 text-2xl font-semibold text-panel-200">Settings</h1>
 
       <div role="tablist" aria-label="Device settings" className="mb-6 flex overflow-x-auto border-b border-panel-700">
         {TABS.map((t) => (
@@ -129,7 +129,7 @@ export default function DeviceSettings() {
             tabIndex={tab === t ? 0 : -1}
             onClick={() => selectTab(t)}
             onKeyDown={onTabKeyDown}
-            className={`min-h-11 shrink-0 border-b-2 px-4 text-sm font-medium uppercase tracking-wide transition-colors ${
+            className={`min-h-11 shrink-0 border-b-2 px-4 text-sm font-medium transition-colors ${
               tab === t ? "border-brew-400 text-brew-400" : "border-transparent text-panel-400 hover:text-panel-200"
             }`}
           >

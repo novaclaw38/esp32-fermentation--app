@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Device } from "../../types/database";
 import { useNow } from "../../lib/useNow";
+import { formatDateTime } from "../../lib/chartTime";
 
 interface Props {
   device: Device;
@@ -52,7 +53,7 @@ export default function SnoozeForm({ device, onSaved }: Props) {
 
       {isMuted && mutedUntil && (
         <p role="status" className="mt-2 rounded-md border border-approach-500/40 bg-panel-950 px-2 py-2 text-sm text-approach-400">
-          Muted until {mutedUntil.toLocaleString()}
+          Muted until {formatDateTime(mutedUntil)}
         </p>
       )}
 
