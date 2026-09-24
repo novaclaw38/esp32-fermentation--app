@@ -136,8 +136,7 @@ export default function GravityChart({ readings, calibrated, deviceId }: Props) 
       )}
 
       <p className="text-xs text-panel-400">
-        Now {format(latest)} · {delta >= 0 ? "+" : "−"}
-        {format(Math.abs(delta))} across the readings shown.{" "}
+        Now {format(latest)}, {delta >= 0 ? "up" : "down"} {format(Math.abs(delta))} across the readings shown.{" "}
         {/* No ABV/attenuation figure here on purpose: those are measured from
             the batch's true original gravity (see the Fermentation section
             above), not from the first point in whatever window this chart

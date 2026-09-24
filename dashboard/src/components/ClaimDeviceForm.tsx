@@ -91,7 +91,7 @@ export default function ClaimDeviceForm({ onClaimed }: Props) {
           placeholder="ABCD-EFGH"
           autoComplete="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 font-gauge tabular uppercase tracking-widest text-panel-200"
+          className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 font-gauge tabular uppercase tracking-widest text-panel-200"
         />
       </label>
 

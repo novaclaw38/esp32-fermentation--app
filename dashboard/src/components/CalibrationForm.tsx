@@ -116,7 +116,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               value={values[key]}
               onChange={(e) => set(key, e.target.value)}
               placeholder={hint}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">{hint}</span>
           </label>
@@ -143,7 +143,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setCalTemp(e.target.value);
                 setSaved(false);
               }}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">
               What the reference solutions were at
@@ -160,7 +160,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setSaved(false);
               }}
               placeholder="0"
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">
               Optional. Leave 0 unless you calibrated at two temperatures

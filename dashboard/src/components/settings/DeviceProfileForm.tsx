@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Device } from "../../types/database";
+import { formatDate } from "../../lib/chartTime";
 
 interface Props {
   device: Device;
@@ -55,7 +56,7 @@ export default function DeviceProfileForm({ device, onSaved }: Props) {
               setName(e.target.value);
               setSaved(false);
             }}
-            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
+            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200"
           />
         </label>
         <label className="text-sm text-panel-400">
@@ -63,13 +64,12 @@ export default function DeviceProfileForm({ device, onSaved }: Props) {
           <input
             value={device.id}
             disabled
-            className="mt-1 w-full cursor-not-allowed rounded-md border border-panel-700 bg-panel-950 px-2 py-2 text-panel-400"
+            className="mt-1 w-full cursor-not-allowed rounded-md border border-panel-700 bg-panel-950 min-h-11 px-2 py-2 text-panel-400"
           />
         </label>
       </div>
       <p className="text-xs text-panel-400">
-        {TYPE_LABEL[device.device_type]} · claimed{" "}
-        {device.claimed_at ? new Date(device.claimed_at).toLocaleDateString() : new Date(device.created_at).toLocaleDateString()}
+        {TYPE_LABEL[device.device_type]}, claimed {formatDate(device.claimed_at ?? device.created_at)}
       </p>
 
       {error && (

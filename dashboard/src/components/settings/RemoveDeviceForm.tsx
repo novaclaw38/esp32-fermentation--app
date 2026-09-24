@@ -59,7 +59,7 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
             <input
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="mt-1 w-full rounded-md border border-breach-500/50 bg-panel-950 px-2 py-2 text-sm text-panel-200"
+              className="mt-1 w-full rounded-md border border-breach-500/50 bg-panel-950 min-h-11 px-2 py-2 text-sm text-panel-200"
               autoFocus
             />
           </label>

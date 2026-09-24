@@ -3,19 +3,14 @@ import type { Alert } from "../types/database";
 import { supabase } from "../lib/supabaseClient";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
+import { reasonLabel } from "../lib/alerts";
+import { formatDateTime } from "../lib/chartTime";
 
 interface Props {
   alerts: Alert[];
   onAcknowledged: (id: number) => void;
 }
 
-function reasonLabel(reason: string) {
-  if (reason === "below_min") return "Below minimum";
-  if (reason === "above_max") return "Above maximum";
-  if (reason === "sensor_fault") return "Sensor not reading";
-  if (reason === "battery_low") return "Battery low";
-  return reason;
-}
 
 export default function AlertList({ alerts, onAcknowledged }: Props) {
   const { unit } = useTempUnit();
@@ -58,7 +53,7 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
             {alert.temperature_c !== null && (
               <span className="ml-2 font-gauge tabular text-panel-400">{formatTemp(alert.temperature_c, unit)}</span>
             )}
-            <span className="ml-2 text-panel-400">{new Date(alert.created_at).toLocaleString()}</span>
+            <span className="ml-2 text-panel-400">{formatDateTime(alert.created_at)}</span>
             {failed?.id === alert.id && (
               <p role="alert" className="mt-1 text-xs text-breach-400">
                 Couldn't acknowledge: {failed.message}

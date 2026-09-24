@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Device } from "../../types/database";
 import { computeGravitySg, formatSg } from "../../lib/gravity";
+import { formatDateTime } from "../../lib/chartTime";
 
 interface Props {
   device: Device;
@@ -45,7 +46,7 @@ export default function BatchForm({ device, onSaved }: Props) {
 
       {og != null && device.fermentation_started_at ? (
         <p className="mt-2 text-sm text-panel-200">
-          Current batch: OG {formatSg(og)}, started {new Date(device.fermentation_started_at).toLocaleString()}
+          Current batch: OG {formatSg(og)}, started {formatDateTime(device.fermentation_started_at)}
         </p>
       ) : (
         <p className="mt-2 text-sm text-panel-400">

@@ -101,7 +101,7 @@ export default function FermentationStageBar({ analytics, device, latestTempC, n
                     invisible). They stay quieter than past/current through
                     weight and a hollow dot, not through failing contrast. */}
                 <span
-                  className={`text-[10px] uppercase tracking-wider ${
+                  className={`text-xs ${
                     isActive ? "font-semibold text-brew-400" : isPast ? "font-medium text-panel-200" : "font-normal text-panel-400"
                   }`}
                 >

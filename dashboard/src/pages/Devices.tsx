@@ -12,6 +12,8 @@ import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState } from "../lib/gaugeState";
+import { computeGravitySg, formatSg, isCalibrated } from "../lib/gravity";
+import { reasonLabel } from "../lib/alerts";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -23,7 +25,7 @@ function randomSecret(): string {
 // is plenty to catch a new reading or a new alert without hammering the API.
 const REFRESH_MS = 60_000;
 
-const inputClass = "mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200";
+const inputClass = "mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200";
 const primaryButton =
   "inline-flex min-h-11 items-center rounded-md bg-brew-600 px-3 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50";
 const secondaryButton =
@@ -36,7 +38,10 @@ export default function Devices() {
   const now = useNow();
   const [devices, setDevices] = useState<Device[]>([]);
   const [latestReadings, setLatestReadings] = useState<Record<string, Reading>>({});
-  const [openAlertDeviceIds, setOpenAlertDeviceIds] = useState<Set<string>>(new Set());
+  // device id -> reason of its newest open alert. The reason is shown on the
+  // tile: an offline gauge carries no glow, so without it a dead sensor
+  // looked exactly like a device that was merely switched off.
+  const [openAlerts, setOpenAlerts] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
@@ -85,7 +90,7 @@ export default function Devices() {
     // however busy its siblings are.
     const [{ data: readingsData, error: readingsError }, { data: alertsData, error: alertsError }] = await Promise.all([
       supabase.from("latest_readings").select("*"),
-      supabase.from("alerts").select("device_id").eq("acknowledged", false),
+      supabase.from("alerts").select("device_id,reason").eq("acknowledged", false).order("created_at", { ascending: false }),
     ]);
 
     if (readingsData) {
@@ -93,7 +98,13 @@ export default function Devices() {
       for (const r of readingsData as Reading[]) latest[r.device_id] = r;
       setLatestReadings(latest);
     }
-    if (alertsData) setOpenAlertDeviceIds(new Set(alertsData.map((a) => a.device_id as string)));
+    if (alertsData) {
+      const open = new Map<string, string>();
+      for (const a of alertsData as { device_id: string; reason: string }[]) {
+        if (!open.has(a.device_id)) open.set(a.device_id, a.reason);
+      }
+      setOpenAlerts(open);
+    }
 
     const sideError = readingsError ?? alertsError;
     setPartialError(
@@ -170,7 +181,7 @@ export default function Devices() {
       </nav>
 
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold uppercase tracking-wide text-panel-200">Your devices</h1>
+        <h1 className="text-2xl font-semibold text-panel-200">Your devices</h1>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
@@ -351,8 +362,19 @@ export default function Devices() {
               d.temp_min_c,
               d.temp_max_c,
               connection.status,
-              openAlertDeviceIds.has(d.id),
+              openAlerts.has(d.id),
             );
+            const openReason = openAlerts.get(d.id);
+            const gravity =
+              // Not for an offline float: a days-old gravity printed at full
+              // size reads as current, while its gauge already says "—".
+              d.device_type === "tilt" && reading && isCalibrated(d) && connection.status !== "offline"
+                ? computeGravitySg(d, reading.tilt_deg, reading.temperature_c)
+                : null;
+            const lastSeen =
+              connection.secondsSinceLastSeen != null
+                ? `last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
+                : "hasn't reported yet";
             const dimmed = focusedId !== null && focusedId !== d.id;
 
             return (
@@ -383,18 +405,25 @@ export default function Devices() {
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-panel-400">
                       <span className="truncate">{d.id}</span>
                       {d.device_type === "tilt" && (
-                        <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brew-400">
+                        <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium text-brew-400">
                           Temp + Gravity
                         </span>
                       )}
                     </p>
-                    <p className="mt-1 text-xs text-panel-400">
-                      {formatTemp(d.temp_min_c, unit)} – {formatTemp(d.temp_max_c, unit)}
+                    {/* Gravity is what the float exists to measure, so it gets
+                        the tile's biggest number. The gauge stays on
+                        temperature: that's the reading alerts are about, and
+                        the gauge's glow is the alert signal. */}
+                    {gravity != null && (
+                      <p className="mt-1.5 font-gauge tabular text-xl font-semibold leading-none text-panel-200">
+                        {formatSg(gravity)} <span className="font-sans text-xs font-normal text-panel-400">gravity</span>
+                      </p>
+                    )}
+                    <p className="mt-1.5 text-xs text-panel-400">
+                      Range {formatTemp(d.temp_min_c, unit)} to {formatTemp(d.temp_max_c, unit)}
                     </p>
-                    <p className="mt-0.5 text-xs text-panel-400">
-                      {connection.secondsSinceLastSeen != null
-                        ? `Last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
-                        : "Hasn't reported yet"}
+                    <p className={`mt-0.5 text-xs ${openReason ? "font-medium text-breach-400" : "text-panel-400"}`}>
+                      {openReason ? `${reasonLabel(openReason)}, ${lastSeen}` : lastSeen.charAt(0).toUpperCase() + lastSeen.slice(1)}
                     </p>
                   </div>
                 </Link>

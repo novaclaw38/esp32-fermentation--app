@@ -1,7 +1,15 @@
-/** Tick/tooltip label for a numeric time axis. */
-export function formatAxisTime(t: number): string {
+/**
+ * The one absolute timestamp format in the dashboard: "Sep 23, 08:51".
+ * Chart axes, tooltips, alerts, snooze and batch dates all use it, so a time
+ * reads the same wherever it appears. Relative times ("4m ago") stay in
+ * lib/connection.ts for freshness only.
+ */
+export function formatDateTime(t: number | string | Date): string {
   return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
+
+/** Tick/tooltip label for a numeric time axis. */
+export const formatAxisTime = (t: number) => formatDateTime(t);
 
 /**
  * Charts plot against real time (a numeric axis), so a device that was off
@@ -25,4 +33,9 @@ export function withGaps<T extends { t: number }>(points: T[], gapPoint: (t: num
     out.push(points[i]);
   }
   return out;
+}
+
+/** Date-only companion to formatDateTime: "Sep 4, 2026". */
+export function formatDate(t: number | string | Date): string {
+  return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }

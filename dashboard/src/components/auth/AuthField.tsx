@@ -21,8 +21,8 @@ function EyeIcon({ open }: { open: boolean }) {
 
 /**
  * One labelled field in the auth forms: explicit htmlFor/id pairing, hint and
- * error wired through aria-describedby, aria-invalid when in error. Labels use
- * the instrument system's tracked-uppercase label voice.
+ * error wired through aria-describedby, aria-invalid when in error. Labels are
+ * sentence case: all-caps is reserved for the gauge's own instrument labels.
  */
 const AuthField = forwardRef<HTMLInputElement, Props>(function AuthField(
   { label, hint, error, revealable = false, type = "text", className, ...inputProps },
@@ -37,7 +37,7 @@ const AuthField = forwardRef<HTMLInputElement, Props>(function AuthField(
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium uppercase tracking-wider text-panel-400">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-panel-400">
         {label}
       </label>
       <div className="relative">

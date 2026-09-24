@@ -14,6 +14,23 @@ interface Props {
 }
 
 /**
+ * Round gravity-point ticks (…, -5, 0, 5, 10, …) covering [lo, hi], in SG
+ * units. Recharts' own ticks landed on values like +38.8 and -6.5, which read
+ * as measurements rather than as a scale.
+ */
+function niceTicks(lo: number, hi: number): number[] {
+  const loPts = lo * 1000;
+  const hiPts = hi * 1000;
+  const raw = (hiPts - loPts) / 4;
+  const step = [1, 2, 5, 10, 20, 50].find((s) => s >= raw) ?? 100;
+  const ticks: number[] = [];
+  for (let v = Math.floor(loPts / step) * step; v <= Math.ceil(hiPts / step) * step + 1e-9; v += step) {
+    ticks.push(v / 1000);
+  }
+  return ticks;
+}
+
+/**
  * Fermentation velocity -- SG drop per 24h, in gravity points (1 point =
  * 0.001 SG), the unit brewers actually talk in -- to visualize the activity
  * peak and its decay, not just the two current headline numbers.
@@ -34,6 +51,7 @@ export default function FermentationRateChart({ readings, batchStartedAt, since 
   const min = Math.min(0, ...values);
   const max = Math.max(0, ...values);
   const pad = Math.max((max - min) * 0.2, 0.0005);
+  const ticks = niceTicks(min - pad, max + pad);
   const data = withGaps(points, (t) => ({ t, rate: null }));
 
   return (
@@ -54,8 +72,9 @@ export default function FermentationRateChart({ readings, batchStartedAt, since 
           <YAxis
             tick={chartTheme.tick}
             width={52}
-            domain={[min - pad, max + pad]}
-            tickFormatter={(v: number) => formatPoints(v)}
+            domain={[ticks[0], ticks[ticks.length - 1]]}
+            ticks={ticks}
+            tickFormatter={(v: number) => (Math.abs(v) < 1e-9 ? "0" : formatPoints(v).replace(".0", ""))}
             stroke={chartTheme.axis}
           />
           <Tooltip
