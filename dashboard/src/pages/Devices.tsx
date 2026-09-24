@@ -159,9 +159,6 @@ export default function Devices() {
           (it overflowed a 375px screen by 96px and pushed Sign out offscreen). */}
       <nav aria-label="Account" className="-mr-2 mb-2 flex items-center justify-end gap-1">
         <UnitToggle />
-        <Link to="/sniffer" className={quietLink}>
-          Leak sniffer
-        </Link>
         {isAdmin && (
           <Link to="/admin/firmware" className={quietLink}>
             Firmware

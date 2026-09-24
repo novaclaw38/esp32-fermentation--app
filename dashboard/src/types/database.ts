@@ -143,33 +143,3 @@ export const DEVICE_COLUMNS = [
   "og_temp_c",
   "fermentation_started_at",
 ].join(",");
-
-/** One leak-sniffer job (supabase/migrations/20260924120000_leak_surveys.sql). */
-export interface LeakSurvey {
-  id: string;
-  user_id: string;
-  name: string;
-  site_address: string | null;
-  notes: string | null;
-  sniffer_name: string | null;
-  baseline_r0_ohm: number | null;
-  created_at: string;
-}
-
-/** A spot the operator marked during a survey. */
-export interface LeakSurveyPoint {
-  id: number;
-  survey_id: string;
-  label: string | null;
-  /** R0/Rs: 1.0 = clean air, higher = more hydrogen. */
-  response: number;
-  ppm: number | null;
-  rs_ohm: number | null;
-  lat: number | null;
-  lng: number | null;
-  accuracy_m: number | null;
-  temp_c: number | null;
-  rh_pct: number | null;
-  suspected_leak: boolean;
-  created_at: string;
-}

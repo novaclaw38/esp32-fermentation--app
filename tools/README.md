@@ -66,7 +66,7 @@ lets Claude Code work with the SKiDL circuits in this repo:
 
 | Tool | Does |
 |---|---|
-| `list_circuits` | Finds every `circuits/<pkg>/__main__.py` SKiDL design (root, `esp32-devkit-tilt-prototype/`, `esp8266-tilt-prototype/`, `leak-sniffer/`) |
+| `list_circuits` | Finds every `circuits/<pkg>/__main__.py` SKiDL design (root, `esp32-devkit-tilt-prototype/`, `esp8266-tilt-prototype/`) |
 | `list_circuit_files` | Lists a design's block source files |
 | `build_circuit` | Runs the design's `__main__`: ERC + netlist + BOM XML into its `outputs/`, returns the log |
 | `search_parts` | Searches the KiCad symbol libraries (`"lipo charger"`) |

@@ -39,13 +39,6 @@ interface Props {
    */
   endLabels?: [string, string];
   size?: "sm" | "lg";
-  /**
-   * Which ends of the dial carry a redline zone. A threshold band (temp min
-   * to max) is dangerous at both ends; a one-sided quantity like the leak
-   * sniffer's response, where the bottom of the scale is clean air, only at
-   * the top.
-   */
-  redline?: "both" | "high";
 }
 
 // A 240° sweep with a 120° gap at the bottom -- the classic speedometer
@@ -125,7 +118,7 @@ const NEEDLE_BASE_Y = CY - 10;
 const NEEDLE_BASE_HALF_WIDTH = 2.4;
 const NEEDLE_TIP_HALF_WIDTH = 0.6;
 
-export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, endLabels, size = "sm", redline = "both" }: Props) {
+export default function Gauge({ value, min, max, displayValue, label, state, subLabel, stale = false, endLabels, size = "sm" }: Props) {
   // The needle rotation and opacity fade still have to happen -- they carry
   // the state change, not just decorate it -- but under reduced motion they
   // snap to the new frame instead of animating into it.
@@ -207,16 +200,14 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
             Widened/brightened after a critique found the original 3px/35%
             opacity version functionally invisible at the 112px size used in
             the device grid -- the surface most people actually scan. */}
-        {redline === "both" && (
-          <path
-            d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + approachSpan)}
-            fill="none"
-            stroke={palette.breach[400]}
-            strokeWidth={4}
-            strokeLinecap="round"
-            opacity={0.55}
-          />
-        )}
+        <path
+          d={describeArc(CX, CY, TRACK_R, START_ANGLE, START_ANGLE + approachSpan)}
+          fill="none"
+          stroke={palette.breach[400]}
+          strokeWidth={4}
+          strokeLinecap="round"
+          opacity={0.55}
+        />
         <path
           d={describeArc(CX, CY, TRACK_R, START_ANGLE + SWEEP - approachSpan, START_ANGLE + SWEEP)}
           fill="none"
