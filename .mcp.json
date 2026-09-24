@@ -3,7 +3,21 @@
     "claude-flow": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "claude-flow@3.44.0", "mcp", "start"]
+      "args": [
+        "-y",
+        "claude-flow@3.44.0",
+        "mcp",
+        "start"
+      ]
+    },
+    "skidl": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--script",
+        "tools/skidl_mcp.py"
+      ]
     }
   }
 }
