@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "claude-flow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "claude-flow@3.44.0", "mcp", "start"]
+    }
+  }
+}

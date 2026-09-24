@@ -69,3 +69,8 @@ provisioning/
 # Impeccable's detector engine is platform-specific and ~16MB; the launcher
 # (.claude/skills/impeccable/scripts/impeccable) downloads it on first run.
 .claude/skills/impeccable/scripts/bin/
+
+# claude-flow MCP runtime state (memory DB, swarm/session data)
+.claude-flow/
+.swarm/
+.hive-mind/
