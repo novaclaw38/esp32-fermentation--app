@@ -23,8 +23,9 @@ that build had. Dry-fit the board before soldering anything down.
 - ✅ TP4056 breakout is **protected** (3 ICs: TP4056 + DW01A + FS8205A)
   — carried over from the ESP8266 rig if it's the same physical board;
   re-verify if not (see `architecture/design_risks.md`)
-- ✅ GY-291 `SDO`/`CS` are dedicated pins, not internally tied — same
-  carry-over caveat as above
+- ✅ GY-291 `SDO`/`CS` are dedicated pins, not internally tied —
+  confirmed by photo (silkscreen `GND VCC CS INT1 INT2 SDO SDA SCL`),
+  printed X/Y/Z axis diagram present
 - ✅ DHT11 is the **bare 4-pin Asair sensor** (no PCB, no onboard
   pull-up) — confirmed by photo. Pin order left-to-right: `VDD DATA NC
   GND`. `R3` (10kΩ) supplies the pull-up this variant needs.

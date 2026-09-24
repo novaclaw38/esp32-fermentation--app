@@ -9,7 +9,7 @@ on-hand/hobbyist parts, not a JLCPCB batch order.
 |---|---|---|
 | ESP32 Dev Kit V1 (30-pin, WROOM-32) | ⚠️ Not yet verified against a photo | Confirm GPIO4/21/22/25/34/3V3/VIN/GND are present and locate them by label — see `architecture/design_risks.md` |
 | TP4056 micro-USB charger breakout | Carry over ESP8266 rig's verification if same physical board, else re-verify | Count ICs (3 = protected, 1 = unprotected) |
-| GY-291 (ADXL345) breakout | Carry over ESP8266 rig's verification if same physical board, else re-verify | Confirm `SDO`/`CS` are dedicated pins |
+| GY-291 (ADXL345) breakout | ✅ Confirmed by photo | Silkscreen `GND VCC CS INT1 INT2 SDO SDA SCL`; `SDO`/`CS` are dedicated pins, printed axis diagram present |
 | DHT11, Asair, bare 4-pin | ✅ Confirmed by photo | No onboard pull-up — R3 (10kΩ) added to the circuit. See `datasheets/DHT11_SUMMARY.md` |
 
 ## Still needed
