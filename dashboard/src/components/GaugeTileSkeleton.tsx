@@ -1,3 +1,5 @@
+import { palette } from "../lib/tokens";
+
 const CX = 56;
 const CY = 53;
 const R = 42;
@@ -26,11 +28,13 @@ function describeArc(startDeg: number, endDeg: number, r = R) {
 export default function GaugeTileSkeleton() {
   return (
     <div className="flex animate-pulse items-center gap-4 rounded-lg border border-panel-700 bg-panel-900 p-4">
-      <svg width={56} height={56} viewBox="0 0 112 106" className="shrink-0">
+      {/* Same 112px box as Gauge's sm size (h-28 w-28), so tiles don't jump
+          in height and width when the real gauges replace these. */}
+      <svg viewBox="0 0 112 106" aria-hidden="true" className="h-28 w-28 shrink-0">
         <path
           d={describeArc(START_ANGLE, START_ANGLE + SWEEP)}
           fill="none"
-          stroke="#7a654c"
+          stroke={palette.panel[500]}
           strokeWidth={7}
           strokeLinecap="round"
         />

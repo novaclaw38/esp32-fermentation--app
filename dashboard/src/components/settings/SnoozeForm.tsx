@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Device } from "../../types/database";
+import { useNow } from "../../lib/useNow";
 
 interface Props {
   device: Device;
@@ -19,7 +20,9 @@ export default function SnoozeForm({ device, onSaved }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const mutedUntil = device.alerts_muted_until ? new Date(device.alerts_muted_until) : null;
-  const isMuted = mutedUntil !== null && mutedUntil.getTime() > Date.now();
+  // Re-evaluated as the clock ticks, so an expired snooze stops showing as active.
+  const now = useNow();
+  const isMuted = mutedUntil !== null && mutedUntil.getTime() > now.getTime();
 
   async function applyMute(hours: number | null) {
     setSaving(true);
@@ -41,15 +44,14 @@ export default function SnoozeForm({ device, onSaved }: Props) {
 
   return (
     <div className="rounded-lg border border-panel-700 bg-panel-900 p-4">
-      <p className="text-sm font-medium text-panel-200">Snooze alerts</p>
-      <p className="mt-1 text-xs text-panel-400">
-        Readings keep posting and charting normally -- only new temperature and battery alerts
+      <p className="text-xs text-panel-400">
+        Readings keep posting and charting normally; only new temperature and battery alerts
         are held back. Useful during a cold crash or any deliberate swing you don't want to be
-        paged for.
+        paged for. A sensor that stops reading still alerts while snoozed.
       </p>
 
       {isMuted && mutedUntil && (
-        <p className="mt-2 rounded-md border border-approach-500/40 bg-panel-950 px-2 py-1 text-sm text-approach-400">
+        <p role="status" className="mt-2 rounded-md border border-approach-500/40 bg-panel-950 px-2 py-2 text-sm text-approach-400">
           Muted until {mutedUntil.toLocaleString()}
         </p>
       )}
@@ -60,7 +62,7 @@ export default function SnoozeForm({ device, onSaved }: Props) {
             key={label}
             onClick={() => applyMute(hours)}
             disabled={saving}
-            className="rounded-md border border-panel-600 px-2.5 py-1 text-xs font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
+            className="min-h-11 rounded-md border border-panel-600 px-3 text-xs font-medium text-panel-200 hover:bg-panel-800 disabled:opacity-50"
           >
             {label}
           </button>
@@ -69,14 +71,18 @@ export default function SnoozeForm({ device, onSaved }: Props) {
           <button
             onClick={() => applyMute(null)}
             disabled={saving}
-            className="rounded-md border border-brew-600 bg-panel-800 px-2.5 py-1 text-xs font-medium text-brew-400 hover:bg-panel-700 disabled:opacity-50"
+            className="min-h-11 rounded-md border border-brew-600 bg-panel-800 px-3 text-xs font-medium text-brew-400 hover:bg-panel-700 disabled:opacity-50"
           >
             Unmute now
           </button>
         )}
       </div>
 
-      {error && <p className="mt-2 text-sm text-breach-400">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-breach-400">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

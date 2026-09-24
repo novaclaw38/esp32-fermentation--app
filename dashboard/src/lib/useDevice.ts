@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
-import type { Device } from "../types/database";
+import { DEVICE_COLUMNS, type Device } from "../types/database";
 
 /**
  * Shared device-fetch logic for any page keyed by :deviceId (detail, settings).
@@ -21,7 +21,7 @@ export function useDevice(deviceId: string | undefined) {
     setNotFound(false);
     setLoadError(null);
 
-    const { data, error } = await supabase.from("devices").select("*").eq("id", deviceId).single();
+    const { data, error } = await supabase.from("devices").select(DEVICE_COLUMNS).eq("id", deviceId).single();
 
     // PGRST116 ("no rows") from .single() means genuinely not found -- no
     // such device, or RLS makes it invisible, same thing from here. Any
@@ -38,7 +38,7 @@ export function useDevice(deviceId: string | undefined) {
       setLoading(false);
       return;
     }
-    setDevice(data as Device);
+    setDevice(data as unknown as Device);
     setLoading(false);
   }, [deviceId]);
 

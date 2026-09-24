@@ -4,41 +4,218 @@
   "title": "Design System: Fermentation Monitor Dashboard",
   "extensions": {
     "colorMeta": {
-      "panel-page": { "role": "neutral", "displayName": "Panel Ground", "canonical": "#14110e", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#9c8a6e", "#d9cbb0"] },
-      "panel-surface": { "role": "neutral", "displayName": "Panel Surface", "canonical": "#1c1712", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#9c8a6e", "#d9cbb0"] },
-      "panel-raised": { "role": "neutral", "displayName": "Panel Raised", "canonical": "#262019", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#9c8a6e", "#d9cbb0"] },
-      "panel-border": { "role": "neutral", "displayName": "Panel Border", "canonical": "#332a20", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#9c8a6e", "#d9cbb0"] },
-      "panel-edge": { "role": "neutral", "displayName": "Panel Edge", "canonical": "#453829", "tonalRamp": ["#0d0b09", "#14110e", "#1c1712", "#262019", "#332a20", "#453829", "#9c8a6e", "#d9cbb0"] },
-      "panel-text-secondary": { "role": "neutral", "displayName": "Panel Text Secondary", "canonical": "#9c8a6e" },
-      "panel-text-primary": { "role": "neutral", "displayName": "Panel Text Primary", "canonical": "#d9cbb0" },
-      "brew-glow": { "role": "primary", "displayName": "Brew Amber Glow", "canonical": "#dd9834", "tonalRamp": ["#5b331a", "#6c3c1b", "#84491a", "#a8631c", "#c97f22", "#dd9834", "#e6b25c", "#f0d094"] },
-      "brew-accent": { "role": "primary", "displayName": "Brew Amber Solid", "canonical": "#c97f22" },
-      "brew-accent-hover": { "role": "primary", "displayName": "Brew Amber Deep (hover)", "canonical": "#a8631c" },
-      "approach": { "role": "secondary", "displayName": "Approach Orange", "canonical": "#fb923c" },
-      "approach-deep": { "role": "secondary", "displayName": "Approach Orange Deep", "canonical": "#f2751a" },
-      "breach": { "role": "secondary", "displayName": "Breach Red", "canonical": "#f87171" },
-      "breach-deep": { "role": "secondary", "displayName": "Breach Red Deep", "canonical": "#ef4444" }
+      "panel-page": {
+        "role": "neutral",
+        "displayName": "Panel Ground",
+        "canonical": "#14110e",
+        "tonalRamp": [
+          "#0d0b09",
+          "#14110e",
+          "#1c1712",
+          "#262019",
+          "#332a20",
+          "#453829",
+          "#9c8a6e",
+          "#d9cbb0"
+        ]
+      },
+      "panel-surface": {
+        "role": "neutral",
+        "displayName": "Panel Surface",
+        "canonical": "#1c1712",
+        "tonalRamp": [
+          "#0d0b09",
+          "#14110e",
+          "#1c1712",
+          "#262019",
+          "#332a20",
+          "#453829",
+          "#9c8a6e",
+          "#d9cbb0"
+        ]
+      },
+      "panel-raised": {
+        "role": "neutral",
+        "displayName": "Panel Raised",
+        "canonical": "#262019",
+        "tonalRamp": [
+          "#0d0b09",
+          "#14110e",
+          "#1c1712",
+          "#262019",
+          "#332a20",
+          "#453829",
+          "#9c8a6e",
+          "#d9cbb0"
+        ]
+      },
+      "panel-border": {
+        "role": "neutral",
+        "displayName": "Panel Border",
+        "canonical": "#332a20",
+        "tonalRamp": [
+          "#0d0b09",
+          "#14110e",
+          "#1c1712",
+          "#262019",
+          "#332a20",
+          "#453829",
+          "#9c8a6e",
+          "#d9cbb0"
+        ]
+      },
+      "panel-edge": {
+        "role": "neutral",
+        "displayName": "Panel Edge",
+        "canonical": "#453829",
+        "tonalRamp": [
+          "#0d0b09",
+          "#14110e",
+          "#1c1712",
+          "#262019",
+          "#332a20",
+          "#453829",
+          "#9c8a6e",
+          "#d9cbb0"
+        ]
+      },
+      "panel-text-secondary": {
+        "role": "neutral",
+        "displayName": "Panel Text Secondary",
+        "canonical": "#9c8a6e"
+      },
+      "panel-text-primary": {
+        "role": "neutral",
+        "displayName": "Panel Text Primary",
+        "canonical": "#d9cbb0"
+      },
+      "brew-glow": {
+        "role": "primary",
+        "displayName": "Brew Amber Glow",
+        "canonical": "#dd9834",
+        "tonalRamp": [
+          "#5b331a",
+          "#6c3c1b",
+          "#84491a",
+          "#a8631c",
+          "#c97f22",
+          "#dd9834",
+          "#e6b25c",
+          "#f0d094"
+        ]
+      },
+      "brew-accent": {
+        "role": "primary",
+        "displayName": "Brew Amber Solid",
+        "canonical": "#c97f22"
+      },
+      "brew-accent-hover": {
+        "role": "primary",
+        "displayName": "Brew Amber Deep (hover)",
+        "canonical": "#a8631c"
+      },
+      "approach": {
+        "role": "secondary",
+        "displayName": "Approach Orange",
+        "canonical": "#fb923c"
+      },
+      "approach-deep": {
+        "role": "secondary",
+        "displayName": "Approach Orange Deep",
+        "canonical": "#f2751a"
+      },
+      "breach": {
+        "role": "secondary",
+        "displayName": "Breach Red",
+        "canonical": "#f87171"
+      },
+      "breach-deep": {
+        "role": "secondary",
+        "displayName": "Breach Red Deep",
+        "canonical": "#ef4444"
+      },
+      "breach-solid": {
+        "role": "secondary",
+        "displayName": "Breach Red Solid (button fill)",
+        "canonical": "#b91c1c"
+      },
+      "gauge-track": {
+        "role": "neutral",
+        "displayName": "Gauge Track",
+        "canonical": "#7a654c"
+      },
+      "gravity": {
+        "role": "tertiary",
+        "displayName": "Gravity Series Green",
+        "canonical": "#4ade80"
+      }
     },
     "typographyMeta": {
-      "headline": { "displayName": "Headline", "purpose": "Page titles: device list heading, device name on the detail page." },
-      "title": { "displayName": "Title", "purpose": "Section headers: Alerts, Settings, chart titles." },
-      "body": { "displayName": "Body", "purpose": "Metadata, form copy, alert reasons." },
-      "label": { "displayName": "Label", "purpose": "Gauge instrument labels and device-type chips, uppercase tracked." },
-      "numeral": { "displayName": "Numeral", "purpose": "Live digit at a gauge's center; tabular monospace so updates never jitter in width." }
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles: device list heading, device name on the detail page."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headers: Alerts, Settings, chart titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Metadata, form copy, alert reasons."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Gauge instrument labels and device-type chips, uppercase tracked."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Live digit at a gauge's center; tabular monospace so updates never jitter in width."
+      }
     },
     "shadows": [
-      { "name": "glow-nominal", "value": "drop-shadow(0 0 3px #dd9834)", "purpose": "Gauge needle/dial glow when the reading is nominal." },
-      { "name": "glow-approaching", "value": "drop-shadow(0 0 5px #fb923c)", "purpose": "Gauge needle/dial glow when the reading is nearing a threshold." },
-      { "name": "glow-breached", "value": "drop-shadow(0 0 9px #f87171)", "purpose": "Gauge needle/dial glow when the reading is out of range or has an open alert — measurably brighter, the alert-brightness raise." },
-      { "name": "alert-dot-halo", "value": "0 0 6px 2px rgba(248,113,113,0.6)", "purpose": "Small status-dot glow on an unacknowledged alert in the alert list." }
+      {
+        "name": "glow-nominal",
+        "value": "drop-shadow(0 0 3px #dd9834)",
+        "purpose": "Gauge needle/dial glow when the reading is nominal."
+      },
+      {
+        "name": "glow-approaching",
+        "value": "drop-shadow(0 0 5px #fb923c)",
+        "purpose": "Gauge needle/dial glow when the reading is nearing a threshold."
+      },
+      {
+        "name": "glow-breached",
+        "value": "drop-shadow(0 0 9px #f87171)",
+        "purpose": "Gauge needle/dial glow when the reading is out of range or has an open alert \u2014 measurably brighter, the alert-brightness raise."
+      },
+      {
+        "name": "alert-dot-halo",
+        "value": "0 0 6px 2px rgba(248,113,113,0.6)",
+        "purpose": "Small status-dot glow on an unacknowledged alert in the alert list."
+      }
     ],
     "motion": [
-      { "name": "needle-ease", "value": "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Gauge needle rotation on value update — the one authored moment every gauge shares." },
-      { "name": "dim-transition", "value": "opacity/border-color 300ms", "purpose": "Focus-dim: neighboring tiles fade to 50% opacity when one tile is hovered or focused." },
-      { "name": "state-fade", "value": "opacity 500ms", "purpose": "Gauge SVG fades to 40% opacity when a device goes offline." }
+      {
+        "name": "needle-ease",
+        "value": "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Gauge needle rotation on value update \u2014 the one authored moment every gauge shares."
+      },
+      {
+        "name": "dim-transition",
+        "value": "opacity/border-color 300ms",
+        "purpose": "Focus-dim: neighboring tiles fade to 70% opacity when one tile is hovered or focused."
+      },
+      {
+        "name": "state-fade",
+        "value": "opacity 500ms",
+        "purpose": "Gauge SVG fades to 40% opacity when a device goes offline."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      }
     ]
   },
   "components": [
@@ -47,7 +224,7 @@
       "kind": "custom",
       "refersTo": "gauge",
       "description": "The radial instrument every surface composes: 240 degree dial, eased needle, tabular numeral, state-driven glow.",
-      "html": "<div class=\"ds-gauge\" role=\"img\" aria-label=\"Temp: 21.2C, 3m ago\"><svg viewBox=\"0 0 200 200\" class=\"ds-gauge-svg\"><path d=\"M 35.92 131 A 74 74 0 1 1 164.08 131\" fill=\"none\" stroke=\"#332a20\" stroke-width=\"10\" stroke-linecap=\"round\"/><g class=\"ds-gauge-needle\"><line x1=\"100\" y1=\"36\" x2=\"100\" y2=\"84\" stroke=\"#dd9834\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><circle cx=\"100\" cy=\"94\" r=\"6\" fill=\"#dd9834\" class=\"ds-gauge-hub\"/></svg><div class=\"ds-gauge-readout\"><span class=\"ds-gauge-numeral\">21.2°C</span><span class=\"ds-gauge-label\">TEMP</span></div></div>",
+      "html": "<div class=\"ds-gauge\" role=\"img\" aria-label=\"Temp: 21.2C, 3m ago\"><svg viewBox=\"0 0 200 200\" class=\"ds-gauge-svg\"><path d=\"M 35.92 131 A 74 74 0 1 1 164.08 131\" fill=\"none\" stroke=\"#332a20\" stroke-width=\"10\" stroke-linecap=\"round\"/><g class=\"ds-gauge-needle\"><line x1=\"100\" y1=\"36\" x2=\"100\" y2=\"84\" stroke=\"#dd9834\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><circle cx=\"100\" cy=\"94\" r=\"6\" fill=\"#dd9834\" class=\"ds-gauge-hub\"/></svg><div class=\"ds-gauge-readout\"><span class=\"ds-gauge-numeral\">21.2\u00b0C</span><span class=\"ds-gauge-label\">TEMP</span></div></div>",
       "css": ".ds-gauge { position: relative; width: 112px; height: 112px; flex-shrink: 0; } .ds-gauge-svg { width: 100%; height: 100%; transition: opacity 500ms; } .ds-gauge-needle { transform-origin: 100px 94px; filter: drop-shadow(0 0 3px #dd9834); } .ds-gauge-hub { filter: drop-shadow(0 0 3px #dd9834); } .ds-gauge-readout { position: absolute; left: 0; right: 0; bottom: 0; top: 66%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; } .ds-gauge-numeral { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1; font-size: 1.125rem; color: #d9cbb0; } .ds-gauge-label { margin-top: 4px; font-size: 0.625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: #9c8a6e; } .ds-gauge-sublabel { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-variant-numeric: tabular-nums; font-size: 0.75rem; color: #9c8a6e; }"
     },
     {
@@ -110,10 +287,26 @@
       "Focus-dim: bringing one instrument forward dims its neighbors instead of a badge or modal calling it out"
     ],
     "rules": [
-      { "name": "The Glow-Carries-State Rule", "body": "A gauge's state is never color alone. Nominal, approaching, breached, and offline each pair a hue with a distinct glow radius (3px / 5px / 9px / none) so severity reads as intensity before hue even registers -- the alert-brightness raise. Don't reintroduce state as a separate badge or icon once a gauge already carries it.", "section": "colors" },
-      { "name": "The One Amber Rule", "body": "`brew` is the only accent hue in the system outside the state vocabulary. It is not spent on decoration -- only on the nominal glow and on primary actions.", "section": "colors" },
-      { "name": "The Tabular Numerals Rule", "body": "Every live-updating digit -- gauge readouts, alert temperatures -- uses the monospace stack with tabular-nums. This is a legibility mechanism, not a technical costume, so it is never applied to static or non-numeric text.", "section": "typography" },
-      { "name": "The Flat-Except-Lit Rule", "body": "Containers never cast a shadow. The only glow permitted anywhere is the state glow already defined per gauge/indicator -- don't add ambient shadow or glow to a card, button, or chip that isn't reporting a live state.", "section": "elevation" }
+      {
+        "name": "The Glow-Carries-State Rule",
+        "body": "A gauge's state is never color alone. Nominal, approaching, breached, and offline each pair a hue with a distinct glow radius (3px / 5px / 9px / none) so severity reads as intensity before hue even registers -- the alert-brightness raise. Don't reintroduce state as a separate badge or icon once a gauge already carries it.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Amber Rule",
+        "body": "`brew` is the only accent hue in the system outside the state vocabulary. It is not spent on decoration -- only on the nominal glow and on primary actions.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numerals Rule",
+        "body": "Every live-updating digit -- gauge readouts, alert temperatures -- uses the monospace stack with tabular-nums. This is a legibility mechanism, not a technical costume, so it is never applied to static or non-numeric text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Except-Lit Rule",
+        "body": "Containers never cast a shadow. The only glow permitted anywhere is the state glow already defined per gauge/indicator -- don't add ambient shadow or glow to a card, button, or chip that isn't reporting a live state.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do use the four-state vocabulary (nominal/approaching/breached/offline) -- and its paired glow intensity -- for any future live-reading indicator, not just Gauge.",

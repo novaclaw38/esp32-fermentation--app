@@ -37,22 +37,23 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
     <div className="rounded-lg border border-approach-500/40 bg-panel-900 p-4">
       <p className="text-sm font-medium text-approach-400">Unclaim / transfer</p>
       <p className="mt-1 text-xs text-panel-400">
-        Releases this device from your account and mints a fresh claim code -- its whole reading
-        and alert history stays intact, just waiting for whoever claims it next. Use this to hand
-        a unit to someone else, or to move it to a different account of your own.
+        Releases this device from your account and mints a fresh claim code. Use this to hand a
+        unit to someone else, or to move it to a different account of your own. Your readings and
+        alerts stay private: whoever claims it next only sees data from their own claim onward,
+        and its name and alert settings reset. Calibration stays with the unit.
       </p>
 
       {newClaimCode ? (
-        <div className="mt-3 space-y-2">
+        <div role="status" className="mt-3 space-y-2">
           <p className="text-xs text-panel-400">
-            New claim code -- write it down or print it now, it won't be shown again:
+            New claim code. Write it down or print it now; it won't be shown again:
           </p>
           <code className="block rounded-md border border-approach-500 bg-panel-950 px-3 py-2 text-center font-gauge tabular text-lg uppercase tracking-widest text-approach-400">
             {newClaimCode.slice(0, 4)}-{newClaimCode.slice(4)}
           </code>
           <button
             onClick={onUnclaimed}
-            className="rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400"
+            className="min-h-11 rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400"
           >
             Done
           </button>
@@ -66,12 +67,16 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
         </button>
       ) : (
         <div className="mt-3 space-y-2">
-          {error && <p className="text-sm text-breach-400">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-breach-400">
+              {error}
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               onClick={handleUnclaim}
               disabled={unclaiming}
-              className="rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400 disabled:opacity-40"
+              className="min-h-11 rounded-md bg-approach-500 px-3 py-2 text-sm font-medium text-panel-950 hover:bg-approach-400 disabled:opacity-40"
             >
               {unclaiming ? "Releasing…" : "Yes, release it"}
             </button>
@@ -80,7 +85,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
                 setConfirming(false);
                 setError(null);
               }}
-              className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
+              className="min-h-11 rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
             >
               Cancel
             </button>

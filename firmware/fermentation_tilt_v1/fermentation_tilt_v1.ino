@@ -34,7 +34,8 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
-#include <HTTPUpdate.h>
+#include <Update.h>
+#include "mbedtls/sha256.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WebServer.h>
@@ -96,6 +97,16 @@ const bool OTA_ENABLED = false;
 const char* OTA_MANIFEST_URL = "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/firmware/tilt/manifest.json";
 const int FIRMWARE_VERSION = 1;
 const int OTA_CHECK_EVERY_N_CYCLES = 96; // ~once/day at a 15 min interval
+
+// --- TLS ---
+// PEM of the root CA that signs SUPABASE_URL's certificate (the OTA download
+// comes from the same host). With the placeholder left in, API calls stay
+// encrypted but the server is NOT verified -- fine on a bench, not for a
+// shipped unit -- and OTA refuses to run at all: an unverified connection
+// would let anyone on the network hand this device arbitrary firmware.
+// Get it with: openssl s_client -showcerts -connect YOUR_PROJECT.supabase.co:443
+// and paste the LAST certificate in the chain (the root), newlines as \n.
+const char* ROOT_CA_PEM = "PASTE_ROOT_CA_PEM";
 
 // ---------------------------- PINS / HARDWARE ------------------------------
 
@@ -418,6 +429,30 @@ float readTiltDegrees() {
   return (float)tilt;
 }
 
+// ------------------------------ TLS ----------------------------------------
+
+bool rootCaConfigured() {
+  return strncmp(ROOT_CA_PEM, "-----BEGIN", 10) == 0;
+}
+
+// One client for every HTTPS call this cycle. Verified against ROOT_CA_PEM
+// when it's set; otherwise explicitly unverified, which is what a bare
+// http.begin(url) silently did before -- now it's at least a visible choice.
+WiFiClientSecure& tlsClient() {
+  static WiFiClientSecure client;
+  static bool configured = false;
+  if (!configured) {
+    if (rootCaConfigured()) {
+      client.setCACert(ROOT_CA_PEM);
+    } else {
+      Serial.println("WARNING: ROOT_CA_PEM not set -- TLS server is not verified");
+      client.setInsecure();
+    }
+    configured = true;
+  }
+  return client;
+}
+
 // ------------------------------ Supabase -----------------------------------
 
 bool extractNumberField(const String& json, const char* key, float* out) {
@@ -435,6 +470,18 @@ bool extractNumberField(const String& json, const char* key, float* out) {
   return true;
 }
 
+// Same idea for a string value: "key":"value". Values here are URLs and hex
+// digests, which never contain an escaped quote.
+String extractStringField(const String& json, const char* key) {
+  String needle = "\"" + String(key) + "\":\"";
+  int idx = json.indexOf(needle);
+  if (idx == -1) return "";
+  int start = idx + needle.length();
+  int end = json.indexOf("\"", start);
+  if (end == -1) return "";
+  return json.substring(start, end);
+}
+
 void addSupabaseHeaders(HTTPClient& http) {
   http.addHeader("Content-Type", "application/json");
   http.addHeader("apikey", SUPABASE_ANON_KEY);
@@ -443,7 +490,7 @@ void addSupabaseHeaders(HTTPClient& http) {
 
 void fetchRemoteConfig() {
   HTTPClient http;
-  http.begin(String(SUPABASE_URL) + "/rest/v1/rpc/get_device_config");
+  http.begin(tlsClient(), String(SUPABASE_URL) + "/rest/v1/rpc/get_device_config");
   addSupabaseHeaders(http);
 
   String payload = "{\"p_device_id\":\"" + String(DEVICE_ID) +
@@ -453,10 +500,23 @@ void fetchRemoteConfig() {
   if (httpCode == 200) {
     String body = http.getString();
     float v;
-    if (extractNumberField(body, "temp_min_c", &v)) TEMP_MIN_C = v;
-    if (extractNumberField(body, "temp_max_c", &v)) TEMP_MAX_C = v;
-    if (extractNumberField(body, "consecutive_breach_limit", &v)) CONSECUTIVE_BREACH_LIMIT = (int)v;
-    if (extractNumberField(body, "sleep_interval_seconds", &v)) SLEEP_INTERVAL_SECONDS = (uint64_t)v;
+    // Every remote value is range-checked before use. A bad row (a cleared
+    // form field saved as 0, say) must not be able to put the unit into a
+    // wake loop that flattens the cell, or never wake it again. Out-of-range
+    // values are ignored and the previous ones kept.
+    float minC, maxC;
+    if (extractNumberField(body, "temp_min_c", &minC) &&
+        extractNumberField(body, "temp_max_c", &maxC) &&
+        minC < maxC && minC >= -40 && maxC <= 125) {
+      TEMP_MIN_C = minC;
+      TEMP_MAX_C = maxC;
+    }
+    if (extractNumberField(body, "consecutive_breach_limit", &v) && v >= 1 && v <= 100) {
+      CONSECUTIVE_BREACH_LIMIT = (int)v;
+    }
+    if (extractNumberField(body, "sleep_interval_seconds", &v) && v >= 60 && v <= 86400) {
+      SLEEP_INTERVAL_SECONDS = (uint64_t)v;
+    }
     Serial.println("Remote config applied: min=" + String(TEMP_MIN_C) +
                     " max=" + String(TEMP_MAX_C) +
                     " breachLimit=" + String(CONSECUTIVE_BREACH_LIMIT) +
@@ -473,7 +533,7 @@ void fetchRemoteConfig() {
 // reading -- the temperature is still worth recording.
 bool postReading(float tempC, float tiltDeg, float batteryV) {
   HTTPClient http;
-  http.begin(String(SUPABASE_URL) + "/rest/v1/rpc/ingest_reading");
+  http.begin(tlsClient(), String(SUPABASE_URL) + "/rest/v1/rpc/ingest_reading");
   addSupabaseHeaders(http);
 
   String tiltField = isnan(tiltDeg) ? String("null") : String(tiltDeg, 2);
@@ -500,7 +560,7 @@ bool postReading(float tempC, float tiltDeg, float batteryV) {
 
 bool postAlert(float tempC, const char* reason) {
   HTTPClient http;
-  http.begin(String(SUPABASE_URL) + "/rest/v1/rpc/ingest_alert");
+  http.begin(tlsClient(), String(SUPABASE_URL) + "/rest/v1/rpc/ingest_alert");
   addSupabaseHeaders(http);
 
   String payload = "{\"p_device_id\":\"" + String(DEVICE_ID) +
@@ -586,9 +646,16 @@ void checkForOTAUpdate() {
   if (!OTA_ENABLED) return;
   if (cycleCount % OTA_CHECK_EVERY_N_CYCLES != 0) return;
 
+  // Fail closed: without a verified server, the manifest and the binary could
+  // both come from whoever is between this device and the internet.
+  if (!rootCaConfigured()) {
+    Serial.println("OTA skipped: set ROOT_CA_PEM first -- refusing unverified firmware");
+    return;
+  }
+
   Serial.println("Checking for firmware update...");
   HTTPClient http;
-  http.begin(OTA_MANIFEST_URL);
+  http.begin(tlsClient(), OTA_MANIFEST_URL);
   int code = http.GET();
   if (code != 200) {
     Serial.println("OTA manifest fetch failed, HTTP code: " + String(code));
@@ -603,30 +670,86 @@ void checkForOTAUpdate() {
     Serial.println("OTA manifest missing version field");
     return;
   }
-  if ((int)versionF <= FIRMWARE_VERSION) {
+  int remoteVersion = (int)versionF;
+  if (remoteVersion <= FIRMWARE_VERSION) {
     Serial.println("Firmware up to date (v" + String(FIRMWARE_VERSION) + ")");
     return;
   }
 
-  int urlStart = body.indexOf("\"url\":\"");
-  if (urlStart == -1) {
-    Serial.println("OTA manifest missing url field");
+  String firmwareUrl = extractStringField(body, "url");
+  String expectedSha = extractStringField(body, "sha256");
+  expectedSha.toLowerCase();
+  if (firmwareUrl.length() == 0 || expectedSha.length() != 64) {
+    Serial.println("OTA manifest missing url or sha256 -- refusing to update");
     return;
   }
-  urlStart += 7;
-  String firmwareUrl = body.substring(urlStart, body.indexOf("\"", urlStart));
-
-  Serial.println("Newer firmware found, updating from " + firmwareUrl);
-  WiFiClientSecure client;
-  client.setInsecure(); // pinning the CA cert is a good follow-up hardening step
-  t_httpUpdate_return ret = httpUpdate.update(client, firmwareUrl);
-
-  if (ret == HTTP_UPDATE_FAILED) {
-    Serial.println("OTA update failed: " + httpUpdate.getLastErrorString());
-  } else if (ret == HTTP_UPDATE_NO_UPDATES) {
-    Serial.println("OTA: no update applied");
+  // The CA check proves who we're talking to only for hosts it covers; keep
+  // the download on the same, verified project host.
+  if (!firmwareUrl.startsWith(String(SUPABASE_URL) + "/")) {
+    Serial.println("OTA url is not on SUPABASE_URL -- refusing to update");
+    return;
   }
-  // On success the device reboots on its own.
+
+  Serial.println("Newer firmware v" + String(remoteVersion) + " found, downloading");
+  http.begin(tlsClient(), firmwareUrl);
+  code = http.GET();
+  int size = http.getSize();
+  if (code != 200 || size <= 0) {
+    Serial.println("OTA download failed, HTTP code: " + String(code));
+    http.end();
+    return;
+  }
+  if (!Update.begin(size)) {
+    Serial.println("OTA: not enough space for " + String(size) + " bytes");
+    http.end();
+    return;
+  }
+
+  // Hash while writing, and only commit the new image if it matches the
+  // manifest. Update.end(true) is what makes the image bootable, so a
+  // mismatch never gets that far.
+  mbedtls_sha256_context sha;
+  mbedtls_sha256_init(&sha);
+  mbedtls_sha256_starts(&sha, 0);
+
+  WiFiClient* stream = http.getStreamPtr();
+  uint8_t buf[1024];
+  int written = 0;
+  unsigned long lastData = millis();
+  while (written < size && millis() - lastData < 15000) {
+    size_t avail = stream->available();
+    if (avail == 0) {
+      delay(5);
+      continue;
+    }
+    int n = stream->readBytes(buf, min(avail, sizeof(buf)));
+    if (n <= 0) continue;
+    mbedtls_sha256_update(&sha, buf, n);
+    if (Update.write(buf, n) != (size_t)n) break;
+    written += n;
+    lastData = millis();
+  }
+  http.end();
+
+  uint8_t digest[32];
+  mbedtls_sha256_finish(&sha, digest);
+  mbedtls_sha256_free(&sha);
+  char hex[65];
+  for (int i = 0; i < 32; i++) sprintf(hex + i * 2, "%02x", digest[i]);
+  hex[64] = 0;
+
+  if (written != size || expectedSha != String(hex)) {
+    Serial.println(written != size ? "OTA download incomplete -- discarded"
+                                   : "OTA sha256 mismatch -- discarded");
+    Update.abort();
+    return;
+  }
+  if (!Update.end(true)) {
+    Serial.println("OTA finalize failed: " + String(Update.errorString()));
+    return;
+  }
+  Serial.println("OTA update v" + String(remoteVersion) + " verified and applied, rebooting");
+  ESP.restart();
 }
 
 // ---------------------------------------------------------------------------

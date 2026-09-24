@@ -10,7 +10,7 @@ the firmware and dashboard.
 | `devices` | One row per physical unit: owner, `device_type`, thresholds, sleep interval, per-device secret, gravity calibration coefficients | Dashboard user (own rows only) |
 | `readings` | Temperature/battery/tilt/humidity time series (`humidity_pct` is null except on the ESP32 Dev Kit V1 bench rig's DHT11) | Only via `ingest_reading()` RPC |
 | `alerts` | Threshold-breach events | Only via `ingest_alert()` RPC (insert); dashboard user can update `acknowledged` |
-| `waitlist` | Landing page pre-order/signup emails | Anyone can insert, nobody can read via API |
+| `waitlist` | Landing page pre-order/signup emails | Only via `join_waitlist()` RPC (validated, 5 signups/hour per client IP); nobody can read it via API |
 | `readings_with_gravity` (view) | `readings` plus `gravity_sg` (corrected to 20 °C) and `gravity_sg_raw` (uncorrected), computed from each device's calibration curve | Read-only; `security_invoker = true` so RLS still applies |
 
 ### Gravity is computed on read, not stored
@@ -167,10 +167,10 @@ moment, so the limit is genuinely per-user; the log returned 0 rows to a
 client; and a client `DELETE` against it affected nothing, leaving the block
 in force.
 
-**Still open:** signup is cheap while email confirmation is off, so an
-attacker can mint accounts to multiply their quota. The arithmetic above
-already assumes that. Turning confirmation back on once real SMTP exists is
-the fix, and is tracked in the root README.
+Email confirmation is on (`enable_confirmations = true` in `config.toml`;
+match it in the hosted project under Authentication → Sign In / Providers →
+Email), so minting throwaway accounts to multiply the quota now needs a real
+inbox per account. It needs working SMTP to deliver the confirmation mail.
 
 ## Alert emails (Edge Function)
 
@@ -185,24 +185,36 @@ supabase functions deploy alert-notify
 supabase secrets set \
   RESEND_API_KEY=re_your_key \
   ALERT_FROM_EMAIL="alerts@yourdomain.com" \
-  WEBHOOK_SECRET=<the same value you stored in Vault below>
+  WEBHOOK_SECRET=<the same value you stored in Vault below> \
+  DASHBOARD_URL=https://your-dashboard.example.com
 ```
 
-Before applying `20260910124500_alert_insert_webhook_trigger.sql`:
+`WEBHOOK_SECRET` is **required**: with it unset the function refuses every
+request (it used to skip the check, which made it an open relay that would
+email any device's owner on request). The function also re-reads the alert
+from the database by id instead of trusting the posted body.
+`DASHBOARD_URL` is optional; with it set, each email links straight to the
+device.
 
-1. Store the shared secret in Vault as a **one-off SQL Editor query, not a
-   tracked migration** (so the plaintext value never lands in migration
-   history):
-   ```sql
-   select vault.create_secret(
-     '<a random value, e.g. `openssl rand -hex 32`>',
-     'alert_notify_webhook_secret',
-     'Shared secret between the alerts-insert DB trigger and the alert-notify Edge Function'
-   );
-   ```
-2. Use that same value for the `WEBHOOK_SECRET` function secret above.
-3. Edit `function_url` inside the migration's `notify_alert_insert()` to
-   your project's actual Functions URL before applying it.
+Store two Vault secrets as **one-off SQL Editor queries, not tracked
+migrations** (so neither value lands in migration history):
+
+```sql
+select vault.create_secret(
+  '<a random value, e.g. `openssl rand -hex 32`>',
+  'alert_notify_webhook_secret',
+  'Shared secret between the alerts-insert DB trigger and the alert-notify Edge Function'
+);
+select vault.create_secret(
+  'https://<your-project-ref>.supabase.co/functions/v1/alert-notify',
+  'alert_notify_function_url',
+  'Where the alerts-insert trigger posts'
+);
+```
+
+Use the first value for the `WEBHOOK_SECRET` function secret above. If either
+Vault secret is missing, the trigger logs a `WARNING` naming the alert and
+skips the email; it never blocks the alert insert itself.
 
 Without `RESEND_API_KEY` set, the function logs what it would have sent
 instead of failing — useful for local testing before you have a Resend
@@ -225,5 +237,20 @@ select status_code, created, content from net._http_response order by id desc li
       malicious unit can't flood the table.
 - [ ] Rotate `device_secret` support from the dashboard (currently set once
       at device creation).
-- [ ] Pin the OTA host's TLS certificate in firmware instead of
-      `WiFiClientSecure::setInsecure()`.
+- [x] Verify the TLS server in firmware (`ROOT_CA_PEM`); OTA refuses to run
+      without it and checks each image's SHA-256 before booting it.
+- [x] Store device secrets hashed (`hash_device_secret()`, applied by a
+      trigger on insert/update, so provisioning and "Add manually" are
+      unchanged).
+- [x] Column-level grants on `devices`: the dashboard can't read
+      `device_secret`/`claim_code` or write `last_seen_at`, `device_type`, or
+      the secret. Select explicit columns (`DEVICE_COLUMNS` in the dashboard),
+      never `*`.
+- [x] Ownership epoch: RLS shows readings and alerts only from the current
+      owner's `claimed_at` onward, so transferring a unit doesn't hand over
+      the previous owner's history.
+- [x] CHECK constraints on device config and ingested readings (see
+      `20260923120000_audit_hardening.sql`).
+- [ ] Opt-in retention: `prune_readings(interval)` exists (service role
+      only) but isn't scheduled. Schedule it with `pg_cron` once you decide
+      how long to keep history.

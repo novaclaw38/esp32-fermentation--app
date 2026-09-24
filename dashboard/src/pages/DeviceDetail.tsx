@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useDevice } from "../lib/useDevice";
+import { useNow } from "../lib/useNow";
 import type { Alert, Device, Reading, ReadingWithGravity } from "../types/database";
 import AlertList from "../components/AlertList";
 import UnitToggle from "../components/UnitToggle";
@@ -11,7 +12,7 @@ import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState, type GaugeState } from "../lib/gaugeState";
 import { computeGravitySg, computeGravitySgRaw, formatSg, isCalibrated, isTiltDevice } from "../lib/gravity";
-import { computeFermentationAnalytics } from "../lib/fermentationAnalytics";
+import { ANALYTICS_HISTORY_HOURS, computeFermentationAnalytics } from "../lib/fermentationAnalytics";
 import FermentationSummary from "../components/FermentationSummary";
 import FermentationStageBar from "../components/FermentationStageBar";
 
@@ -31,7 +32,8 @@ function ChartFallback({ height }: { height: string }) {
   return <div className={`${height} rounded-lg border border-panel-700 bg-panel-900`} />;
 }
 
-const HISTORY_HOURS = 48;
+/** What the charts show. Analytics load further back -- see ANALYTICS_HISTORY_HOURS. */
+const CHART_HOURS = 48;
 
 // Typical brewing specific-gravity span -- there's no configured alert
 // threshold for gravity (only temperature has one), so this range exists
@@ -46,11 +48,28 @@ const BATTERY_GAUGE_MAX = 4.2;
 const HUMIDITY_GAUGE_MIN = 0;
 const HUMIDITY_GAUGE_MAX = 100;
 
+/** Merge by id and keep chronological order -- initial load and Realtime can both deliver the same row. */
+function mergeReadings(a: ReadingWithGravity[], b: ReadingWithGravity[]): ReadingWithGravity[] {
+  const byId = new Map<number, ReadingWithGravity>();
+  for (const r of a) byId.set(r.id, r);
+  for (const r of b) byId.set(r.id, r);
+  return [...byId.values()].sort((x, y) => x.created_at.localeCompare(y.created_at));
+}
+
+const sectionHeading = "mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400";
+
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
   const { unit } = useTempUnit();
-  const { device, loading: deviceLoading, notFound, loadError: deviceLoadError, reload: reloadDevice } =
-    useDevice(deviceId);
+  const now = useNow();
+  const {
+    device,
+    setDevice,
+    loading: deviceLoading,
+    notFound,
+    loadError: deviceLoadError,
+    reload: reloadDevice,
+  } = useDevice(deviceId);
   const [readings, setReadings] = useState<ReadingWithGravity[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -84,22 +103,32 @@ export default function DeviceDetail() {
           // See lib/gravity.ts.
           const row = payload.new as Reading;
           const current = deviceRef.current;
-          setReadings((prev) => [
-            ...prev,
-            {
-              ...row,
-              gravity_sg: current
-                ? computeGravitySg(current, row.tilt_deg ?? null, row.temperature_c ?? null)
-                : null,
-              gravity_sg_raw: current ? computeGravitySgRaw(current, row.tilt_deg ?? null) : null,
-            },
-          ]);
+          setReadings((prev) =>
+            mergeReadings(prev, [
+              {
+                ...row,
+                gravity_sg: current ? computeGravitySg(current, row.tilt_deg ?? null, row.temperature_c ?? null) : null,
+                gravity_sg_raw: current ? computeGravitySgRaw(current, row.tilt_deg ?? null) : null,
+              },
+            ]),
+          );
+          // ingest_reading() bumps last_seen_at in the same transaction, but
+          // the device row isn't replicated here -- without this the
+          // connection status would keep counting up from page load while
+          // fresh readings arrive underneath it.
+          setDevice((prev) => (prev ? { ...prev, last_seen_at: row.created_at } : prev));
         },
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "alerts", filter: `device_id=eq.${deviceId}` },
-        (payload) => setAlerts((prev) => [payload.new as Alert, ...prev]),
+        (payload) => setAlerts((prev) => [payload.new as Alert, ...prev.filter((a) => a.id !== (payload.new as Alert).id)]),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "alerts", filter: `device_id=eq.${deviceId}` },
+        // Acknowledged in another tab or on another device.
+        (payload) => setAlerts((prev) => prev.map((a) => (a.id === (payload.new as Alert).id ? (payload.new as Alert) : a))),
       )
       .subscribe();
 
@@ -114,7 +143,7 @@ export default function DeviceDetail() {
     setHistoryLoading(true);
     setHistoryError(null);
 
-    const since = new Date(Date.now() - HISTORY_HOURS * 60 * 60 * 1000).toISOString();
+    const since = new Date(Date.now() - ANALYTICS_HISTORY_HOURS * 60 * 60 * 1000).toISOString();
 
     // Read through the view rather than the table: it carries the same columns
     // plus `gravity_sg`, computed server-side from this device's calibration
@@ -135,7 +164,9 @@ export default function DeviceDetail() {
       return;
     }
 
-    setReadings((readingsData as ReadingWithGravity[]) ?? []);
+    // Merge rather than replace: a Realtime row that landed while this
+    // request was in flight would otherwise be overwritten and vanish.
+    setReadings((prev) => mergeReadings((readingsData as ReadingWithGravity[]) ?? [], prev));
     setAlerts((alertsData as Alert[]) ?? []);
     setHistoryLoading(false);
   }
@@ -145,7 +176,11 @@ export default function DeviceDetail() {
   }
 
   if (deviceLoading) {
-    return <div className="p-8 text-panel-400">Loading…</div>;
+    return (
+      <p role="status" className="p-8 text-panel-400">
+        Loading…
+      </p>
+    );
   }
 
   // Checked before notFound/!device: a load failure on the device fetch
@@ -154,13 +189,13 @@ export default function DeviceDetail() {
   // fetch that failed rather than a device that isn't there.
   if (deviceLoadError) {
     return (
-      <div className="p-8">
+      <div role="alert" className="p-8">
         <p className="font-medium text-breach-400">Couldn't load this device</p>
         <p className="mt-1 text-sm text-panel-400">{deviceLoadError}</p>
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={reloadDevice}
-            className="rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="min-h-11 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -183,12 +218,14 @@ export default function DeviceDetail() {
     );
   }
 
+  const chartSince = now.getTime() - CHART_HOURS * 60 * 60 * 1000;
+  const chartReadings = readings.filter((r) => new Date(r.created_at).getTime() >= chartSince);
   const latest = readings[readings.length - 1];
   const showGravity = isTiltDevice(device);
   const calibrated = isCalibrated(device);
   const fermentationAnalytics = showGravity && calibrated ? computeFermentationAnalytics(device, readings) : null;
 
-  const connection = getConnectionInfo(device, new Date());
+  const connection = getConnectionInfo(device, now);
   const hasOpenAlert = alerts.some((a) => !a.acknowledged);
   const tempState = getGaugeState(
     latest ? latest.temperature_c : null,
@@ -207,21 +244,21 @@ export default function DeviceDetail() {
         : "nominal";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-center justify-between">
-        <Link to="/devices" className="text-sm text-panel-400 hover:text-panel-200">
+        <Link to="/devices" className="inline-flex min-h-11 items-center text-sm text-panel-400 hover:text-panel-200">
           ← All devices
         </Link>
         <UnitToggle />
       </div>
 
       <div className="mt-2 mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold uppercase tracking-wide text-panel-200">{device.name}</h1>
-          <p className="text-sm text-panel-400">
-            {device.id}
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-semibold uppercase tracking-wide text-panel-200">{device.name}</h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-panel-400">
+            <span className="break-all">{device.id}</span>
             {showGravity && (
-              <span className="ml-2 rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brew-400">
+              <span className="whitespace-nowrap rounded bg-panel-800 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brew-400">
                 Temp + Gravity
               </span>
             )}
@@ -229,13 +266,16 @@ export default function DeviceDetail() {
         </div>
         <Link
           to={`/devices/${device.id}/settings`}
-          className="shrink-0 rounded-md border border-panel-600 px-3 py-2 text-sm font-medium text-panel-200 hover:bg-panel-800"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-panel-600 px-3 text-sm font-medium text-panel-200 hover:bg-panel-800"
         >
           Settings
         </Link>
       </div>
 
-      <section className="mb-8 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-panel-700 bg-panel-900 p-6 sm:justify-start">
+      <section
+        aria-label="Current readings"
+        className="mb-8 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-panel-700 bg-panel-900 p-6 sm:justify-start"
+      >
         <Gauge
           value={latest ? latest.temperature_c : null}
           min={device.temp_min_c}
@@ -288,53 +328,56 @@ export default function DeviceDetail() {
       </section>
 
       {historyError ? (
-        <section className="mb-6 rounded-lg border border-breach-500/40 bg-panel-900 p-4">
+        <section role="alert" className="mb-6 rounded-lg border border-breach-500/40 bg-panel-900 p-4">
           <p className="text-sm font-medium text-breach-400">Couldn't load history</p>
           <p className="mt-1 text-sm text-panel-400">{historyError}</p>
           <button
             onClick={loadHistory}
-            className="mt-2 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="mt-2 min-h-11 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
         </section>
       ) : historyLoading ? (
-        <p className="mb-6 text-sm text-panel-400">Loading history…</p>
+        <p role="status" className="mb-6 text-sm text-panel-400">
+          Loading history…
+        </p>
       ) : (
         <>
-          {showGravity && calibrated && (fermentationAnalytics ? (
-            <section className="mb-6 space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-panel-400">Fermentation</h2>
-              <FermentationSummary analytics={fermentationAnalytics} />
-              <FermentationStageBar
-                analytics={fermentationAnalytics}
-                device={device}
-                latestTempC={latest ? latest.temperature_c : null}
-              />
-            </section>
-          ) : (
-            <section className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4 text-sm text-panel-400">
-              Waiting for the first calibrated reading to set this batch's original gravity — ABV,
-              attenuation, and fermentation stage will appear here once it does.
-            </section>
-          ))}
+          {showGravity &&
+            calibrated &&
+            (fermentationAnalytics ? (
+              <section className="mb-6 space-y-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-panel-400">Fermentation</h2>
+                <FermentationSummary analytics={fermentationAnalytics} />
+                <FermentationStageBar
+                  analytics={fermentationAnalytics}
+                  device={device}
+                  latestTempC={latest ? latest.temperature_c : null}
+                  now={now}
+                />
+              </section>
+            ) : (
+              <section className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4 text-sm text-panel-400">
+                Waiting for the first calibrated reading to set this batch's original gravity — ABV,
+                attenuation, and fermentation stage will appear here once it does.
+              </section>
+            ))}
 
           <section className="mb-6">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-              Temperature · last {HISTORY_HOURS}h
-            </h2>
+            <h2 className={sectionHeading}>Temperature · last {CHART_HOURS}h</h2>
             <Suspense fallback={<ChartFallback height="h-64" />}>
-              <TemperatureChart readings={readings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
+              <TemperatureChart readings={chartReadings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
             </Suspense>
           </section>
 
           {showGravity && (
             <section className="mb-6">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-                {calibrated ? "Gravity" : "Tilt"} · last {HISTORY_HOURS}h
+              <h2 className={sectionHeading}>
+                {calibrated ? "Gravity" : "Tilt"} · last {CHART_HOURS}h
               </h2>
               <Suspense fallback={<ChartFallback height="h-64" />}>
-                <GravityChart readings={readings} calibrated={calibrated} />
+                <GravityChart readings={chartReadings} calibrated={calibrated} deviceId={device.id} />
               </Suspense>
             </section>
           )}
@@ -342,31 +385,31 @@ export default function DeviceDetail() {
           {showGravity && calibrated && (
             <>
               <section className="mb-6">
-                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-                  Gravity + Temperature · last {HISTORY_HOURS}h
-                </h2>
+                <h2 className={sectionHeading}>Gravity + Temperature · last {CHART_HOURS}h</h2>
                 <Suspense fallback={<ChartFallback height="h-72" />}>
-                  <FermentationChart readings={readings} />
+                  <FermentationChart readings={chartReadings} />
                 </Suspense>
               </section>
 
               <section className="mb-6">
-                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">
-                  Fermentation rate · SG per 24h
-                </h2>
+                <h2 className={sectionHeading}>Fermentation rate · gravity points per 24h</h2>
                 <Suspense fallback={<ChartFallback height="h-40" />}>
-                  <FermentationRateChart readings={readings} />
+                  <FermentationRateChart
+                    readings={readings}
+                    batchStartedAt={device.fermentation_started_at}
+                    since={chartSince}
+                  />
                 </Suspense>
               </section>
             </>
           )}
 
           <section className="mb-6">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-panel-400">Alerts</h2>
+            <h2 className={sectionHeading}>Alerts</h2>
             <AlertList alerts={alerts} onAcknowledged={handleAcknowledged} />
           </section>
         </>
       )}
-    </div>
+    </main>
   );
 }

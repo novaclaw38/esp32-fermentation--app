@@ -4,58 +4,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fermentation Monitor — temperature and gravity, without opening the fermenter</title>
-  <meta name="description" content="A small WiFi sensor that watches your ferment's temperature — and, in the floating version, its gravity — and alerts you before a problem ruins the batch." />
+  <meta name="description" content="A small WiFi sensor that reports your ferment's temperature (and, in the floating version, its gravity) and emails you before a problem ruins the batch." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="hero">
-    <nav class="nav">
-      <span class="brand">🧪 Fermentation Monitor</span>
+    <nav class="nav" aria-label="Main">
+      <span class="brand">
+        <!-- The dashboard's dial mark, drawn statically: an emoji rendered
+             differently on every platform and belonged to no design system. -->
+        <svg class="brand-mark" width="28" height="27" viewBox="0 0 40 38" aria-hidden="true">
+          <path d="M 7.01 26.5 A 15 15 0 1 1 32.99 26.5" fill="none" stroke="currentColor" stroke-opacity="0.45" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="20" y1="19" x2="26" y2="8.1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="20" cy="19" r="3" fill="currentColor"/>
+        </svg>
+        Fermentation Monitor
+      </span>
       <a href="#signup" class="nav-cta">Get early access</a>
     </nav>
 
     <div class="hero-content">
       <h1>Know what your fermenter is doing, without opening it.</h1>
       <p class="subhead">
-        A small WiFi sensor watches your ferment around the clock and emails you
-        when something drifts — so a cold night, a hot afternoon, or a stalled
-        fermentation doesn't wreck your kombucha, beer, or wine before you
-        notice. Two versions: temperature alone, or a sealed float that reads
-        <em>temperature and gravity</em> from inside the vessel.
+        A small WiFi sensor reports your ferment's temperature every 15 minutes and emails
+        you when it drifts outside the range you set, when its sensor stops reading, or when
+        its battery runs low, so a cold night or a hot afternoon doesn't wreck your kombucha,
+        beer, or wine before you notice. Two versions: a hub with a temperature probe, or a
+        sealed float that reads <em>temperature and gravity</em> from inside the vessel.
       </p>
       <form id="signup-form" class="signup-form">
-        <input type="email" id="email" placeholder="you@example.com" required />
+        <label for="email" class="visually-hidden">Email address</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="you@example.com" required />
         <button type="submit">Notify me</button>
       </form>
-      <p id="signup-message" class="signup-message" hidden></p>
-      <p class="reassure">It's not built for sale yet — we're gauging interest before committing to a batch.</p>
+      <p id="signup-message" class="signup-message" role="status" aria-live="polite" hidden></p>
+      <p class="reassure">It's not built for sale yet. We're gauging interest before committing to a batch.</p>
     </div>
   </header>
 
   <main>
-    <section class="how-it-works">
-      <h2>How it works</h2>
-      <div class="steps">
-        <div class="step">
-          <span class="step-num">1</span>
-          <h3>Clip it on</h3>
-          <p>A waterproof probe straps to your fermenter or airlock. Runs weeks on a single battery charge.</p>
-        </div>
-        <div class="step">
-          <span class="step-num">2</span>
-          <h3>It watches</h3>
-          <p>Readings every few minutes over your home WiFi — no hub, no app pairing dance.</p>
-        </div>
-        <div class="step">
-          <span class="step-num">3</span>
+    <section class="how-it-works" aria-labelledby="how-heading">
+      <h2 id="how-heading">How it works</h2>
+      <ol class="steps">
+        <li class="step">
+          <h3>Put it in</h3>
+          <p>The hub's waterproof probe goes on or into your fermenter; the float drops straight into the liquid. Both run on a rechargeable battery.</p>
+        </li>
+        <li class="step">
+          <h3>It reports</h3>
+          <p>It wakes every 15 minutes (you can change that), sends a reading over your home WiFi, and sleeps again. Setup is picking your network from your phone. No code to edit.</p>
+        </li>
+        <li class="step">
           <h3>You get warned</h3>
-          <p>An email the moment temperature drifts outside your range for real, not on a single noisy blip.</p>
-        </div>
-      </div>
+          <p>An email when temperature stays outside your range for several readings in a row, not on a single noisy blip, and when the sensor or battery needs attention.</p>
+        </li>
+      </ol>
     </section>
 
-    <section class="pricing">
-      <h2>Pricing</h2>
+    <section class="pricing" aria-labelledby="pricing-heading">
+      <h2 id="pricing-heading">Pricing</h2>
       <div class="price-cards">
         <div class="price-card">
           <h3>Device</h3>
@@ -63,22 +70,24 @@
           <p>We'd rather hear what it's worth to you than anchor you to a number we made up. There's a box for it below.</p>
         </div>
         <div class="price-card">
-          <h3>Cloud dashboard</h3>
-          <p class="price">Optional</p>
-          <p>History, graphs, and email alerts. The device keeps working without a subscription — basic function won't be locked behind one.</p>
+          <h3>Dashboard</h3>
+          <p class="price">Not set yet</p>
+          <p>History, charts, and email alerts in a web dashboard. It runs on a database you can own, so you can host it yourself instead of relying on ours.</p>
         </div>
       </div>
     </section>
 
-    <section class="signup" id="signup">
-      <h2>Want one?</h2>
+    <section class="signup" id="signup" aria-labelledby="signup-heading">
+      <h2 id="signup-heading">Want one?</h2>
       <p>Leave your email and, if you'd like, a note on what would make this worth buying for you.</p>
       <form id="signup-form-2" class="signup-form stacked">
-        <input type="email" id="email-2" placeholder="you@example.com" required />
-        <textarea id="comment-2" placeholder="Optional: what would make you buy this? (feature, price, use case...)" rows="3"></textarea>
+        <label for="email-2">Email address</label>
+        <input type="email" id="email-2" name="email" autocomplete="email" placeholder="you@example.com" required />
+        <label for="comment-2">What would make you buy this? <span class="optional">(optional)</span></label>
+        <textarea id="comment-2" name="comment" maxlength="2000" placeholder="A feature, a price, your use case…" rows="3"></textarea>
         <button type="submit">Join the list</button>
       </form>
-      <p id="signup-message-2" class="signup-message" hidden></p>
+      <p id="signup-message-2" class="signup-message" role="status" aria-live="polite" hidden></p>
     </section>
   </main>
 

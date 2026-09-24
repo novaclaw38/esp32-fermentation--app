@@ -21,7 +21,11 @@ export default function AdminRoute({ children }: { children: ReactNode }) {
   }, []);
 
   if (isAdmin === null) {
-    return <div className="p-8 text-panel-400">Loading…</div>;
+    return (
+      <p role="status" className="p-8 text-panel-400">
+        Loading…
+      </p>
+    );
   }
 
   if (!isAdmin) {

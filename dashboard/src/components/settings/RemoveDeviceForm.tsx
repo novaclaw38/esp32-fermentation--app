@@ -59,16 +59,20 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
             <input
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="mt-1 w-full rounded-md border border-breach-500/50 bg-panel-950 px-2 py-1 text-sm text-panel-200"
+              className="mt-1 w-full rounded-md border border-breach-500/50 bg-panel-950 px-2 py-2 text-sm text-panel-200"
               autoFocus
             />
           </label>
-          {error && <p className="text-sm text-breach-400">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-breach-400">
+              {error}
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               onClick={handleDelete}
               disabled={confirmText.trim() !== device.id || deleting}
-              className="rounded-md bg-breach-500 px-3 py-2 text-sm font-medium text-white hover:bg-breach-400 disabled:opacity-40"
+              className="min-h-11 rounded-md bg-breach-700 px-3 py-2 text-sm font-medium text-white hover:brightness-90 disabled:opacity-40"
             >
               {deleting ? "Removing…" : "Permanently remove"}
             </button>
@@ -78,7 +82,7 @@ export default function RemoveDeviceForm({ device, onDeleted }: Props) {
                 setConfirmText("");
                 setError(null);
               }}
-              className="rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
+              className="min-h-11 rounded-md border border-panel-600 px-3 py-2 text-sm text-panel-200 hover:bg-panel-800"
             >
               Cancel
             </button>

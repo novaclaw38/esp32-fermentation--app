@@ -16,6 +16,9 @@ colors:
   approach-deep: "#f2751a"
   breach: "#f87171"
   breach-deep: "#ef4444"
+  breach-solid: "#b91c1c"
+  gauge-track: "#7a654c"
+  gravity: "#4ade80"
 typography:
   headline:
     fontFamily: "ui-sans-serif, system-ui, sans-serif"
@@ -157,7 +160,7 @@ A single centered column (`max-w-3xl`, `mx-auto`, `px-4 py-8`) at every breakpoi
 
 Device settings live on their own route (`/devices/:id/settings`) rather than inline on the detail page, split across four tabs — Profile, Setup, Tools, Data — grouped by what a visit is actually for (identity, configuration, one-off actions, destructive/data controls) rather than by underlying table. Each tab still stacks its cards in the same single column, `space-y-6` apart; nothing about the tab split changes card styling, only which cards are mounted at once.
 
-**Focus-dim.** On the device grid, hovering or focusing one tile dims every other tile to 50% opacity over a 300ms transition — the raise borrowed from the streaming-catalog challenger. No badge or modal calls the focused tile out; the neighbors simply recede.
+**Focus-dim.** On the device grid, hovering or focusing one tile dims every other tile to 70% opacity (50% dropped the neighbours' secondary text below AA) over a 300ms transition — the raise borrowed from the streaming-catalog challenger. No badge or modal calls the focused tile out; the neighbors simply recede.
 
 An internal-only admin surface (`/admin/firmware`, gated by an `is_admin()` check rather than anything device-owner-scoped) reuses the same single-column shell, card, form, and button vocabulary as the customer-facing pages — no separate "admin theme." A quiet "Firmware" text link appears in the devices page header only for an admin session; everyone else never sees it.
 
@@ -206,7 +209,7 @@ The one component every surface composes. A 240°-sweep SVG dial: a dial face (a
 
 **Needle and hub.** A `/impeccable critique` pass (2026-09-18, dual-agent, 20/24) named the exact reason the dial read as amateur rather than premium: the needle was a uniform-width line and the hub a flat filled dot, so nothing on the dial had rendering finish. The needle is now a tapered polygon (wider at the pivot, narrower at the tip) with a thin off-center white-at-30%-opacity highlight line suggesting a machined ridge. The hub is layered — a base disc in the state color, a dark inset ring (`#000` at 40% opacity) standing in for a bezel edge, and a small off-center white highlight dot standing in for a glossy dome — all from the existing state color, no per-state gradient defs needed. Neither adds a new hue; both are built from tokens already in the system (state color + black/white at reduced opacity).
 
-The dial's generic shape and TEMP/GRAVITY/BATTERY labels alone could belong to any monitored-device product — an audit found this explicitly. `endLabels`, an optional `["min", "max"]` pair printed at the dial's two feet, is one counter to that: it's used only on the Gravity gauge, printing real specific-gravity notation ("0.990"–"1.120") the way a hydrometer graduates its scale, and never on Temp/Battery/Tilt — font size and radius now scale with the `size` prop, after the critique found the `lg` dial's fixed 15px font crowding the track's rounded end-caps once reused on `sm`'s less-than-half radius. The Gravity gauge also gets five faint minor graduation ticks between its six majors (`endLabels`-gated, so this is Gravity-only) — a real hydrometer prints a graduated scale, not six even dashes, and this is the one place the dial's actual silhouette, not just its label content, differs by instrument: Temp and Battery read identically to each other on purpose, Gravity doesn't read identically to either of them.
+The dial's generic shape and TEMP/GRAVITY/BATTERY labels alone could belong to any monitored-device product — an audit found this explicitly. `endLabels`, an optional `["min", "max"]` pair printed at the dial's two feet, is one counter to that: it's used only on the Gravity gauge, printing real specific-gravity notation ("0.990"–"1.120") the way a hydrometer graduates its scale, and never on Temp/Battery/Tilt. It renders on the `lg` dial only: at `sm` (112px) the labels were clipped by the box edge or collided with the track's end caps, so the small gravity dial relies on its minor graduation instead. The Gravity gauge also gets five faint minor graduation ticks between its six majors (`endLabels`-gated, so this is Gravity-only) — a real hydrometer prints a graduated scale, not six even dashes, and this is the one place the dial's actual silhouette, not just its label content, differs by instrument: Temp and Battery read identically to each other on purpose, Gravity doesn't read identically to either of them.
 
 ### Fermentation Summary
 Four stat cards (`grid-cols-2 sm:grid-cols-4`), same card shell as everywhere else (`panel-900`/`panel-700`/8px). Original Gravity, Current SG, and Attenuation sit in `panel-200`; ABV alone gets `brew-400` as the headline figure of the group — the one accent among four cards, not four accents. All four values are tabular numerals.
@@ -236,3 +239,61 @@ A gray spinner or bare "Loading…" text breaks the instrument-panel illusion at
 - **Don't** introduce a second accent hue; amber is the only accent outside the state vocabulary.
 - **Don't** add shadows, colored side-borders, or gradients to cards, chips, or buttons — those are not part of this system.
 - **Don't** widen the gauge beyond its two sizes (sm/lg) or break its 240° dial into a full circle; the speedometer face is the signature silhouette.
+
+## Palette additions (2026-09-23 audit)
+
+All colors now come from one module, `dashboard/src/lib/tokens.ts`, which
+`tailwind.config.ts` builds its theme from and which SVG and Recharts code
+imports directly. Three values that existed only as literals were promoted
+into it:
+
+- **`gravity` `#4ade80`**: the gravity data series (GravityChart, the combined
+  chart, the rate chart). The one data hue that isn't a gauge state: it has to
+  read as a different quantity beside the amber temperature line, not as a
+  warning. 10.2:1 on panel-900.
+- **`gauge-track` (`panel-500`) `#7a654c`**: the dial track and skeleton arc,
+  chosen to clear the 3:1 non-text contrast floor against both panel surfaces.
+- **`breach-solid` (`breach-700`) `#b91c1c`**: fill for solid destructive
+  buttons. White on `breach-500` held only 3.76:1; this holds 6.5:1.
+
+Primary buttons now darken on hover (`brew-600` → `brew-700`) instead of
+lightening to `brew-500`, where white text fell to 3.21:1.
+
+An offline gauge no longer draws its needle: resting at the bottom of its
+travel, it read as "reading at the minimum".
+
+## Sign-in and password reset (2026-09-23 critique)
+
+Both pages share `components/auth/AuthShell` (page frame) and
+`components/auth/AuthField` (labelled field), so they can't drift apart.
+
+- **Frame:** anchored near the top (`pt-[12vh]`/`16vh`), not vertically
+  centred. Centring re-centred the card, and moved the header 40–90px, every
+  time an error or notice appeared. The Instrument Mark is 48px beside a
+  one-line product name. Each mode has its own `h1` ("Sign in", "Create your
+  account", "Reset your password", "Check your inbox") and its own
+  `document.title`.
+- **Fields:** labels use the system's tracked-uppercase label voice
+  (`text-xs uppercase tracking-wider panel-400`) and are tied to their inputs
+  with `htmlFor`/`id`. Nothing else ever sits inside a `<label>`. Inputs are
+  44px tall with a `panel-500` border (3.21:1 against the card, clearing the
+  3:1 floor for UI boundaries) that turns `breach-400` in error. Placeholders
+  use `panel-400`, not the browser's gray. Hints are persistent text below the
+  field, never only a placeholder. Passwords have a show/hide control.
+- **Validation:** the forms use `noValidate`, so the browser's white native
+  tooltip never appears on the dark panel. Errors are per-field
+  (`aria-invalid`, `aria-describedby`), and focus moves to the first invalid
+  field. Sign-in never enforces the password length.
+- **Errors in the product's words:** `lib/authErrors.ts` maps Supabase's
+  strings to plain-language copy and a recovery action: reset the password
+  (keeping the email), resend confirmation, or sign in instead. The error box
+  takes focus.
+- **Busy state:** a solid `brew-800` fill with `panel-200` text (5.70:1) and
+  `aria-busy` on the form. Opacity-50 had dropped the label to 3.49:1.
+- **Sent states:** "Check your inbox" replaces the form entirely, with the
+  address (wrapping), a resend action and "Use a different email". No live
+  submit button is left under a "we sent it" message.
+- **Mark motion:** the glow now fades up (a `filter` transition from a 0px to
+  a 3px drop-shadow) as the needle arrives, instead of switching on.
+- **Browser surfaces:** `color-scheme: dark` on `:root`, and autofill is
+  restyled to the panel ground with a brew caret.

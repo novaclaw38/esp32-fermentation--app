@@ -11,8 +11,6 @@ export interface Device {
   sleep_interval_seconds: number;
   last_seen_at: string | null;
   created_at: string;
-  /** Single-use code printed on the unit. Null once claimed, and on any device the dashboard can see. */
-  claim_code: string | null;
   claimed_at: string | null;
   // Gravity calibration: SG = a*tilt^3 + b*tilt^2 + c*tilt + d.
   // All null on a device that hasn't been calibrated yet.
@@ -110,4 +108,38 @@ export interface FirmwareRelease {
   published: boolean;
   created_at: string;
   created_by: string | null;
+  /** Hex SHA-256 of the .bin; written into manifest.json for the device to verify. Null on releases uploaded before this existed. */
+  sha256: string | null;
 }
+
+/**
+ * Every devices column the dashboard is granted (supabase/migrations/
+ * 20260923120000_audit_hardening.sql). The table no longer grants SELECT on
+ * device_secret or claim_code, so `select("*")` is a permission error -- use
+ * this instead. Keep it in step with both the Device interface and the grant.
+ */
+export const DEVICE_COLUMNS = [
+  "id",
+  "user_id",
+  "name",
+  "device_type",
+  "temp_min_c",
+  "temp_max_c",
+  "consecutive_breach_limit",
+  "sleep_interval_seconds",
+  "last_seen_at",
+  "created_at",
+  "claimed_at",
+  "calibration_a",
+  "calibration_b",
+  "calibration_c",
+  "calibration_d",
+  "calibration_temp_c",
+  "temp_coeff_sg_per_c",
+  "battery_min_v",
+  "alerts_muted_until",
+  "notify_email",
+  "og_tilt_deg",
+  "og_temp_c",
+  "fermentation_started_at",
+].join(",");

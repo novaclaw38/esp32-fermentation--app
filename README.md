@@ -70,8 +70,13 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
      back through RLS.
 
      **Turn confirmation back on once real SMTP is configured** — until
-     then, someone can register an email address they don't own. Configuring
-     SMTP (Resend covers this and the `alert-notify` emails) is the fix.
+     then, someone can register an email address they don't own, and throwaway
+     accounts multiply the claim-code rate limit. Configuring SMTP (Resend
+     covers this and the `alert-notify` emails) is the fix. The local stack
+     (`supabase/config.toml`) already has confirmation on, and the dashboard
+     handles both modes: with confirmation off, signup signs you straight in;
+     with it on, it tells you to check your inbox. "Forgot password?" also
+     sends email, so it needs the same SMTP to be dependable.
 5. **Custom PCB** (optional, for the Phase 2 pre-sold batch): once you're
    past the perfboard prototype, see [`hardware/PCB_DESIGN.md`](hardware/PCB_DESIGN.md)
    for the small-batch PCB that replaces the DevKit + perfboard + breakout

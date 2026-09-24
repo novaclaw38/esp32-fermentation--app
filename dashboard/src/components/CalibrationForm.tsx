@@ -108,7 +108,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {COEFFICIENTS.map(({ key, label, hint }) => (
-          <label key={key} className="text-sm">
+          <label key={key} className="text-sm text-panel-200">
             {label}
             <input
               type="text"
@@ -116,7 +116,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               value={values[key]}
               onChange={(e) => set(key, e.target.value)}
               placeholder={hint}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">{hint}</span>
           </label>
@@ -132,7 +132,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
           5–35°C the correction is worth roughly −1.9 to +4.3 gravity points.
         </p>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="text-sm">
+          <label className="text-sm text-panel-200">
             Calibration temperature (°C)
             <input
               type="number"
@@ -143,13 +143,13 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setCalTemp(e.target.value);
                 setSaved(false);
               }}
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">
               What the reference solutions were at
             </span>
           </label>
-          <label className="text-sm">
+          <label className="text-sm text-panel-200">
             Residual drift (SG per °C)
             <input
               type="text"
@@ -160,7 +160,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
                 setSaved(false);
               }}
               placeholder="0"
-              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-1 text-panel-200"
+              className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">
               Optional. Leave 0 unless you calibrated at two temperatures
@@ -174,13 +174,17 @@ export default function CalibrationForm({ device, onSaved }: Props) {
         curve here fixes this device's entire history, not just future readings.
       </p>
 
-      {error && <p className="text-sm text-breach-400">{error}</p>}
+      {error && (
+            <p role="alert" className="text-sm text-breach-400">
+              {error}
+            </p>
+          )}
       {saved && !error && <p className="text-sm text-brew-400">Calibration saved.</p>}
 
       <button
         type="submit"
         disabled={saving}
-        className="rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-500 disabled:opacity-50"
+        className="min-h-11 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save calibration"}
       </button>

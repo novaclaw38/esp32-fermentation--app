@@ -152,12 +152,23 @@ settings page takes effect on the device's next wake — no re-flash needed.
 ## Firmware OTA updates
 
 Set `OTA_ENABLED = true` per sketch. Each device type checks its own
-manifest at a fixed public URL roughly once a day
-(`OTA_CHECK_EVERY_N_CYCLES`) and self-updates + reboots if the manifest's
-version is newer than its own `FIRMWARE_VERSION`. That check
-(`checkForOTAUpdate()`) is unchanged by anything below — it still fetches a
-flat `{"version": N, "url": "..."}` JSON object from a fixed, unauthenticated
-URL and hand-parses it by substring search, no server-side changes.
+manifest roughly once a day (`OTA_CHECK_EVERY_N_CYCLES`) and self-updates +
+reboots if the manifest's version is newer than its own `FIRMWARE_VERSION`.
+The manifest is a flat `{"version": N, "url": "...", "sha256": "..."}` JSON
+object, hand-parsed by substring search.
+
+**OTA fails closed.** `checkForOTAUpdate()` refuses to run unless:
+
+1. `ROOT_CA_PEM` is set, so the manifest and the binary both come from a
+   verified server. Get the root with
+   `openssl s_client -showcerts -connect YOUR_PROJECT.supabase.co:443`, take
+   the last certificate in the chain, and paste it with its newlines written
+   as `\n`. The same CA verifies every API call; with the placeholder left
+   in, API calls stay encrypted but unverified (bench only) and OTA is off.
+2. The manifest carries a `sha256`. The device hashes the image while it
+   downloads and only marks it bootable if the hash matches, so a truncated
+   or swapped binary is discarded instead of flashed.
+3. The download URL is on `SUPABASE_URL`, the host the CA vouches for.
 
 **Publishing a release:** sign in to the dashboard with an admin account and
 go to `/admin/firmware` (a "Firmware" link appears in the devices page
@@ -177,18 +188,24 @@ Granting admin access (there's no UI for this — deliberately, it's a rare,
 high-trust action): `insert into admin_users (user_id) select id from
 auth.users where email = '...';` in the Supabase SQL editor.
 
-`WiFiClientSecure::setInsecure()` is used for simplicity in v1 — pin the
-actual CA certificate before shipping a large field batch, since
-`setInsecure()` accepts any TLS certificate.
+The console computes each build's SHA-256 in the browser at upload time and
+writes it into the manifest on publish. Releases uploaded before hashing
+existed can't be published; upload them again as a new version.
 
 ## Known Gaps / Next Steps (flag to founder, not silent assumptions)
 
 - **OTA is implemented but untested on real hardware** — validate the full
   update flow (manifest fetch → download → flash → reboot) on a bench unit
-  before relying on it for field units, and consider pinning the OTA host's
-  CA certificate instead of `setInsecure()`.
+  before relying on it for field units. The hash check is an integrity check,
+  not a signature: it trusts whoever can write to the `firmware` bucket (the
+  admins). Signing images with an offline key is the next step if that trust
+  boundary ever widens.
 - **No retry/backoff tuning yet** — WiFi timeout and sleep interval are
   reasonable defaults but not battery-life tested on real hardware.
+- **Server config is range-checked before use.** `fetchRemoteConfig()` ignores
+  a sleep interval outside 60–86400 s, a breach limit outside 1–100, or a
+  temperature range that isn't min < max within −40–125 °C, and keeps the
+  previous values. The database enforces the same ranges.
 - **JSON parsing is a hand-rolled substring extractor**, not a real JSON
   library — fine for the small, fixed-shape RPC responses used here, but
   don't extend it for anything more complex without switching to
