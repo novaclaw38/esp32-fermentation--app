@@ -1,0 +1,89 @@
+{
+  "version": "4.0",
+  "circuit_name": "temp_gravity_module",
+  "stage": "design_review",
+  "last_updated": "2026-09-18",
+  "active_circuit_file": "circuits/temp_gravity_module/__main__.py",
+  "requirements_complete": true,
+  "architecture_complete": true,
+  "sourcing_complete": true,
+  "datasheets_complete": true,
+  "review_status": {
+    "erc": "PASS",
+    "architecture": "OK",
+    "code_quality": "OK",
+    "high_severity_count": 0,
+    "medium_severity_count": 3,
+    "low_severity_count": 3,
+    "report_path": "outputs/design_review.md"
+  },
+  "erc_status": {
+    "last_run": "2026-09-18",
+    "errors": 0,
+    "warnings": 1,
+    "pass": true,
+    "report_path": "outputs/erc_report.md"
+  },
+  "sourced_bom_version": "1.0",
+  "last_modified_circuit": "circuits/temp_gravity_module/",
+  "coding_mode": "modular",
+  "block_manifest": [
+    {
+      "block_id": "power_input",
+      "block_name": "USB-C Power Input",
+      "filename": "circuits/temp_gravity_module/power_input.py",
+      "interface_nets": ["VBUS", "GND"],
+      "parts": ["J1", "R11", "R12"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "charge_protection",
+      "block_name": "Li-ion Charge & Protection",
+      "filename": "circuits/temp_gravity_module/charge_protection.py",
+      "interface_nets": ["VBUS", "BAT_PLUS", "GND", "V3V3"],
+      "parts": ["U2", "U3", "U4", "R9", "D1", "D2", "R13", "R14", "J3"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "regulation",
+      "block_name": "3V3 Regulation",
+      "filename": "circuits/temp_gravity_module/regulation.py",
+      "interface_nets": ["BAT_PLUS", "V3V3", "GND"],
+      "parts": ["U5", "C7", "C8"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "battery_sense",
+      "block_name": "Battery Voltage Sense (gated)",
+      "filename": "circuits/temp_gravity_module/battery_sense.py",
+      "interface_nets": ["BAT_PLUS", "GND", "DIV_EN", "BATT_SENSE_ADC"],
+      "parts": ["Q1", "Q2", "R1", "R2", "R6", "R10", "C9"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "mcu_core",
+      "block_name": "ESP32 MCU Core",
+      "filename": "circuits/temp_gravity_module/mcu_core.py",
+      "interface_nets": ["V3V3", "GND", "SDA", "SCL", "DIV_EN", "BATT_SENSE_ADC"],
+      "parts": ["U1", "R4", "C1", "R5", "SW1", "C2", "C3", "C4", "J4"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "sensor_bus",
+      "block_name": "I2C Sensor Bus",
+      "filename": "circuits/temp_gravity_module/sensor_bus.py",
+      "interface_nets": ["V3V3", "GND", "SDA", "SCL"],
+      "parts": ["U6", "U7", "R7", "R8", "C10", "C11", "C12"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    }
+  ],
+  "sourcing_escalation_count": 0,
+  "erc_iteration_count": 1,
+  "architecture_rework_count": 0
+}

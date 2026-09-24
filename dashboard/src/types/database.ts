@@ -69,6 +69,8 @@ export interface Reading {
   battery_v: number | null;
   /** Raw tilt angle in degrees from vertical. Null on Hub devices. */
   tilt_deg: number | null;
+  /** Relative humidity 0-100. Only the ESP32 Dev Kit V1 bench rig's DHT11 reports this -- null on every other device type. */
+  humidity_pct: number | null;
   created_at: string;
 }
 

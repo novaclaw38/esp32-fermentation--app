@@ -1,0 +1,72 @@
+{
+  "version": "4.0",
+  "circuit_name": "esp32_devkit_tilt_prototype",
+  "stage": "design_review",
+  "last_updated": "2026-09-23",
+  "active_circuit_file": "circuits/esp32_devkit_tilt_prototype/__main__.py",
+  "requirements_complete": true,
+  "architecture_complete": true,
+  "sourcing_complete": true,
+  "datasheets_complete": true,
+  "erc_status": {
+    "last_run": "2026-09-23",
+    "errors": 0,
+    "warnings": 0,
+    "pass": true,
+    "report_path": "outputs/erc_report.md"
+  },
+  "sourced_bom_version": "1.0",
+  "last_modified_circuit": "circuits/esp32_devkit_tilt_prototype/",
+  "coding_mode": "modular",
+  "block_manifest": [
+    {
+      "block_id": "charger",
+      "block_name": "Charger Module (TP4056 breakout)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/charger.py",
+      "interface_nets": ["BAT_PLUS", "GND"],
+      "parts": ["MOD1"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "mcu_core",
+      "block_name": "ESP32 Dev Kit V1",
+      "filename": "circuits/esp32_devkit_tilt_prototype/mcu_core.py",
+      "interface_nets": ["BAT_PLUS", "DEVKIT_3V3", "GND", "SDA", "SCL", "BATT_SENSE_ADC", "DHT_DATA"],
+      "parts": ["U1"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "battery_sense",
+      "block_name": "Battery Voltage Sense (ungated, single-stage)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/battery_sense.py",
+      "interface_nets": ["BAT_PLUS", "GND", "BATT_SENSE_ADC"],
+      "parts": ["R1", "R2"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "sensor_bus",
+      "block_name": "Sensor Bus (GY-291, tilt only)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/sensor_bus.py",
+      "interface_nets": ["DEVKIT_3V3", "GND", "SDA", "SCL"],
+      "parts": ["MOD2"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    },
+    {
+      "block_id": "dht11",
+      "block_name": "DHT11 (temperature, primary sensor, bare 4-pin w/ pull-up)",
+      "filename": "circuits/esp32_devkit_tilt_prototype/dht11.py",
+      "interface_nets": ["DEVKIT_3V3", "GND", "DHT_DATA"],
+      "parts": ["MOD4", "R3"],
+      "status": "done",
+      "erc_errors_attributed": 0
+    }
+  ],
+  "sourcing_escalation_count": 0,
+  "erc_iteration_count": 3,
+  "architecture_rework_count": 2,
+  "notes": "Sibling project to ../esp8266-tilt-prototype/, same three user-supplied breakouts (TP4056, GY-291, MCP9808) originally, but on a generic ESP32 Dev Kit V1 instead of an ESP8266 D1 Mini. Firmware needed almost no porting -- the production board's own fermentation_tilt_v1.ino already targets a bare ESP32 with the same GPIO numbers this design uses (4, 21, 22, 25, 34); only the battery-sense path changed (ungated, single-stage 100k/100k divider vs the production board's gated divider). Both known netlistsvg/elkjs rendering crash patterns discovered during the ESP8266 rig's development (NOCONNECT-vs-typed-pin-wired-to-NC; single driver fanning into two same-part inputs) were fixed proactively in mcu_core.py and sensor_bus.py, so the schematic SVG/PDF generated clean on the first attempt. REVISION 1: MCP9808 removed, DHT11 added as the only temperature sensor (user request -- has a DHT11 on hand instead of the probe). This was NOT a wiring-only swap like MCP9808<->DS18B20 is on the sibling rigs: DHT11 needed its own firmware library (Adafruit 'DHT sensor library' + 'Adafruit Unified Sensor'), its own read function, and moved off the I2C bus onto its own pin (GPIO4, previously NOCONNECT/unused). sensor_bus.py now carries only the GY-291; a new dht11.py block was added. mcu_core.py's GPIO4 pin changed from NOCONNECT to a real BIDIR signal -- re-verified this doesn't regress either proactive netlistsvg fix (schematic still generates clean). Firmware re-compiled clean against esp32:esp32 core 3.3.12, board esp32doit-devkit-v1 (85% flash, 15% RAM, essentially unchanged from before the swap). DHT11 is less accurate than the MCP9808 it replaced (+-2C vs +-0.5C, integer-only resolution) -- documented as a real tradeoff, not a defect. REVISION 2: added a humidity_pct column (nullable, DHT11-only) to the shared Supabase readings table, per user request ('add a humidity column so it posts too'). New migration supabase/migrations/20260923120000_dht11_humidity.sql: adds readings.humidity_pct, drops+recreates ingest_reading() with a new optional p_humidity_pct parameter (default null, backward compatible with every other firmware's existing calls), and updates the readings_with_gravity view's explicit column list to expose it. Applied live to the Supabase project via MCP, not just committed as a migration file. Dashboard types/database.ts's Reading interface updated to match; no dashboard UI/chart added for humidity yet since only the posting pipeline was requested. Firmware's postReading() now sends p_humidity_pct alongside the existing fields; recompiled clean (+164 bytes flash, negligible). Hardware is entirely unverified pending a photo of the actual board -- see architecture/design_risks.md's note on ESP32 Dev Kit V1 pin-layout variance across vendors and the DHT11's two physical variants (3-pin breakout with onboard pull-up vs bare 4-pin needing an external one). No physical build/mounting guide yet (SPEC.md scopes that out for now, unlike the ESP8266 rig's Prototype Shield guide) -- add one if requested. REVISION 3: user sent a photo of the actual DHT11 (Asair, bare 4-pin: VDD/DATA/NC/GND, no onboard PCB or pull-up), resolving the 'which variant' open question from REVISION 1. Added R3 (10k, LCSC C25804, same MPN as the ESP8266 rig's original R1) between DHT_DATA and DEVKIT_3V3 in dht11.py; MOD4 renamed DHT11_Bare with a 1x04 footprint (was 1x03 DHT11_Breakout). Also added a Humidity gauge tile to dashboard/src/pages/DeviceDetail.tsx (conditionally rendered only when latest.humidity_pct is non-null, so it only ever appears for this device type), typechecked clean. Datasheet summary corrected with the unit's actual printed spec block (-20 to 60C / 5-95%RH / +-2C +-5%RH, differs from generic DHT11 datasheets which usually say 0-50C/20-80%RH). Re-verified: ERC still 0 errors/0 warnings, footprints now 7/7 valid (added R3), schematic SVG/PDF regenerated clean on the first attempt -- DEVKIT_3V3's fan-out topology (GY-291 VCC+CS on one part, needing symio=\"output\") is unaffected by R3/DHT11 VDD being additional single-endpoint sinks on the same net. REVISION 4: user requested a physical build guide for the Prototype Shield v.5, mirroring the ESP8266 rig's. Added BUILD_GUIDE.md, outputs/protoshield_build_diagram.svg (hand-built via a Python generator script, not hand-typed SVG -- simplified/logical MCU pin view rather than a full 30-pin silkscreen replica, consistent with the repo's established stance that Dev Kit V1 physical pin position varies by vendor and shouldn't be drawn as if authoritative), and outputs/protoshield_build_guide.pdf (diagram + guide text combined, same headless-chromium HTML-wrapper render pattern used throughout this project). Flagged prominently in both SPEC.md and the guide itself: a 30-pin Dev Kit V1 is noticeably bigger than the ESP8266 sibling's D1 Mini and may not fit the shield's perfboard as cleanly -- dry-fit before soldering, first step in the guide. SPEC.md's 'Explicitly out of scope' note removed (build guide is no longer out of scope) and replaced with a 'Physical build' section pointing to the new guide."
+}

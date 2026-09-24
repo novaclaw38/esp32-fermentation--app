@@ -41,6 +41,10 @@ const GRAVITY_GAUGE_MAX = 1.12;
 // Typical LiPo cell span, same reasoning.
 const BATTERY_GAUGE_MIN = 0;
 const BATTERY_GAUGE_MAX = 4.2;
+// Relative humidity is already a 0-100 scale -- no device-specific range to
+// pick, unlike temp/gravity/battery above.
+const HUMIDITY_GAUGE_MIN = 0;
+const HUMIDITY_GAUGE_MAX = 100;
 
 export default function DeviceDetail() {
   const { deviceId } = useParams<{ deviceId: string }>();
@@ -267,6 +271,17 @@ export default function DeviceDetail() {
             displayValue={`${latest.battery_v.toFixed(2)}V`}
             label="Battery"
             state={batteryState}
+            size="sm"
+          />
+        )}
+        {latest?.humidity_pct != null && (
+          <Gauge
+            value={latest.humidity_pct}
+            min={HUMIDITY_GAUGE_MIN}
+            max={HUMIDITY_GAUGE_MAX}
+            displayValue={`${latest.humidity_pct.toFixed(0)}%`}
+            label="Humidity"
+            state={secondaryOffline}
             size="sm"
           />
         )}
