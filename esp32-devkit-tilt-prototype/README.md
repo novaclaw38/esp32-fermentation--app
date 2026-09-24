@@ -30,7 +30,7 @@ wiring-only substitution the way MCP9808↔DS18B20 is on the sibling rigs.
 | SKiDL wiring diagram | ✅ ERC PASS (0 errors, 0 warnings), all footprints valid — [`circuits/esp32_devkit_tilt_prototype/`](circuits/esp32_devkit_tilt_prototype/), [`outputs/`](outputs/) |
 | Firmware | ✅ **Compiles clean** against `esp32:esp32` core 3.3.12, board `esp32doit-devkit-v1` (`arduino-cli compile`, exit 0) — [`firmware/fermentation_tilt_v1_esp32_devkit/`](firmware/fermentation_tilt_v1_esp32_devkit/) |
 | Hardware verification | ❌ **Unverified** — no photo of the actual board checked yet, see below |
-| Physical build | ❌ Not started; no mounting guide yet (see SPEC.md's scope note) |
+| Physical build | ✅ [`BUILD_GUIDE.md`](BUILD_GUIDE.md) / [`outputs/protoshield_build_guide.pdf`](outputs/protoshield_build_guide.pdf) — not yet physically assembled |
 
 ## What's genuinely verified vs. what isn't
 
@@ -54,6 +54,14 @@ wiring-only substitution the way MCP9808↔DS18B20 is on the sibling rigs.
   (10kΩ) added to the circuit. See `datasheets/DHT11_SUMMARY.md`.
 
 ## Quick start
+
+**Building it on a Prototype Shield v.5?** See
+[`BUILD_GUIDE.md`](BUILD_GUIDE.md) (or the rendered
+[`outputs/protoshield_build_guide.pdf`](outputs/protoshield_build_guide.pdf))
+for a physical placement diagram and numbered assembly steps — covers
+all of the below plus exactly where each module goes, and a note that
+a 30-pin Dev Kit V1 is a tighter fit than the ESP8266 rig's D1 Mini
+was.
 
 1. Wire per [`architecture/net_plan.md`](architecture/net_plan.md) (or
    view [`outputs/esp32_devkit_tilt_prototype.pdf`](outputs/esp32_devkit_tilt_prototype.pdf)

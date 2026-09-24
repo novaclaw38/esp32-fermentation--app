@@ -79,10 +79,16 @@ different physical artifact from this breadboard rig.
 
 - Q1/Q2 gating transistors — ungated divider, per the prototype doc's
   own guidance for breadboard builds.
-- A physical mounting/build guide (unlike the ESP8266 rig's Prototype
-  Shield guide) — a Dev Kit V1 is a full-size board typically used
-  directly on a breadboard; add one later if requested.
 - Housing, potting, or any sealed-unit concerns — bench testing only.
+
+## Physical build
+
+A Prototype Shield v.5 mounting guide exists —
+[`BUILD_GUIDE.md`](BUILD_GUIDE.md) / [`outputs/protoshield_build_guide.pdf`](outputs/protoshield_build_guide.pdf),
+mirroring the ESP8266 sibling rig's. **A 30-pin Dev Kit V1 is
+noticeably bigger than the ESP8266 rig's D1 Mini** — dry-fit before
+soldering; it may need standoffs/dead-bug mounting depending on your
+specific shield's usable perfboard area.
 
 ## Hardware verification status
 
