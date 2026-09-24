@@ -110,7 +110,11 @@ const int OTA_CHECK_EVERY_N_CYCLES = 96;
                             // on the bare 4-pin sensor; the common 3-pin breakout already
                             // has one onboard -- see datasheets/DHT11_SUMMARY.md)
 #define DHT_TYPE     DHT11
-#define I2C_SDA        21
+// SDA moved off GPIO21: its pad is damaged on this bench board. The ESP32
+// routes I2C through its GPIO matrix, so any free bidirectional pin works;
+// GPIO23 sits next to GPIO22 on the Dev Kit V1 header and isn't a
+// strapping or flash pin. The production board keeps GPIO21.
+#define I2C_SDA        23
 #define I2C_SCL        22
 #define BATTERY_ADC_PIN 34  // ADC1_CH6, input-only
 #define BATTERY_EN_PIN 25   // toggled for structural parity with the production sketch; drives

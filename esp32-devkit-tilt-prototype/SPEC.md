@@ -63,8 +63,10 @@ different physical artifact from this breadboard rig.
 
 ## Interface
 
-- I2C: `GPIO21` = SDA, `GPIO22` = SCL — matches the production board's
-  own pin choice, so the same firmware constants apply unchanged. Only
+- I2C: `GPIO23` = SDA, `GPIO22` = SCL. The production board uses
+  `GPIO21` for SDA; this bench board's `GPIO21` pad is damaged, so SDA
+  moved to `GPIO23` (free, not a strapping pin, next to `GPIO22` on the
+  header). Only `I2C_SDA` in the bench sketch differs. Only
   the GY-291 is on this bus now (MCP9808 removed).
 - DHT11 on `GPIO4` (previously the unused DS18B20 fallback pin) — the
   common 3-pin breakout has an onboard pull-up; a bare 4-pin sensor

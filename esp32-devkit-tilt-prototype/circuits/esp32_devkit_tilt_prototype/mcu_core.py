@@ -36,7 +36,7 @@ def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc, dht_data):
             Pin(num=1, name="VIN", func=Pin.types.PWRIN, orientation="L"),
             Pin(num=2, name="3V3", func=Pin.types.PWROUT, orientation="L"),
             Pin(num=3, name="GND", func=Pin.types.PWRIN, orientation="L"),
-            Pin(num=4, name="GPIO21_SDA", func=Pin.types.BIDIR, orientation="L"),
+            Pin(num=4, name="GPIO23_SDA", func=Pin.types.BIDIR, orientation="L"),
             Pin(num=5, name="GPIO22_SCL", func=Pin.types.BIDIR, orientation="L"),  # master clock-drives SCL; BIDIR (not INPUT) so ERC sees a driver -- matches the ESP8266 rig's D1/SCL pin
             Pin(num=6, name="GPIO34_ADC", func=Pin.types.INPUT, orientation="L"),   # input-only pin, by design
             Pin(num=7, name="GPIO25_BATTERY_EN", func=Pin.types.NOCONNECT, orientation="L"),  # toggled but unwired -- ungated build
@@ -47,7 +47,7 @@ def mcu_core(devkit_5v, devkit_3v3, gnd, sda, scl, batt_sense_adc, dht_data):
     devkit_5v += u1["VIN"]
     devkit_3v3 += u1["3V3"]
     gnd += u1["GND"]
-    sda += u1["GPIO21_SDA"]
+    sda += u1["GPIO23_SDA"]
     scl += u1["GPIO22_SCL"]
     batt_sense_adc += u1["GPIO34_ADC"]
     dht_data += u1["GPIO4_DHT_DATA"]

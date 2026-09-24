@@ -24,7 +24,7 @@ physical board, re-verify — not all GY-291 clones are identical.
 |---|---|
 | `VCC` | Dev Kit V1 `3V3` |
 | `GND` | `GND` |
-| `SDA` | Dev Kit V1 `GPIO21` |
+| `SDA` | Dev Kit V1 `GPIO23` (moved from `GPIO21`, damaged pad) |
 | `SCL` | Dev Kit V1 `GPIO22` |
 | `SDO` | **`GND`** — sets I2C address 0x53. Wire explicitly rather than assume |
 | `CS` | **`3V3`** — forces I2C mode, avoids a floating CMOS input. Wire explicitly |

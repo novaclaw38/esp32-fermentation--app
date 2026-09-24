@@ -56,7 +56,7 @@ sensors).
   (integer-only vs 0.0625°C steps) — a real measurement-quality
   tradeoff, not just a wiring change.
 - **Off the I2C bus entirely** — the GY-291 accelerometer keeps
-  `GPIO21`/`22` to itself now; the DHT11 has its own dedicated `GPIO4`.
+  `GPIO23`/`22` to itself now; the DHT11 has its own dedicated `GPIO4`.
 - **No automatic fallback.** The MCP9808/DS18B20 pairing on the
   sibling rigs auto-detects which sensor is present; this build has
   exactly one temperature sensor and no fallback path if it fails.

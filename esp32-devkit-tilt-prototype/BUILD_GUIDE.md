@@ -30,7 +30,7 @@ that build had. Dry-fit the board before soldering anything down.
   pull-up) — confirmed by photo. Pin order left-to-right: `VDD DATA NC
   GND`. `R3` (10kΩ) supplies the pull-up this variant needs.
 - ⚠️ **ESP32 Dev Kit V1 pin layout varies by manufacturer.** Locate
-  `VIN`/`3V3`/`GND`/`GPIO21`/`GPIO22`/`GPIO34`/`GPIO4` by their printed
+  `VIN`/`3V3`/`GND`/`GPIO23`/`GPIO22`/`GPIO34`/`GPIO4` by their printed
   GPIO labels on your specific board — not by counting header position
   from the diagram below, which shows a simplified/logical view for
   exactly this reason. See `architecture/design_risks.md`.
@@ -68,7 +68,9 @@ that build had. Dry-fit the board before soldering anything down.
    board's onboard regulator runs fine from the cell voltage directly
    — no separate LDO needed.
 7. **Wire the Dev Kit V1 to the GY-291.** Four wires: Dev Kit V1 `3V3`
-   → GY-291 `VCC`, `GND` → `GND`, `GPIO21` → `SDA`, `GPIO22` → `SCL`.
+   → GY-291 `VCC`, `GND` → `GND`, `GPIO23` → `SDA`, `GPIO22` → `SCL`.
+   (SDA is on `GPIO23`, not the usual `GPIO21`: that pad is damaged on
+   this board. Leave `GPIO21` unconnected.)
    **Also wire GY-291 `SDO` → `GND` and `CS` → `3V3`** (both dedicated
    pins on this board, not internally tied — confirmed from your
    photo).
@@ -129,7 +131,7 @@ wired).
 | Power | TP4056 OUT+ | Dev Kit V1 VIN | Same node as BAT+ |
 | Ground | TP4056 OUT- | Dev Kit V1 GND | |
 | Power | Dev Kit V1 3V3 | GY-291 VCC | |
-| I2C | Dev Kit V1 GPIO21 | GY-291 SDA | |
+| I2C | Dev Kit V1 GPIO23 | GY-291 SDA | GPIO21 pad damaged; SDA moved |
 | I2C | Dev Kit V1 GPIO22 | GY-291 SCL | |
 | Address set | GY-291 SDO | GND | I2C address 0x53 |
 | Mode set | GY-291 CS | 3V3 | Forces I2C mode |
