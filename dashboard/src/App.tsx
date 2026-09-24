@@ -12,6 +12,7 @@ const DeviceDetail = lazy(() => import("./pages/DeviceDetail"));
 const DeviceSettings = lazy(() => import("./pages/DeviceSettings"));
 const AdminFirmware = lazy(() => import("./pages/AdminFirmware"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Sniffer = lazy(() => import("./pages/Sniffer"));
 
 function PageFallback() {
   return (
@@ -48,6 +49,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DeviceSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sniffer"
+          element={
+            <ProtectedRoute>
+              <Sniffer />
             </ProtectedRoute>
           }
         />

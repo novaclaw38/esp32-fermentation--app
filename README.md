@@ -31,6 +31,7 @@ sensor node (ESP32) --HTTPS--> Supabase (Postgres + RPCs + Edge Function) <--RES
 | [`dashboard/`](dashboard/) | React + TypeScript + Vite app: email/password auth, per-device live reading, 48h temperature chart, gravity chart + calibration for Temp + Gravity units, alert history, threshold editor |
 | [`landing/`](landing/) | Static pre-order/signup page for the Phase 0 validation track |
 | [`hardware/`](hardware/) | Custom PCB design (v2 hardware path) replacing the DevKit+perfboard BOM, plus humidity/gravity/CO₂ sensor modules — see [`hardware/MULTI_SENSOR_MODULES.md`](hardware/MULTI_SENSOR_MODULES.md). To build one on a breadboard today from off-the-shelf modules, start at [`hardware/PROTOTYPE_TEMP_GRAVITY.md`](hardware/PROTOTYPE_TEMP_GRAVITY.md) |
+| [`leak-sniffer/`](leak-sniffer/) | Tracer-gas water leak detector: a handheld hydrogen sniffer (SKiDL circuit + ESP32-S3 firmware) that streams over Bluetooth to the dashboard's `/sniffer` page, which logs GPS-tagged survey points |
 | [`docs/`](docs/) | The original implementation plan (hardware choice, BOM, phased rollout) |
 
 ## Getting it running end-to-end
