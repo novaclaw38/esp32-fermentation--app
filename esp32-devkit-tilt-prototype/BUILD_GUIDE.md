@@ -113,6 +113,19 @@ wired).
     one (comment in the code marks the line). Do this before any
     calibration data collection — a wrong axis makes every later
     reading garbage.
+
+    **If it prints `Tilt: unavailable`** (the dashboard gets a null
+    tilt while temperature keeps arriving), the ADXL345 isn't
+    answering on I2C. On this rig the cause turned out to be a **loose
+    breadboard jumper**, not the chip or the code. (The `GPIO21` pad
+    also looked damaged while chasing it, which is why SDA is now on
+    `GPIO23`.) Reseat every GY-291 wire first,
+    then flash `firmware/i2c_diagnostic/i2c_diagnostic.ino`. It scans
+    the bus, reports which wire or address is wrong, and repeats every
+    5 s, so you can wiggle each jumper and watch for the one that drops
+    the device. Solder the GY-291 wires, or at least use fresh
+    jumpers, before a long run: a breadboard contact that goes
+    intermittent loses the gravity reading silently.
 14. **Check the DHT11 reads cleanly.** Watch for `Temperature: X.XX C`
     and `Humidity: X.X%` in the serial log each cycle. A failed read
     (`Error: could not read DHT11...`) with everything wired per the
