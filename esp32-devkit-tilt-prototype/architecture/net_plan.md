@@ -7,7 +7,7 @@
 | `BAT_MINUS`/`GND` | Power, 0V | Common ground — TP4056 breakout `B-`/`OUT-`, 18650 `-`, Dev Kit V1 `GND`, GY-291 `GND`, DHT11 `GND`, R2 bottom |
 | `DEVKIT_5V` | Power | = TP4056 `OUT+` (same node as BAT_PLUS — the board's onboard regulator runs from this) |
 | `DEVKIT_3V3` | Power, regulated | Dev Kit V1 `3V3` pin (output of its onboard regulator) → GY-291 `VCC`, GY-291 `CS`, DHT11 `VDD`, R3 (DHT11 pull-up top, 10kΩ) |
-| `SDA` | I2C | Dev Kit V1 `GPIO21` → GY-291 `SDA` |
+| `SDA` | I2C | Dev Kit V1 `GPIO23` → GY-291 `SDA` (moved from `GPIO21`, whose pad is damaged on this board) |
 | `SCL` | I2C | Dev Kit V1 `GPIO22` → GY-291 `SCL` |
 | `SDO` | Signal | GY-291 `SDO` → `GND` — required for I2C address 0x53. Same gotcha as the ESP8266 rig: verify this is a dedicated pin on your specific GY-291 board before trusting it (not all clones expose it separately). |
 | `CS` | Signal | GY-291 `CS` → `3V3` — forces I2C mode, avoids a floating CMOS input. Same verification caveat as `SDO`. |

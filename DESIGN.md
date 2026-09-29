@@ -336,3 +336,27 @@ a different, generic system. Changes:
   and a signed-in owner are in the same world. Its hero is an example
   gravity curve on a hydrometer-style scale (labelled as an illustration),
   drawn once on load with the gravity glow; copy is unchanged.
+
+## Atelier audit, second pass (2026-09-29)
+
+A re-audit of the dashboard after the first round found nothing broken and
+four craft gaps, all fixed:
+
+- **Chart ticks sit on clean local-time boundaries.** `timeTicks` in
+  `lib/chartTime.ts` places them every 1–48 hours (6 on a 48-hour chart:
+  midnight, 6 AM, noon, 6 PM), labelled "Mon 6 PM" by `formatTickTime`. The
+  tooltip keeps the full date and time. Recharts' own ticks were spaced from
+  the first reading and landed on times like 07:14 AM.
+- **Tiles say how old an open alert is**, and when a temperature alert's
+  reading has returned inside the limits: "Above maximum 40m ago; back in
+  range now". The alert stays open, and the gauge stays lit, until it's
+  acknowledged. `describeOpenAlert` in `lib/alerts.ts` builds the text; the
+  age uses a non-breaking space so a wrapped line never splits "40m / ago".
+  Status lines use `text-balance`.
+- **Time in range fills the hero panel** (`components/TimeInRange.tsx`,
+  maths in `lib/timeInRange.ts`): "Last 48 hours, 22.0°C to 28.0°C", the hours
+  spent inside those limits, and when the ferment last left them. Each
+  reading holds for up to four wake intervals, the same ceiling
+  `lib/connection.ts` uses before calling a device offline. Time beyond that
+  is reported as "No readings for N hours", never counted as in range. Hidden
+  until history has loaded and until there's an hour of data.

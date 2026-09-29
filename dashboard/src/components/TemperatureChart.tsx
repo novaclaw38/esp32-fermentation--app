@@ -3,7 +3,7 @@ import type { Reading } from "../types/database";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { celsiusToUnit } from "../lib/units";
 import { chartTheme } from "../lib/tokens";
-import { formatAxisTime, withGaps } from "../lib/chartTime";
+import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
   readings: Reading[];
@@ -32,6 +32,8 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
     );
   }
 
+  const ticks = timeTicks(points[0].t, points[points.length - 1].t);
+
   return (
     <div className="h-64 rounded-lg border border-panel-700 bg-panel-900 p-4">
       <ResponsiveContainer width="100%" height="100%">
@@ -42,7 +44,8 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
             type="number"
             scale="time"
             domain={["dataMin", "dataMax"]}
-            tickFormatter={formatAxisTime}
+            ticks={ticks}
+            tickFormatter={formatTickTime}
             tick={chartTheme.tick}
             minTickGap={40}
             stroke={chartTheme.axis}

@@ -13,7 +13,7 @@ import { formatTemp } from "../lib/units";
 import { getConnectionInfo, formatRelativeTime } from "../lib/connection";
 import { getGaugeState } from "../lib/gaugeState";
 import { computeGravitySg, formatSg, isCalibrated } from "../lib/gravity";
-import { reasonLabel } from "../lib/alerts";
+import { describeOpenAlert } from "../lib/alerts";
 
 function randomSecret(): string {
   const bytes = new Uint8Array(24);
@@ -38,10 +38,11 @@ export default function Devices() {
   const now = useNow();
   const [devices, setDevices] = useState<Device[]>([]);
   const [latestReadings, setLatestReadings] = useState<Record<string, Reading>>({});
-  // device id -> reason of its newest open alert. The reason is shown on the
-  // tile: an offline gauge carries no glow, so without it a dead sensor
-  // looked exactly like a device that was merely switched off.
-  const [openAlerts, setOpenAlerts] = useState<Map<string, string>>(new Map());
+  // device id -> its newest open alert. The reason and age are shown on the
+  // tile: an offline gauge carries no glow, so without them a dead sensor
+  // looked exactly like a device that was merely switched off, and an old
+  // unacknowledged alert looked like a live problem.
+  const [openAlerts, setOpenAlerts] = useState<Map<string, { reason: string; createdAt: string }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
@@ -90,7 +91,7 @@ export default function Devices() {
     // however busy its siblings are.
     const [{ data: readingsData, error: readingsError }, { data: alertsData, error: alertsError }] = await Promise.all([
       supabase.from("latest_readings").select("*"),
-      supabase.from("alerts").select("device_id,reason").eq("acknowledged", false).order("created_at", { ascending: false }),
+      supabase.from("alerts").select("device_id,reason,created_at").eq("acknowledged", false).order("created_at", { ascending: false }),
     ]);
 
     if (readingsData) {
@@ -99,9 +100,9 @@ export default function Devices() {
       setLatestReadings(latest);
     }
     if (alertsData) {
-      const open = new Map<string, string>();
-      for (const a of alertsData as { device_id: string; reason: string }[]) {
-        if (!open.has(a.device_id)) open.set(a.device_id, a.reason);
+      const open = new Map<string, { reason: string; createdAt: string }>();
+      for (const a of alertsData as { device_id: string; reason: string; created_at: string }[]) {
+        if (!open.has(a.device_id)) open.set(a.device_id, { reason: a.reason, createdAt: a.created_at });
       }
       setOpenAlerts(open);
     }
@@ -364,7 +365,7 @@ export default function Devices() {
               connection.status,
               openAlerts.has(d.id),
             );
-            const openReason = openAlerts.get(d.id);
+            const openAlert = openAlerts.get(d.id);
             const gravity =
               // Not for an offline float: a days-old gravity printed at full
               // size reads as current, while its gauge already says "—".
@@ -373,8 +374,14 @@ export default function Devices() {
                 : null;
             const lastSeen =
               connection.secondsSinceLastSeen != null
-                ? `last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
-                : "hasn't reported yet";
+                ? `Last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
+                : "Hasn't reported yet";
+            // A temperature alert stays open until it's acknowledged, even
+            // after the reading has come back inside the limits -- say so, or
+            // "Above maximum" reads as happening now.
+            const alertText = openAlert
+              ? describeOpenAlert(openAlert, reading?.temperature_c, d, connection.status, now)
+              : null;
             const dimmed = focusedId !== null && focusedId !== d.id;
 
             return (
@@ -422,9 +429,8 @@ export default function Devices() {
                     <p className="mt-1.5 text-xs text-panel-400">
                       Range {formatTemp(d.temp_min_c, unit)} to {formatTemp(d.temp_max_c, unit)}
                     </p>
-                    <p className={`mt-0.5 text-xs ${openReason ? "font-medium text-breach-400" : "text-panel-400"}`}>
-                      {openReason ? `${reasonLabel(openReason)}, ${lastSeen}` : lastSeen.charAt(0).toUpperCase() + lastSeen.slice(1)}
-                    </p>
+                    {alertText && <p className="mt-1 text-balance text-xs font-medium text-breach-400">{alertText}</p>}
+                    <p className="mt-0.5 text-balance text-xs text-panel-400">{lastSeen}</p>
                   </div>
                 </Link>
               </li>

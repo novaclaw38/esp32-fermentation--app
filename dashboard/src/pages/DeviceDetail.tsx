@@ -15,6 +15,8 @@ import { computeGravitySg, computeGravitySgRaw, formatSg, isCalibrated, isTiltDe
 import { ANALYTICS_HISTORY_HOURS, computeFermentationAnalytics } from "../lib/fermentationAnalytics";
 import FermentationSummary from "../components/FermentationSummary";
 import FermentationStageBar from "../components/FermentationStageBar";
+import TimeInRangeSummary from "../components/TimeInRange";
+import { computeTimeInRange } from "../lib/timeInRange";
 
 // Recharts is the single heaviest dependency in the bundle (Vite's own build
 // warning flagged the 800+KB single chunk this pulled into every page,
@@ -221,6 +223,19 @@ export default function DeviceDetail() {
   const chartSince = now.getTime() - CHART_HOURS * 60 * 60 * 1000;
   const chartReadings = readings.filter((r) => new Date(r.created_at).getTime() >= chartSince);
   const latest = readings[readings.length - 1];
+  // Only once history has loaded: before that `readings` is empty, and a
+  // block that appears late would shove the charts down for no reason.
+  const timeInRange =
+    historyLoading || historyError
+      ? null
+      : computeTimeInRange(
+          chartReadings,
+          device.temp_min_c,
+          device.temp_max_c,
+          device.sleep_interval_seconds,
+          CHART_HOURS * 60 * 60 * 1000,
+          now.getTime(),
+        );
   const showGravity = isTiltDevice(device);
   const calibrated = isCalibrated(device);
   const fermentationAnalytics = showGravity && calibrated ? computeFermentationAnalytics(device, readings) : null;
@@ -353,6 +368,9 @@ export default function DeviceDetail() {
             state={secondaryOffline}
             size="sm"
           />
+        )}
+        {timeInRange && timeInRange.totalMs >= 60 * 60 * 1000 && (
+          <TimeInRangeSummary result={timeInRange} minC={device.temp_min_c} maxC={device.temp_max_c} unit={unit} />
         )}
       </section>
 
