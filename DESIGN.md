@@ -360,3 +360,26 @@ four craft gaps, all fixed:
   `lib/connection.ts` uses before calling a device offline. Time beyond that
   is reported as "No readings for N hours", never counted as in range. Hidden
   until history has loaded and until there's an hour of data.
+
+## Delight: the wake (2026-09-29)
+
+One authored moment on the gauge, drawn from the product's first principle
+("Never go silent"): when a gauge that is already on screen goes from offline
+to live -- a device reporting for the first time, or coming back after going
+silent -- the instrument wakes. The needle sweeps in from zero on the
+sign-in mark's curve (900ms, `cubic-bezier(0.16, 1, 0.3, 1)`), the glow and
+hub warm up behind it, and the numeral lands as the needle arrives.
+
+- **Only on an observed transition.** It never plays on first paint, so a page
+  of gauges doesn't sweep on every visit. It's skipped under
+  `prefers-reduced-motion`.
+- **State changes settle instead of snapping.** Needle and hub colour and glow
+  now transition (400ms), so acknowledging an alert or a reading crossing its
+  limit reads as the instrument responding. The acknowledged alert's dot
+  fades to grey over 500ms.
+- **Waiting is named.** A claimed device that has never reported says
+  "Waiting for its first reading" on its tile and "Waiting for first reading"
+  under its dial, not just "Hasn't reported yet" beside a dead dial.
+- Implemented in `Gauge.tsx` as a small `idle → start → sweep` state driven by
+  a layout effect, so the needle is never painted at its final angle before
+  the sweep begins. No new dependency.

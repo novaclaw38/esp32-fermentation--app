@@ -260,7 +260,9 @@ export default function DeviceDetail() {
 
   const gravityHero = showGravity && latest?.gravity_sg != null;
   const freshness =
-    connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : undefined;
+    connection.secondsSinceLastSeen != null
+      ? formatRelativeTime(connection.secondsSinceLastSeen)
+      : "Waiting for first reading";
   const tempGauge = (size: "sm" | "lg") => (
     <Gauge
       value={latest ? latest.temperature_c : null}

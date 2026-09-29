@@ -375,7 +375,7 @@ export default function Devices() {
             const lastSeen =
               connection.secondsSinceLastSeen != null
                 ? `Last seen ${formatRelativeTime(connection.secondsSinceLastSeen)}`
-                : "Hasn't reported yet";
+                : "Waiting for its first reading";
             // A temperature alert stays open until it's acknowledged, even
             // after the reading has come back inside the limits -- say so, or
             // "Above maximum" reads as happening now.

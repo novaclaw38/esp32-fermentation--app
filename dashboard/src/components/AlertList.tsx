@@ -44,8 +44,8 @@ export default function AlertList({ alerts, onAcknowledged }: Props) {
               aria-hidden="true"
               className={
                 alert.acknowledged
-                  ? "inline-block h-2 w-2 rounded-full bg-panel-600"
-                  : "inline-block h-2 w-2 rounded-full bg-breach-400 shadow-[0_0_6px_2px_rgba(248,113,113,0.6)]"
+                  ? "inline-block h-2 w-2 rounded-full bg-panel-600 shadow-[0_0_0_0_rgba(248,113,113,0)] transition-[background-color,box-shadow] duration-500"
+                  : "inline-block h-2 w-2 rounded-full bg-breach-400 shadow-[0_0_6px_2px_rgba(248,113,113,0.6)] transition-[background-color,box-shadow] duration-500"
               }
             />
             <span className="ml-2 font-medium text-panel-200">{reasonLabel(alert.reason)}</span>
