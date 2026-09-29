@@ -3,7 +3,7 @@ import type { ReadingWithGravity } from "../types/database";
 import { computeFermentationRateSeries } from "../lib/fermentationAnalytics";
 import { formatPoints } from "../lib/gravity";
 import { chartTheme } from "../lib/tokens";
-import { formatAxisTime, withGaps } from "../lib/chartTime";
+import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
   /** The full analytics history -- the rate at each point looks back up to 24h, so it needs more than the chart shows. */
@@ -53,6 +53,7 @@ export default function FermentationRateChart({ readings, batchStartedAt, since 
   const pad = Math.max((max - min) * 0.2, 0.0005);
   const ticks = niceTicks(min - pad, max + pad);
   const data = withGaps(points, (t) => ({ t, rate: null }));
+  const timeAxisTicks = timeTicks(points[0].t, points[points.length - 1].t);
 
   return (
     <div className="h-40 rounded-lg border border-panel-700 bg-panel-900 p-4">
@@ -64,7 +65,8 @@ export default function FermentationRateChart({ readings, batchStartedAt, since 
             type="number"
             scale="time"
             domain={["dataMin", "dataMax"]}
-            tickFormatter={formatAxisTime}
+            ticks={timeAxisTicks}
+            tickFormatter={formatTickTime}
             tick={chartTheme.tick}
             minTickGap={40}
             stroke={chartTheme.axis}

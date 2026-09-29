@@ -4,7 +4,7 @@ import { formatSg } from "../lib/gravity";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { celsiusToUnit, formatTemp } from "../lib/units";
 import { chartTheme } from "../lib/tokens";
-import { formatAxisTime, withGaps } from "../lib/chartTime";
+import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
   readings: ReadingWithGravity[];
@@ -50,6 +50,7 @@ export default function FermentationChart({ readings, tempMinC, tempMaxC }: Prop
   const sgMax = Math.max(...sgValues);
   const sgPad = Math.max((sgMax - sgMin) * 0.2, 0.004);
   const data = withGaps(points, (t) => ({ t, sg: null, temperature: null }));
+  const ticks = timeTicks(points[0].t, points[points.length - 1].t);
   const displayMin = celsiusToUnit(tempMinC, unit);
   const displayMax = celsiusToUnit(tempMaxC, unit);
 
@@ -76,7 +77,8 @@ export default function FermentationChart({ readings, tempMinC, tempMaxC }: Prop
               type="number"
               scale="time"
               domain={["dataMin", "dataMax"]}
-              tickFormatter={formatAxisTime}
+              ticks={ticks}
+              tickFormatter={formatTickTime}
               tick={chartTheme.tick}
               minTickGap={40}
               stroke={chartTheme.axis}

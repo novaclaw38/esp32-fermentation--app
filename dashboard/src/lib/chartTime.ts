@@ -11,6 +11,40 @@ export function formatDateTime(t: number | string | Date): string {
 /** Tick/tooltip label for a numeric time axis. */
 export const formatAxisTime = (t: number) => formatDateTime(t);
 
+const HOUR_MS = 3_600_000;
+const TICK_STEPS_HOURS = [1, 2, 3, 6, 12, 24, 48];
+
+/**
+ * Axis ticks on clean local-time boundaries (every 6 hours on a 48-hour
+ * chart: midnight, 6 AM, noon, 6 PM). Recharts' own numeric ticks are evenly
+ * spaced from the first reading, so they landed on times like 07:14 AM that
+ * mean nothing to the person reading the chart. Recharts still drops ticks
+ * that would overlap, so a narrow screen keeps a clean subset.
+ */
+export function timeTicks(min: number, max: number, maxTicks = 8): number[] {
+  if (!(max > min)) return [];
+  const spanHours = (max - min) / HOUR_MS;
+  const step = TICK_STEPS_HOURS.find((h) => spanHours / h <= maxTicks) ?? 48;
+
+  // Walk in local hours (setHours) rather than adding milliseconds, so a
+  // daylight-saving change doesn't push ticks off the boundary.
+  const d = new Date(min);
+  d.setMinutes(0, 0, 0);
+  while (d.getTime() < min || d.getHours() % step !== 0) d.setHours(d.getHours() + 1);
+
+  const ticks: number[] = [];
+  while (d.getTime() <= max && ticks.length < 100) {
+    ticks.push(d.getTime());
+    d.setHours(d.getHours() + step);
+  }
+  return ticks;
+}
+
+/** Label for a tick from timeTicks: "Mon 6 PM". The full date and time stay in the tooltip. */
+export function formatTickTime(t: number): string {
+  return new Date(t).toLocaleString(undefined, { weekday: "short", hour: "numeric" });
+}
+
 /**
  * Charts plot against real time (a numeric axis), so a device that was off
  * for ten hours shows a ten-hour gap instead of two readings drawn side by
