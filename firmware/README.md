@@ -19,6 +19,10 @@ Install via Arduino IDE Library Manager (Sketch > Include Library > Manage Libra
 - **OneWire** by Paul Stoffregen
 - **DallasTemperature** by Miles Burton
 
+Hub with a DHT11 instead of the probe (see
+[Using a DHT11](#using-a-dht11-instead-of-the-ds18b20-probe)): install
+**DHT sensor library** by Adafruit instead of the two above.
+
 Board support: install the **ESP32 by Espressif Systems** board package via
 Boards Manager if not already installed. `HTTPUpdate` and `WiFiClientSecure`
 ship with the ESP32 core, no extra install needed.
@@ -37,6 +41,43 @@ ship with the ESP32 core, no extra install needed.
 - DS18B20 VCC → 3V3, GND → GND
 - Battery voltage divider: BAT+ → 100kΩ → GPIO34 → 100kΩ → GND (GPIO34 is
   input-only/ADC1, safe to read during WiFi TX)
+
+### Using a DHT11 instead of the DS18B20 probe
+
+The Hub sketch can read a DHT11 instead. Set `#define TEMP_SENSOR_DHT11 1`
+near the top of `fermentation_monitor_v1.ino` and install **DHT sensor
+library** by Adafruit (the Library Manager also offers to install **Adafruit
+Unified Sensor**, which it needs). You don't need OneWire or
+DallasTemperature in this mode.
+
+Wiring uses the same pin as the probe:
+
+- DHT11 DATA → GPIO4, VCC → 3V3, GND → GND
+- A 3-pin DHT11 module already has its pull-up on the board. A bare 4-pin
+  sensor needs one between DATA and 3V3. The 4.7kΩ already on the rig works;
+  so does the datasheet's 10kΩ. Leave pin 3 of the bare sensor unconnected.
+
+Know what you're measuring before relying on it:
+
+- **It can't go in the liquid.** A DHT11 isn't waterproof, so it reads air.
+  To get a rough wort temperature, tape it flat against the fermenter wall
+  and cover it with a pad of insulation. Liquid temperature lags and
+  overshoots what it reports.
+- **±2 °C, in roughly 1 °C steps, over 0–50 °C.** That's fine for proving
+  the device → Supabase → dashboard pipeline. It's coarse for a ferment where
+  18 °C and 22 °C taste different, so tighten or widen the thresholds to
+  match.
+- Each wake takes about a second longer. The sensor needs that long after
+  power-up, and a bad read gets one retry 2 s later.
+- The sketch prints humidity to the serial log but doesn't post it. The
+  database has a humidity column now (`ingest_reading`'s `p_humidity_pct`),
+  and the ESP32 DevKit bench sketch sends it; this Hub sketch doesn't yet.
+
+A failed read prints `Error: could not read DHT11 (check wiring/pull-up)`.
+Check that DATA is on GPIO4 and the pull-up is fitted.
+
+The Temp + Gravity sketch has no DHT11 option. That module is sealed and
+floats, so a DHT11 inside it would only read the housing's still air.
 
 ## WiFi setup portal
 
