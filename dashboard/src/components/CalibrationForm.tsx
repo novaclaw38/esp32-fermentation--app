@@ -9,9 +9,11 @@ interface Props {
 
 type Coefficient = "calibration_a" | "calibration_b" | "calibration_c" | "calibration_d";
 
-const COEFFICIENTS: { key: Coefficient; label: string; hint: string }[] = [
-  { key: "calibration_a", label: "a (tilt³)", hint: "0 for a linear or quadratic fit" },
-  { key: "calibration_b", label: "b (tilt²)", hint: "0 for a linear fit" },
+// The hint sits under the field; the placeholder is only ever an example value,
+// so it never repeats (or gets truncated to) the hint.
+const COEFFICIENTS: { key: Coefficient; label: string; hint: string; placeholder?: string }[] = [
+  { key: "calibration_a", label: "a (tilt³)", hint: "0 for a linear or quadratic fit", placeholder: "0" },
+  { key: "calibration_b", label: "b (tilt²)", hint: "0 for a linear fit", placeholder: "0" },
   { key: "calibration_c", label: "c (tilt)", hint: "required" },
   { key: "calibration_d", label: "d (constant)", hint: "usually near 1.0" },
 ];
@@ -107,7 +109,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {COEFFICIENTS.map(({ key, label, hint }) => (
+        {COEFFICIENTS.map(({ key, label, hint, placeholder }) => (
           <label key={key} className="text-sm text-panel-200">
             {label}
             <input
@@ -115,7 +117,7 @@ export default function CalibrationForm({ device, onSaved }: Props) {
               inputMode="decimal"
               value={values[key]}
               onChange={(e) => set(key, e.target.value)}
-              placeholder={hint}
+              placeholder={placeholder}
               className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 text-panel-200"
             />
             <span className="mt-0.5 block text-xs text-panel-400">{hint}</span>

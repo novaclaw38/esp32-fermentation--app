@@ -3,6 +3,7 @@ import type { Reading } from "../types/database";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { celsiusToUnit } from "../lib/units";
 import { chartTheme } from "../lib/tokens";
+import { niceTicks } from "../lib/axisTicks";
 import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
@@ -33,6 +34,10 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
   }
 
   const ticks = timeTicks(points[0].t, points[points.length - 1].t);
+  // Round, evenly spaced degrees, with both limits and half a degree of air
+  // beyond them so a limit line never sits on the axis itself.
+  const temps = points.map((p) => p.temperature as number);
+  const yTicks = niceTicks(Math.min(...temps, displayMin) - 0.5, Math.max(...temps, displayMax) + 0.5, { minStep: 1 });
 
   return (
     <div className="h-64 rounded-lg border border-panel-700 bg-panel-900 p-4">
@@ -54,12 +59,10 @@ export default function TemperatureChart({ readings, tempMinC, tempMaxC }: Props
             tick={chartTheme.tick}
             unit={`°${unit}`}
             width={52}
-            // Always keep both thresholds in view, so a reading's distance
-            // from its limit is visible even when it's nowhere near it.
-            domain={[(min: number) => Math.min(min, displayMin) - 1, (max: number) => Math.max(max, displayMax) + 1]}
-            // Whole-degree ticks only; with decimals allowed, rounding them
-            // for display printed the same label twice ("22°C", "22°C").
-            allowDecimals={false}
+            // Both limits stay in view, so a reading's distance from its
+            // limit is visible even when it's nowhere near it.
+            domain={[yTicks[0], yTicks[yTicks.length - 1]]}
+            ticks={yTicks}
             tickFormatter={(v: number) => v.toFixed(0)}
             stroke={chartTheme.axis}
           />

@@ -203,7 +203,7 @@ export default function AdminFirmware() {
           <p className="mt-1 text-sm text-panel-400">{loadError}</p>
           <button
             onClick={loadReleases}
-            className="mt-2 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
+            className="mt-2 min-h-11 rounded-md border border-breach-500/50 px-3 py-2 text-sm font-medium text-breach-400 hover:bg-panel-800"
           >
             Retry
           </button>
@@ -239,15 +239,18 @@ export default function AdminFirmware() {
                 )}
 
                 <div className="mt-4 space-y-2 rounded-md border border-panel-700 bg-panel-950 p-3">
-                  <p className="text-xs font-medium text-panel-400">Upload a build</p>
+                  <label htmlFor={`firmware-file-${type}`} className="block text-xs font-medium text-panel-400">
+                    Upload a build
+                  </label>
                   <input
+                    id={`firmware-file-${type}`}
                     ref={(el) => {
                       fileInputRefs.current[type] = el;
                     }}
                     type="file"
                     accept=".bin"
                     onChange={(e) => setSection(type, { file: e.target.files?.[0] ?? null })}
-                    className="block w-full text-sm text-panel-200 file:mr-3 file:rounded-md file:border file:border-panel-600 file:bg-panel-900 file:px-2 file:py-1 file:text-panel-200"
+                    className="block min-h-11 w-full text-sm text-panel-200 file:mr-3 file:min-h-8 file:rounded-md file:border file:border-panel-600 file:bg-panel-900 file:px-2 file:py-1 file:text-panel-200"
                   />
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <label className="text-sm text-panel-200">
@@ -309,7 +312,7 @@ export default function AdminFirmware() {
                           <button
                             onClick={() => handlePublish(r)}
                             disabled={publishingId === r.id}
-                            className="shrink-0 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
+                            className="min-h-11 shrink-0 rounded-md bg-brew-600 px-3 py-2 text-sm font-medium text-white hover:bg-brew-700 disabled:opacity-50"
                           >
                             {publishingId === r.id ? "Publishing…" : "Publish"}
                           </button>

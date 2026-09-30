@@ -4,6 +4,11 @@
       "type": "stdio",
       "command": "claude-flow",
       "args": ["mcp", "start"]
+    },
+    "skidl": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--script", "tools/skidl_mcp.py"]
     }
   }
 }

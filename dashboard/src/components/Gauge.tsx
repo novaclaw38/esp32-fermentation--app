@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { GaugeState } from "../lib/gaugeState";
 import { usePrefersReducedMotion } from "../lib/useReducedMotion";
 import { fontGauge, palette } from "../lib/tokens";
@@ -131,8 +131,42 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
   const needleAngle = START_ANGLE + SWEEP * fraction;
 
   const color = STATE_COLOR[state];
-  const glow = STATE_GLOW_PX[state];
+  const glowPx = STATE_GLOW_PX[state];
   const dim = state === "offline";
+
+  // The wake: the one authored moment on a live gauge. When a gauge that is
+  // already on screen goes from offline to live -- a device reporting for the
+  // first time, or coming back after going silent -- the needle sweeps in
+  // from zero, the glow warms up and the numeral lands as it arrives, the
+  // same gesture as the sign-in mark. It never plays on first paint (a page
+  // of gauges that all sweep on every visit would be noise by the tenth
+  // time), and it's skipped under reduced motion, where the colour and glow
+  // changes below still carry the state.
+  const [wake, setWake] = useState<"idle" | "start" | "sweep">("idle");
+  const wasOffline = useRef(dim);
+  // Layout effect, not a plain one: the needle mounts on the render where
+  // `dim` flips, and a plain effect would let one frame paint it at the final
+  // angle before the sweep begins.
+  useLayoutEffect(() => {
+    const woke = wasOffline.current && !dim;
+    wasOffline.current = dim;
+    if (!woke || reducedMotion) return;
+    setWake("start");
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setWake("sweep"));
+    });
+    const done = setTimeout(() => setWake("idle"), 1400);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      clearTimeout(done);
+    };
+  }, [dim, reducedMotion]);
+  const waking = wake !== "idle";
+  const atStart = wake === "start";
+  const shownAngle = atStart ? START_ANGLE : needleAngle;
+  const shownGlow = atStart ? 0 : glowPx;
   const svgOpacity = dim ? "opacity-40" : stale ? "opacity-75" : "opacity-100";
 
   const ticks = Array.from({ length: 6 }, (_, i) => START_ANGLE + (SWEEP / 5) * i);
@@ -299,15 +333,24 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
                 machined ridge rather than flat vector art. */}
             <g
               style={{
-                transform: `rotate(${needleAngle}deg)`,
+                transform: `rotate(${shownAngle}deg)`,
                 transformOrigin: `${CX}px ${CY}px`,
-                transition: reducedMotion ? "none" : "transform 700ms cubic-bezier(0.4, 0, 0.2, 1)",
-                filter: glow ? `drop-shadow(0 0 ${glow}px ${color})` : undefined,
+                // Ordinary movement eases quickly; the wake is a slower,
+                // decelerating arrival, with the glow warming up behind it.
+                // The glow transitions in both cases so a state change
+                // (an alert acknowledged, a reading crossing its limit)
+                // settles instead of snapping.
+                transition: reducedMotion
+                  ? "filter 400ms ease-out"
+                  : waking
+                    ? "transform 900ms cubic-bezier(0.16, 1, 0.3, 1), filter 600ms ease-out 450ms"
+                    : "transform 700ms cubic-bezier(0.4, 0, 0.2, 1), filter 400ms ease-out",
+                filter: `drop-shadow(0 0 ${shownGlow}px ${color})`,
               }}
             >
               <polygon
                 points={`${CX - NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y} ${CX - NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_TIP_HALF_WIDTH},${NEEDLE_TIP_Y} ${CX + NEEDLE_BASE_HALF_WIDTH},${NEEDLE_BASE_Y}`}
-                fill={color}
+                style={{ fill: color, transition: "fill 400ms ease-out" }}
               />
               <line
                 x1={CX - 0.6}
@@ -325,9 +368,20 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
                 highlight standing in for a glossy dome. Cheap to render, doesn't
                 need per-state gradient defs since only the base disc carries the
                 state color. */}
-            <circle cx={CX} cy={CY} r={7} fill={color} style={glow ? { filter: `drop-shadow(0 0 ${glow}px ${color})` } : undefined} />
-            <circle cx={CX} cy={CY} r={7} fill="none" stroke="#000000" strokeOpacity={0.4} strokeWidth={1} />
-            <circle cx={CX - 1.8} cy={CY - 1.8} r={2} fill="#ffffff" fillOpacity={0.4} />
+            <g style={{ opacity: atStart ? 0 : 1, transition: wake === "sweep" ? "opacity 500ms ease-out 400ms" : undefined }}>
+              <circle
+                cx={CX}
+                cy={CY}
+                r={7}
+                style={{
+                  fill: color,
+                  filter: `drop-shadow(0 0 ${shownGlow}px ${color})`,
+                  transition: reducedMotion ? "filter 400ms ease-out" : "fill 400ms ease-out, filter 400ms ease-out",
+                }}
+              />
+              <circle cx={CX} cy={CY} r={7} fill="none" stroke="#000000" strokeOpacity={0.4} strokeWidth={1} />
+              <circle cx={CX - 1.8} cy={CY - 1.8} r={2} fill="#ffffff" fillOpacity={0.4} />
+            </g>
           </>
         )}
       </svg>
@@ -343,7 +397,16 @@ export default function Gauge({ value, min, max, displayValue, label, state, sub
       <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[66%] flex flex-col items-center justify-center text-center">
         <span
           className={`font-gauge tabular font-semibold leading-none ${numeralClass}`}
-          style={{ color: dim ? palette.panel[400] : palette.panel[200] }}
+          // During the wake the reading lands as the needle arrives, not
+          // before it.
+          style={{
+            color: dim ? palette.panel[400] : palette.panel[200],
+            opacity: atStart ? 0 : 1,
+            // Only in the sweep stage: with the transition already set, the
+            // drop to 0 at the start would itself fade out, and the sweep
+            // would then reverse it -- the numeral would never dip.
+            transition: wake === "sweep" ? "opacity 500ms ease-out 500ms" : undefined,
+          }}
         >
           {dim ? "—" : displayValue}
         </span>

@@ -61,7 +61,7 @@ export default function UnclaimDeviceForm({ device, onUnclaimed }: Props) {
       ) : !confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="mt-3 rounded-md border border-approach-500/50 px-3 py-2 text-sm font-medium text-approach-400 hover:bg-panel-800"
+          className="mt-3 min-h-11 rounded-md border border-approach-500/50 px-3 py-2 text-sm font-medium text-approach-400 hover:bg-panel-800"
         >
           Unclaim device…
         </button>

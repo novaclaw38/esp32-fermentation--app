@@ -4,6 +4,7 @@ import { formatSg } from "../lib/gravity";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { celsiusToUnit, formatTemp } from "../lib/units";
 import { chartTheme } from "../lib/tokens";
+import { niceTicks } from "../lib/axisTicks";
 import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
@@ -51,8 +52,13 @@ export default function FermentationChart({ readings, tempMinC, tempMaxC }: Prop
   const sgPad = Math.max((sgMax - sgMin) * 0.2, 0.004);
   const data = withGaps(points, (t) => ({ t, sg: null, temperature: null }));
   const ticks = timeTicks(points[0].t, points[points.length - 1].t);
+  const sgTicks = niceTicks(sgMin - sgPad, sgMax + sgPad, { minStep: 0.005 });
   const displayMin = celsiusToUnit(tempMinC, unit);
   const displayMax = celsiusToUnit(tempMaxC, unit);
+  // Round, evenly spaced values on both axes; the temperature axis keeps both
+  // limits in view with half a degree of air beyond them.
+  const temps = points.map((p) => p.temperature as number);
+  const tempTicks = niceTicks(Math.min(...temps, displayMin) - 0.5, Math.max(...temps, displayMax) + 0.5, { minStep: 1 });
 
   // Change across the window, and how much the temperature correction moved
   // the latest reading -- kept auditable, as the old gravity-only chart did.
@@ -87,7 +93,8 @@ export default function FermentationChart({ readings, tempMinC, tempMaxC }: Prop
               yAxisId="sg"
               tick={chartTheme.tick}
               width={52}
-              domain={[sgMin - sgPad, sgMax + sgPad]}
+              domain={[sgTicks[0], sgTicks[sgTicks.length - 1]]}
+              ticks={sgTicks}
               tickFormatter={(v: number) => formatSg(v)}
               stroke={chartTheme.axis}
             />
@@ -98,10 +105,8 @@ export default function FermentationChart({ readings, tempMinC, tempMaxC }: Prop
               unit={`°${unit}`}
               width={48}
               // Keep both limits in view so the distance to them is visible.
-              domain={[(min: number) => Math.min(min, displayMin) - 1, (max: number) => Math.max(max, displayMax) + 1]}
-              // Whole-degree ticks only; with decimals allowed, rounding them
-              // for display printed the same label twice ("22°C", "22°C").
-              allowDecimals={false}
+              domain={[tempTicks[0], tempTicks[tempTicks.length - 1]]}
+              ticks={tempTicks}
               tickFormatter={(v: number) => v.toFixed(0)}
               stroke={chartTheme.axis}
             />

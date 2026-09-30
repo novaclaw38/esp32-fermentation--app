@@ -181,7 +181,7 @@ Two radius steps: `6px` (buttons, inputs, chips — the interactive/small scale)
 - **Shape:** 6px radius.
 - **Primary:** `brew-600` (#a8631c) fill / white text, `hover:bg-brew-500`. Used for the one primary action per view (Claim device, Create device).
 - **Secondary/Ghost:** transparent fill, 1px `panel-600` border, `panel-200` text, `hover:bg-panel-800`. Used for Cancel/Add-manually/Sign-out and settings actions.
-- Both variants share `px-3 py-2 text-sm font-medium`; no size variant beyond this. Raised from `py-1.5` (34px rendered height) after an audit measured every button in the app under the 44px touch-target guideline — `py-2` (38px) is a verified, real improvement, not a full 44px, a deliberate stop short of visibly bloating the instrument-panel's compact control scale for a P2 finding.
+- Both variants share `min-h-11 px-3 py-2 text-sm font-medium`; no size variant beyond this. Every button, including the confirm-first ones on the settings and admin pages ("Start new batch…", "Unclaim device…", "Remove device…", "Publish"), is at least 44px tall. An earlier note here accepted 38px (`py-2` alone) as a deliberate stop short; the 2026-09-30 polish pass measured those four at 38px and brought them to the same floor as the rest.
 
 ### Chips
 - **Style:** `panel-800` background, `brew-400` sentence-case text, 12px, `rounded` (not pill). Used exclusively for the device-type badge ("TEMP + GRAVITY") next to a device name/ID — not used as a general-purpose tag.
@@ -360,3 +360,55 @@ four craft gaps, all fixed:
   `lib/connection.ts` uses before calling a device offline. Time beyond that
   is reported as "No readings for N hours", never counted as in range. Hidden
   until history has loaded and until there's an hour of data.
+
+## Delight: the wake (2026-09-29)
+
+One authored moment on the gauge, drawn from the product's first principle
+("Never go silent"): when a gauge that is already on screen goes from offline
+to live -- a device reporting for the first time, or coming back after going
+silent -- the instrument wakes. The needle sweeps in from zero on the
+sign-in mark's curve (900ms, `cubic-bezier(0.16, 1, 0.3, 1)`), the glow and
+hub warm up behind it, and the numeral lands as the needle arrives.
+
+- **Only on an observed transition.** It never plays on first paint, so a page
+  of gauges doesn't sweep on every visit. It's skipped under
+  `prefers-reduced-motion`.
+- **State changes settle instead of snapping.** Needle and hub colour and glow
+  now transition (400ms), so acknowledging an alert or a reading crossing its
+  limit reads as the instrument responding. The acknowledged alert's dot
+  fades to grey over 500ms.
+- **Waiting is named.** A claimed device that has never reported says
+  "Waiting for its first reading" on its tile and "Waiting for first reading"
+  under its dial, not just "Hasn't reported yet" beside a dead dial.
+- Implemented in `Gauge.tsx` as a small `idle → start → sweep` state driven by
+  a layout effect, so the needle is never painted at its final angle before
+  the sweep begins. No new dependency.
+
+## Polish pass (2026-09-30)
+
+An end-to-end pass over the paths around the happy path (login modes, empty,
+loading and error lists, the claim and add forms, uncalibrated, never-reported
+and offline devices, all four settings tabs, the admin page), rendered at 375
+and 1440px and checked with axe-core (WCAG A/AA and best practices). It found
+one misleading state and a handful of finish gaps:
+
+- **A silent device no longer looks new.** A device that has reported before but
+  has nothing in the 48-hour window used to show "No gravity readings yet." and
+  "Not enough history yet to chart a rate." beside dead dials. The detail page
+  now says "No readings in the last 48 hours. This device last reported 3d ago.
+  Check that it has power and can reach your WiFi." in place of the charts.
+- **Chart value axes are evenly spaced.** `niceTicks` in `lib/axisTicks.ts`
+  picks a 1/2/5 step (whole degrees for temperature, at least half a gravity
+  point for gravity), and each chart uses the first and last tick as its
+  domain. Recharts' own ticks had put one at each end of a padded domain and
+  rounded the rest: 1.065 / 1.040 / 1.025 / 1.010, or 17 / 20 / 23 / 27.
+- **Admin firmware file inputs have labels** (axe: critical).
+- **The four short buttons reach 44px**, the file inputs and the device-type
+  radio rows too.
+- **Low-battery field** stacks its label above the input like every other
+  settings field; the calibration placeholders are example values (`0`), not a
+  truncated copy of the hint beneath.
+
+Left as they are: inline links inside sentences (exempt from the target-size
+minimum), and native radio and checkbox controls whose labels are the full-size
+target.

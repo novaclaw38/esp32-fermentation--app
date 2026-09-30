@@ -2,13 +2,14 @@
   Fermentation Monitor - v1 Firmware
   ------------------------------------
   Hardware: ESP32 DevKit + DS18B20 waterproof probe (GPIO4, 4.7k pull-up to 3V3)
+            -- or a DHT11 on the same pin, see TEMP_SENSOR_DHT11 below
   Power: TP4056-charged 18650 Li-ion, deep sleep between readings
   Battery sense: 100k/100k divider from BAT+ into GPIO34 (ADC1_CH6)
 
   Behavior each wake cycle:
     1. Wake from deep sleep
     2. Connect to WiFi
-    3. Read temperature from DS18B20
+    3. Read temperature from the DS18B20 (or DHT11)
     4. Fetch this device's remote config (thresholds, sleep interval) via the
        ingest_reading/get_device_config RPCs, scoped by DEVICE_SECRET so one
        compromised device can't read/write another customer's data.
@@ -37,10 +38,22 @@
 #include <HTTPClient.h>
 #include <Update.h>
 #include "mbedtls/sha256.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
 
 // ---------------------- CONFIG: EDIT BEFORE FLASHING ----------------------
+
+// Temperature sensor. 0 = DS18B20 waterproof probe (the intended part).
+// 1 = DHT11 on the same GPIO, for bench rigs built with one on hand.
+// The DHT11 is an air sensor: it is not waterproof, reads only 0-50 C in
+// whole degrees, and is +-2 C accurate -- fine for proving the pipeline,
+// not for judging a ferment. See firmware/README.md.
+#define TEMP_SENSOR_DHT11 0
+
+#if TEMP_SENSOR_DHT11
+  #include <DHT.h>
+#else
+  #include <OneWire.h>
+  #include <DallasTemperature.h>
+#endif
 
 const char* WIFI_SSID     = "YOUR_WIFI_SSID";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
@@ -71,7 +84,7 @@ int CONSECUTIVE_BREACH_LIMIT = 3;
 // Server-configurable via the devices table.
 uint64_t SLEEP_INTERVAL_SECONDS = 600;
 
-// GPIO pin the DS18B20 data line is connected to
+// GPIO pin the sensor's data line is connected to (DS18B20 or DHT11)
 #define ONE_WIRE_BUS 4
 
 // Max time to wait for WiFi connection before giving up this cycle (ms)
@@ -101,8 +114,12 @@ const char* ROOT_CA_PEM = "PASTE_ROOT_CA_PEM";
 
 // ---------------------------------------------------------------------------
 
+#if TEMP_SENSOR_DHT11
+DHT dht(ONE_WIRE_BUS, DHT11);
+#else
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+#endif
 
 // Persisted across deep sleep using RTC memory
 RTC_DATA_ATTR int consecutiveBreaches = 0;
@@ -137,6 +154,33 @@ bool connectWiFi() {
   return true;
 }
 
+#if TEMP_SENSOR_DHT11
+float readTemperature() {
+  // The DHT11 needs ~1 s after power-up before it will answer, and a
+  // DevKit's 3V3 rail may have only just come up on a cold boot. Waiting
+  // here costs a second of awake time per cycle -- small next to WiFi.
+  while (millis() < 1500) delay(50);
+
+  // Single-wire timing on the DHT11 is fragile and the odd read fails its
+  // checksum; one retry (after its 2 s minimum interval) clears most of them.
+  float tempC = dht.readTemperature();
+  if (isnan(tempC)) {
+    delay(2100);
+    tempC = dht.readTemperature(false, true);
+  }
+  if (isnan(tempC)) {
+    Serial.println("Error: could not read DHT11 (check wiring/pull-up)");
+    return NAN;
+  }
+  float humidity = dht.readHumidity();
+  if (!isnan(humidity)) {
+    // Logged only: ingest_reading now accepts p_humidity_pct, but this Hub sketch
+    // does not send it yet (the ESP32 DevKit bench sketch does).
+    Serial.println("Humidity: " + String(humidity, 0) + " %");
+  }
+  return tempC;
+}
+#else
 float readTemperature() {
   sensors.requestTemperatures();
   float tempC = sensors.getTempCByIndex(0);
@@ -148,6 +192,7 @@ float readTemperature() {
   }
   return tempC;
 }
+#endif
 
 // Reads battery voltage via a 100k/100k resistor divider from BAT+ into
 // GPIO34 (ADC1_CH6, input-only pin, safe to use during WiFi TX). This
@@ -490,7 +535,11 @@ void setup() {
   Serial.println("\n--- Fermentation monitor waking up ---");
   cycleCount++;
 
+#if TEMP_SENSOR_DHT11
+  dht.begin();
+#else
   sensors.begin();
+#endif
   float tempC = readTemperature();
 
   if (isnan(tempC)) {
