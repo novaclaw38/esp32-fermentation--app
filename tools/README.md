@@ -58,3 +58,26 @@ checked for secret leakage). **The live REST call has not been run** — it need
 the service_role key, which isn't in this repo. The underlying
 `provision_device()` RPC itself is verified against the live project; see
 `supabase/README.md`.
+
+# SKiDL MCP server
+
+`skidl_mcp.py` is an MCP server (registered as `skidl` in `.mcp.json`) that
+lets Claude Code work with the SKiDL circuits in this repo:
+
+| Tool | Does |
+|---|---|
+| `list_circuits` | Finds every `circuits/<pkg>/__main__.py` SKiDL design (root, `esp32-devkit-tilt-prototype/`, `esp8266-tilt-prototype/`) |
+| `list_circuit_files` | Lists a design's block source files |
+| `build_circuit` | Runs the design's `__main__`: ERC + netlist + BOM XML into its `outputs/`, returns the log |
+| `search_parts` | Searches the KiCad symbol libraries (`"lipo charger"`) |
+| `show_part` | Pin list for one symbol (`lib="Sensor_Temperature"`, `name="MCP9808_MSOP"`) |
+
+Requires [`uv`](https://docs.astral.sh/uv/) (it installs `mcp` + `skidl` from
+the script's inline metadata) and KiCad 8+ symbol libraries at
+`/usr/share/kicad/symbols` (override with `KICAD_SYMBOL_DIR`, e.g. a checkout
+of `gitlab.com/kicad/libraries/kicad-symbols`). KiCad 7 libraries lack
+`ESP32-WROOM-32E`. Each call runs SKiDL in a fresh subprocess, because SKiDL
+keeps the circuit in global state.
+
+If `search_parts` returns stale or duplicate hits, delete SKiDL's part index
+at `~/.local/share/skidl/part_search_kicad7.db`.
