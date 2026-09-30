@@ -156,7 +156,7 @@ export default function ThresholdForm({ device, onSaved }: Props) {
             placeholder="disabled"
             value={batteryMinV}
             onChange={(e) => setBatteryMinV(e.target.value)}
-            className="mt-1 w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 font-gauge tabular text-panel-200 sm:w-1/2"
+            className="mt-1 block w-full rounded-md border border-panel-600 bg-panel-950 min-h-11 px-2 py-2 font-gauge tabular text-panel-200 sm:w-1/2"
           />
           <span className="mt-0.5 block text-xs text-panel-400">
             Leave blank to disable. Leave blank on bench/USB power too: with no cell attached the

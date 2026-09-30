@@ -3,6 +3,7 @@ import type { ReadingWithGravity } from "../types/database";
 import { computeFermentationRateSeries } from "../lib/fermentationAnalytics";
 import { formatPoints } from "../lib/gravity";
 import { chartTheme } from "../lib/tokens";
+import { niceTicks } from "../lib/axisTicks";
 import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
@@ -11,23 +12,6 @@ interface Props {
   batchStartedAt: string | null;
   /** Epoch ms; only rate points from here on are drawn. */
   since: number;
-}
-
-/**
- * Round gravity-point ticks (…, -5, 0, 5, 10, …) covering [lo, hi], in SG
- * units. Recharts' own ticks landed on values like +38.8 and -6.5, which read
- * as measurements rather than as a scale.
- */
-function niceTicks(lo: number, hi: number): number[] {
-  const loPts = lo * 1000;
-  const hiPts = hi * 1000;
-  const raw = (hiPts - loPts) / 4;
-  const step = [1, 2, 5, 10, 20, 50].find((s) => s >= raw) ?? 100;
-  const ticks: number[] = [];
-  for (let v = Math.floor(loPts / step) * step; v <= Math.ceil(hiPts / step) * step + 1e-9; v += step) {
-    ticks.push(v / 1000);
-  }
-  return ticks;
 }
 
 /**
@@ -51,7 +35,7 @@ export default function FermentationRateChart({ readings, batchStartedAt, since 
   const min = Math.min(0, ...values);
   const max = Math.max(0, ...values);
   const pad = Math.max((max - min) * 0.2, 0.0005);
-  const ticks = niceTicks(min - pad, max + pad);
+  const ticks = niceTicks(min - pad, max + pad, { minStep: 0.001 });
   const data = withGaps(points, (t) => ({ t, rate: null }));
   const timeAxisTicks = timeTicks(points[0].t, points[points.length - 1].t);
 

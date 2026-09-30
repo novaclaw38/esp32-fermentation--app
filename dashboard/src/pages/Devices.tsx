@@ -259,11 +259,11 @@ export default function Devices() {
           <fieldset className="text-sm text-panel-200">
             <legend>Device type</legend>
             <div className="mt-1 space-y-1">
-              <label className="flex items-start gap-2 py-1">
+              <label className="flex min-h-11 items-start gap-2 py-2">
                 <input
                   type="radio"
                   name="device_type"
-                  className="mt-1 accent-brew-500"
+                  className="mt-1 h-4 w-4 shrink-0 accent-brew-500"
                   checked={newType === "hub"}
                   onChange={() => setNewType("hub")}
                 />
@@ -272,11 +272,11 @@ export default function Devices() {
                   Flash <code>fermentation_monitor_v1</code>.
                 </span>
               </label>
-              <label className="flex items-start gap-2 py-1">
+              <label className="flex min-h-11 items-start gap-2 py-2">
                 <input
                   type="radio"
                   name="device_type"
-                  className="mt-1 accent-brew-500"
+                  className="mt-1 h-4 w-4 shrink-0 accent-brew-500"
                   checked={newType === "tilt"}
                   onChange={() => setNewType("tilt")}
                 />

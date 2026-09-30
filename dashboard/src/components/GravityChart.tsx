@@ -5,6 +5,7 @@ import { formatSg, formatPoints } from "../lib/gravity";
 import { useTempUnit } from "../lib/tempUnitContext";
 import { formatTemp } from "../lib/units";
 import { chartTheme } from "../lib/tokens";
+import { niceTicks } from "../lib/axisTicks";
 import { formatAxisTime, formatTickTime, timeTicks, withGaps } from "../lib/chartTime";
 
 interface Props {
@@ -79,6 +80,7 @@ export default function GravityChart({ readings, calibrated, deviceId }: Props) 
   const format = (v: number) => (showingTilt ? `${v.toFixed(1)}°` : formatSg(v));
   const data = withGaps(plotted, (t) => ({ t, value: null }));
   const ticks = timeTicks(plotted[0].t, plotted[plotted.length - 1].t);
+  const yTicks = niceTicks(min - pad, max + pad, { minStep: showingTilt ? 1 : 0.005 });
 
   return (
     <div className="space-y-2">
@@ -114,7 +116,8 @@ export default function GravityChart({ readings, calibrated, deviceId }: Props) 
               tick={chartTheme.tick}
               unit={unit}
               width={showingTilt ? 44 : 56}
-              domain={[min - pad, max + pad]}
+              domain={[yTicks[0], yTicks[yTicks.length - 1]]}
+              ticks={yTicks}
               tickFormatter={(v: number) => (showingTilt ? v.toFixed(0) : formatSg(v))}
               stroke={chartTheme.axis}
             />

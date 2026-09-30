@@ -223,6 +223,8 @@ export default function DeviceDetail() {
   const chartSince = now.getTime() - CHART_HOURS * 60 * 60 * 1000;
   const chartReadings = readings.filter((r) => new Date(r.created_at).getTime() >= chartSince);
   const latest = readings[readings.length - 1];
+  // The device has reported at some point, but nothing falls in the chart window.
+  const silent = device.last_seen_at != null && chartReadings.length === 0;
   // Only once history has loaded: before that `readings` is empty, and a
   // block that appears late would shove the charts down for no reason.
   const timeInRange =
@@ -263,6 +265,8 @@ export default function DeviceDetail() {
     connection.secondsSinceLastSeen != null
       ? formatRelativeTime(connection.secondsSinceLastSeen)
       : "Waiting for first reading";
+  const silentSince =
+    connection.secondsSinceLastSeen != null ? formatRelativeTime(connection.secondsSinceLastSeen) : null;
   const tempGauge = (size: "sm" | "lg") => (
     <Gauge
       value={latest ? latest.temperature_c : null}
@@ -393,71 +397,86 @@ export default function DeviceDetail() {
         </p>
       ) : (
         <>
-          {showGravity &&
-            calibrated &&
-            (fermentationAnalytics ? (
-              <section className="mb-6 space-y-3">
-                <h2 className="text-base font-semibold text-panel-200">Fermentation</h2>
-                <FermentationSummary analytics={fermentationAnalytics} />
-                <FermentationStageBar
-                  analytics={fermentationAnalytics}
-                  device={device}
-                  latestTempC={latest ? latest.temperature_c : null}
-                  now={now}
-                />
-              </section>
-            ) : (
-              <section className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4 text-sm text-panel-400">
-                Waiting for the first calibrated reading to set this batch's original gravity — ABV,
-                attenuation, and fermentation stage will appear here once it does.
-              </section>
-            ))}
-
-          {showGravity && calibrated ? (
-            <>
-              {/* One chart for the batch, not three: gravity is the story,
-                  temperature is the context, and the temperature limits are
-                  drawn on it. Separate temperature, gravity and combined
-                  charts repeated the same two lines. */}
-              <section className="mb-6">
-                <h2 className={sectionHeading}>Gravity and temperature, last {CHART_HOURS} hours</h2>
-                <Suspense fallback={<ChartFallback height="h-72" />}>
-                  <FermentationChart
-                    readings={chartReadings}
-                    tempMinC={device.temp_min_c}
-                    tempMaxC={device.temp_max_c}
-                  />
-                </Suspense>
-              </section>
-
-              <section className="mb-6">
-                <h2 className={sectionHeading}>Fermentation rate</h2>
-                <p className="-mt-1 mb-2 text-sm text-panel-400">Gravity points dropped per 24 hours.</p>
-                <Suspense fallback={<ChartFallback height="h-40" />}>
-                  <FermentationRateChart
-                    readings={readings}
-                    batchStartedAt={device.fermentation_started_at}
-                    since={chartSince}
-                  />
-                </Suspense>
-              </section>
-            </>
+          {silent ? (
+            // Reported before, but nothing in the window: say so, instead of
+            // letting every chart claim "No readings yet" as if the device were
+            // new. This is the "never go silent" case, so it names the fix.
+            <section role="status" className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4">
+              <p className="text-base font-semibold text-panel-200">No readings in the last {CHART_HOURS} hours</p>
+              <p className="mt-1 text-sm text-panel-400">
+                {silentSince ? `This device last reported ${silentSince}. ` : ""}
+                Check that it has power and can reach your WiFi. It appears here again as soon as it reports.
+              </p>
+            </section>
           ) : (
             <>
-              <section className="mb-6">
-                <h2 className={sectionHeading}>Temperature, last {CHART_HOURS} hours</h2>
-                <Suspense fallback={<ChartFallback height="h-64" />}>
-                  <TemperatureChart readings={chartReadings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
-                </Suspense>
-              </section>
+              {showGravity &&
+                calibrated &&
+                (fermentationAnalytics ? (
+                  <section className="mb-6 space-y-3">
+                    <h2 className="text-base font-semibold text-panel-200">Fermentation</h2>
+                    <FermentationSummary analytics={fermentationAnalytics} />
+                    <FermentationStageBar
+                      analytics={fermentationAnalytics}
+                      device={device}
+                      latestTempC={latest ? latest.temperature_c : null}
+                      now={now}
+                    />
+                  </section>
+                ) : (
+                  <section className="mb-6 rounded-lg border border-panel-700 bg-panel-900 p-4 text-sm text-panel-400">
+                    Waiting for the first calibrated reading to set this batch's original gravity — ABV,
+                    attenuation, and fermentation stage will appear here once it does.
+                  </section>
+                ))}
 
-              {showGravity && (
-                <section className="mb-6">
-                  <h2 className={sectionHeading}>Tilt, last {CHART_HOURS} hours</h2>
-                  <Suspense fallback={<ChartFallback height="h-64" />}>
-                    <GravityChart readings={chartReadings} calibrated={calibrated} deviceId={device.id} />
-                  </Suspense>
-                </section>
+              {showGravity && calibrated ? (
+                <>
+                  {/* One chart for the batch, not three: gravity is the story,
+                      temperature is the context, and the temperature limits are
+                      drawn on it. Separate temperature, gravity and combined
+                      charts repeated the same two lines. */}
+                  <section className="mb-6">
+                    <h2 className={sectionHeading}>Gravity and temperature, last {CHART_HOURS} hours</h2>
+                    <Suspense fallback={<ChartFallback height="h-72" />}>
+                      <FermentationChart
+                        readings={chartReadings}
+                        tempMinC={device.temp_min_c}
+                        tempMaxC={device.temp_max_c}
+                      />
+                    </Suspense>
+                  </section>
+
+                  <section className="mb-6">
+                    <h2 className={sectionHeading}>Fermentation rate</h2>
+                    <p className="-mt-1 mb-2 text-sm text-panel-400">Gravity points dropped per 24 hours.</p>
+                    <Suspense fallback={<ChartFallback height="h-40" />}>
+                      <FermentationRateChart
+                        readings={readings}
+                        batchStartedAt={device.fermentation_started_at}
+                        since={chartSince}
+                      />
+                    </Suspense>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section className="mb-6">
+                    <h2 className={sectionHeading}>Temperature, last {CHART_HOURS} hours</h2>
+                    <Suspense fallback={<ChartFallback height="h-64" />}>
+                      <TemperatureChart readings={chartReadings} tempMinC={device.temp_min_c} tempMaxC={device.temp_max_c} />
+                    </Suspense>
+                  </section>
+
+                  {showGravity && (
+                    <section className="mb-6">
+                      <h2 className={sectionHeading}>Tilt, last {CHART_HOURS} hours</h2>
+                      <Suspense fallback={<ChartFallback height="h-64" />}>
+                        <GravityChart readings={chartReadings} calibrated={calibrated} deviceId={device.id} />
+                      </Suspense>
+                    </section>
+                  )}
+                </>
               )}
             </>
           )}
