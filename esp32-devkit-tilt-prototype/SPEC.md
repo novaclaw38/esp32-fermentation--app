@@ -63,10 +63,11 @@ different physical artifact from this breadboard rig.
 
 ## Interface
 
-- I2C: `GPIO23` = SDA, `GPIO22` = SCL. The production board uses
-  `GPIO21` for SDA; this bench board's `GPIO21` pad is damaged, so SDA
-  moved to `GPIO23` (free, not a strapping pin, next to `GPIO22` on the
-  header). Only `I2C_SDA` in the bench sketch differs. Only
+- I2C: `GPIO23` = SDA, `GPIO19` = SCL. The production board uses
+  `GPIO21` for SDA and `GPIO22` for SCL; this bench board's `GPIO21` and
+  `GPIO22` pads are damaged, so the bus moved to `GPIO23` and `GPIO19` (free,
+  neither a strapping, flash nor input-only pin, same side of the header).
+  Only `I2C_SDA` and `I2C_SCL` in the bench sketch differ. Only
   the GY-291 is on this bus now (MCP9808 removed).
 - DHT11 on `GPIO4` (previously the unused DS18B20 fallback pin) — the
   common 3-pin breakout has an onboard pull-up; a bare 4-pin sensor
@@ -97,6 +98,6 @@ specific shield's usable perfboard area.
 Unverified — no physical photos of this specific Dev Kit V1 board have
 been provided yet. Flagged in `architecture/design_risks.md`:
 specifically, **ESP32 Dev Kit V1 pin *layout* varies by manufacturer**
-even though the GPIO *numbers* used here (4, 21, 22, 25, 34) are fixed
+even though the GPIO *numbers* used here (4, 19, 23, 25, 34) are fixed
 by the WROOM-32 module itself — locate these by GPIO number on your
 specific board's silkscreen, not by counting header position.

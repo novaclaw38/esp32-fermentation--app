@@ -35,7 +35,7 @@
   # esp32-devkit-tilt-prototype/architecture/design_risks.md. In            #
   # particular: "ESP32 Dev Kit V1" is a cloned form factor whose PHYSICAL   #
   # pin layout varies between vendors even though the GPIO NUMBERS below    #
-  # (4, 21, 22, 25, 34) are fixed by the WROOM-32 module itself. Locate     #
+  # (4, 19, 23, 25, 34) are fixed by the WROOM-32 module itself. Locate     #
   # each pin by its printed GPIO label on your specific board, not by       #
   # counting header position from a generic diagram.                       #
   ############################################################################
@@ -110,12 +110,14 @@ const int OTA_CHECK_EVERY_N_CYCLES = 96;
                             // on the bare 4-pin sensor; the common 3-pin breakout already
                             // has one onboard -- see datasheets/DHT11_SUMMARY.md)
 #define DHT_TYPE     DHT11
-// SDA moved off GPIO21: its pad is damaged on this bench board. The ESP32
-// routes I2C through its GPIO matrix, so any free bidirectional pin works;
-// GPIO23 sits next to GPIO22 on the Dev Kit V1 header and isn't a
-// strapping or flash pin. The production board keeps GPIO21.
+// SDA and SCL are off the production board's GPIO21/GPIO22: those pads are
+// damaged on this bench board. The ESP32 routes I2C through its GPIO matrix,
+// so any free bidirectional pin works. GPIO23 and GPIO19 are free, aren't
+// strapping, flash or input-only pins, and sit on the same side of the Dev Kit
+// V1 header, so the two wires route together. The production board keeps
+// GPIO21 (SDA) and GPIO22 (SCL).
 #define I2C_SDA        23
-#define I2C_SCL        22
+#define I2C_SCL        19
 #define BATTERY_ADC_PIN 34  // ADC1_CH6, input-only
 #define BATTERY_EN_PIN 25   // toggled for structural parity with the production sketch; drives
                             // nothing physical on this ungated build (see SPEC.md)
