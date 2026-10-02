@@ -18,7 +18,7 @@ library, its own read function, see `net_plan.md`).
 ## Hardware, unverified
 
 1. **ESP32 Dev Kit V1 pin layout varies by manufacturer.** The GPIO
-   *numbers* used in this design (4, 19, 23, 25, 34) are fixed by the
+   *numbers* used in this design (4, 25, 26, 27, 34) are fixed by the
    WROOM-32 module itself and will behave identically on any board, but
    the *physical position* of each labeled pin on a 30-pin breakout
    varies between vendors (a well-known annoyance in the ESP32 hobbyist

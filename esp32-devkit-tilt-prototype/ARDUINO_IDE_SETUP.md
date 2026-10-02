@@ -27,7 +27,7 @@ The bench rig is an ESP32 Dev Kit V1 with a GY-291 accelerometer (ADXL345) and a
 
 The Hub sketch (`fermentation_monitor_v1`) is a different device. Don't flash it to this rig.
 
-Before going further, open the bench sketch and look for `#define I2C_SCL 19`. If it says `22`, your copy is out of date: the clock pin moved because GPIO22 is faulty on this board.
+Before going further, open the bench sketch and look for `#define I2C_SCL 27`. If it says `19` or `22`, your copy is out of date: the I2C pins moved (SDA and SCL are now GPIO26 and GPIO27).
 
 ## Install the Arduino IDE and ESP32 support
 
@@ -84,12 +84,12 @@ Never commit your real URL, key or secret back to the repository.
 
 ## Check the wiring before you flash
 
-The clock and data pins are not the usual ones: GPIO21 and GPIO22 are faulty on this board, so the accelerometer uses GPIO23 (SDA) and GPIO19 (SCL). Find each pin by the GPIO number printed on your board, not by counting header positions, because Dev Kit V1 layouts vary by maker.
+The clock and data pins are not the usual ones: GPIO21 and GPIO22 are faulty on this board (GPIO23/GPIO19 were used briefly and then replaced), so the accelerometer uses GPIO26 (SDA) and GPIO27 (SCL). Find each pin by the GPIO number printed on your board, not by counting header positions, because Dev Kit V1 layouts vary by maker.
 
 | Part | Pin | Connects to |
 | --- | --- | --- |
-| GY-291 | `SDA` | **GPIO23** |
-| GY-291 | `SCL` | **GPIO19** |
+| GY-291 | `SDA` | **GPIO26** |
+| GY-291 | `SCL` | **GPIO27** |
 | GY-291 | `VCC` | 3V3 |
 | GY-291 | `CS` | 3V3 (keeps the chip in I2C mode) |
 | GY-291 | `GND` | GND |
@@ -144,7 +144,7 @@ The exact numbers will differ. What matters is `WiFi connected`, a real `Tilt` v
 | --- | --- | --- |
 | `0x53 DEVID = 0xE5 (ADXL345 confirmed)` and a z value near 1 g | The accelerometer is fine | Flash the main sketch again |
 | Answers only on "SDA/SCL swapped" | The two wires are crossed | Swap them |
-| Answers on "previous wiring" or "original pins" | A wire is still on GPIO22 or GPIO21 | Move it to GPIO19 or GPIO23 |
+| Answers on "previous wiring" or "original pins" | A wire is still on GPIO23, GPIO19, GPIO22 or GPIO21 | Move SDA to GPIO26 and SCL to GPIO27 |
 | Found at `0x1D` instead of `0x53` | `SDO` is not reaching GND | Wire `SDO` to GND |
 | Nothing answers, lines idle HIGH | No power, or `CS` not on 3V3 | Check `VCC`, `GND`, `CS` |
 | A line reads LOW | Short to ground or a bad pad | Check that wire and its joint |

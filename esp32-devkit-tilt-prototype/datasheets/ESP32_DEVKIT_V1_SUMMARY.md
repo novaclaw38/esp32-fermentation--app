@@ -23,9 +23,9 @@ vendors.
 | `VIN` (or `5V`) | TP4056 `OUT+` | Cell voltage in, ahead of the onboard regulator |
 | `3V3` | GY-291 `VCC`/`CS`, DHT11 `VCC` | Regulated output — confirm current headroom is adequate for these small peripherals (it is; all draw low mA) |
 | `GND` | Common ground | Multiple GND pins usually broken out — any works |
-| `GPIO23` | I2C `SDA` | GY-291 only. Moved from `GPIO21`, whose pad is damaged on this board; the production board still uses `GPIO21` |
+| `GPIO26` | I2C `SDA` | GY-291 only. Moved from `GPIO21`, whose pad is damaged on this board; the production board still uses `GPIO21` |
 | `GPIO21` | Unused | Pad damaged on this bench board — leave unconnected |
-| `GPIO19` | I2C `SCL` | GY-291 only. Moved from `GPIO22`, whose pad is damaged on this board; the production board still uses `GPIO22` |
+| `GPIO27` | I2C `SCL` | GY-291 only. Moved from `GPIO22`, whose pad is damaged on this board; the production board still uses `GPIO22` |
 | `GPIO22` | Unused | Pad damaged on this bench board — leave unconnected |
 | `GPIO25` | `BATTERY_EN_PIN` | Toggled for structural parity with the production/ESP8266 firmware; drives nothing physical on this ungated build |
 | `GPIO34` | Battery-sense ADC | **Input-only pin** (no internal pull-up/down, can't be used as an output) — matches the production board's own choice, deliberately picked for exactly this reason |

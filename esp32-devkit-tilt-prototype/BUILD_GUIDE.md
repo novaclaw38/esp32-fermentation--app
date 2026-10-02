@@ -30,7 +30,7 @@ that build had. Dry-fit the board before soldering anything down.
   pull-up) — confirmed by photo. Pin order left-to-right: `VDD DATA NC
   GND`. `R3` (10kΩ) supplies the pull-up this variant needs.
 - ⚠️ **ESP32 Dev Kit V1 pin layout varies by manufacturer.** Locate
-  `VIN`/`3V3`/`GND`/`GPIO23`/`GPIO19`/`GPIO34`/`GPIO4` by their printed
+  `VIN`/`3V3`/`GND`/`GPIO26`/`GPIO27`/`GPIO34`/`GPIO4` by their printed
   GPIO labels on your specific board — not by counting header position
   from the diagram below, which shows a simplified/logical view for
   exactly this reason. See `architecture/design_risks.md`.
@@ -68,8 +68,8 @@ that build had. Dry-fit the board before soldering anything down.
    board's onboard regulator runs fine from the cell voltage directly
    — no separate LDO needed.
 7. **Wire the Dev Kit V1 to the GY-291.** Four wires: Dev Kit V1 `3V3`
-   → GY-291 `VCC`, `GND` → `GND`, `GPIO23` → `SDA`, `GPIO19` → `SCL`.
-   (SDA and SCL are on `GPIO23` and `GPIO19`, not the usual `GPIO21` and
+   → GY-291 `VCC`, `GND` → `GND`, `GPIO26` → `SDA`, `GPIO27` → `SCL`.
+   (SDA and SCL are on `GPIO26` and `GPIO27`, not the usual `GPIO21` and
    `GPIO22`: those pads are damaged on this board. Leave `GPIO21` and
    `GPIO22` unconnected.)
    **Also wire GY-291 `SDO` → `GND` and `CS` → `3V3`** (both dedicated
@@ -120,7 +120,7 @@ wired).
     answering on I2C. On this rig the cause turned out to be a **loose
     breadboard jumper**, not the chip or the code. (The `GPIO21` pad
     also looked damaged while chasing it, which is why SDA is now on
-    `GPIO23`.) Reseat every GY-291 wire first,
+    `GPIO26`.) Reseat every GY-291 wire first,
     then flash `firmware/i2c_diagnostic/i2c_diagnostic.ino`. It scans
     the bus, reports which wire or address is wrong, and repeats every
     5 s, so you can wiggle each jumper and watch for the one that drops
@@ -145,8 +145,8 @@ wired).
 | Power | TP4056 OUT+ | Dev Kit V1 VIN | Same node as BAT+ |
 | Ground | TP4056 OUT- | Dev Kit V1 GND | |
 | Power | Dev Kit V1 3V3 | GY-291 VCC | |
-| I2C | Dev Kit V1 GPIO23 | GY-291 SDA | GPIO21 pad damaged; SDA moved |
-| I2C | Dev Kit V1 GPIO19 | GY-291 SCL | GPIO22 pad damaged; SCL moved |
+| I2C | Dev Kit V1 GPIO26 | GY-291 SDA | GPIO21 pad damaged; SDA moved |
+| I2C | Dev Kit V1 GPIO27 | GY-291 SCL | GPIO22 pad damaged; SCL moved |
 | Address set | GY-291 SDO | GND | I2C address 0x53 |
 | Mode set | GY-291 CS | 3V3 | Forces I2C mode |
 | Power | Dev Kit V1 3V3 | DHT11 VDD | |
