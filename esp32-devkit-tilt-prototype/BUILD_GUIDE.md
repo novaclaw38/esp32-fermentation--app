@@ -100,7 +100,7 @@ wired).
     115200 baud. You should see boot messages — if nothing prints,
     check the USB cable isn't charge-only and that you selected the
     right serial port.
-12. **Flash the firmware.** Open
+12. **Flash the firmware.** (Full Arduino IDE walkthrough: [`ARDUINO_IDE_SETUP.md`](ARDUINO_IDE_SETUP.md).) Open
     `firmware/fermentation_tilt_v1_esp32_devkit/fermentation_tilt_v1_esp32_devkit.ino`,
     fill in the CONFIG section (WiFi, Supabase URL/key, device
     ID/secret), select board **"DOIT ESP32 DEVKIT V1"** in the Arduino
