@@ -15,7 +15,7 @@
        floating), reads its ID register (should be 0xE5) and one raw
        acceleration sample.
 
-  The main sketch only looks at 0x53 on SDA 23 / SCL 22, so the report tells
+  The main sketch only looks at 0x53 on SDA 23 / SCL 19, so the report tells
   you which of those assumptions is wrong.
 */
 
@@ -23,11 +23,13 @@
 
 struct PinPair { int sda; int scl; const char* note; };
 
-// 23/22 is the wiring the main sketch expects. 22/23 catches swapped wires.
-// 21/22 is the original pinout, in case SDA was never moved.
+// 23/19 is the wiring the main sketch expects. 19/23 catches swapped wires.
+// 23/22 is the previous wiring (SCL not yet moved) and 21/22 the original
+// pinout, in case a wire was left on its old pin.
 const PinPair PAIRS[] = {
-  {23, 22, "expected wiring (SDA 23, SCL 22)"},
-  {22, 23, "SDA/SCL swapped"},
+  {23, 19, "expected wiring (SDA 23, SCL 19)"},
+  {19, 23, "SDA/SCL swapped"},
+  {23, 22, "previous wiring (SDA 23, SCL 22)"},
   {21, 22, "original pins (SDA 21, SCL 22)"},
 };
 

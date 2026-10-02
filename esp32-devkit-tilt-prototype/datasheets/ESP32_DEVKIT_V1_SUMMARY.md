@@ -25,7 +25,8 @@ vendors.
 | `GND` | Common ground | Multiple GND pins usually broken out — any works |
 | `GPIO23` | I2C `SDA` | GY-291 only. Moved from `GPIO21`, whose pad is damaged on this board; the production board still uses `GPIO21` |
 | `GPIO21` | Unused | Pad damaged on this bench board — leave unconnected |
-| `GPIO22` | I2C `SCL` | GY-291 only now (MCP9808 removed) — matches the production board's own I2C pin choice |
+| `GPIO19` | I2C `SCL` | GY-291 only. Moved from `GPIO22`, whose pad is damaged on this board; the production board still uses `GPIO22` |
+| `GPIO22` | Unused | Pad damaged on this bench board — leave unconnected |
 | `GPIO25` | `BATTERY_EN_PIN` | Toggled for structural parity with the production/ESP8266 firmware; drives nothing physical on this ungated build |
 | `GPIO34` | Battery-sense ADC | **Input-only pin** (no internal pull-up/down, can't be used as an output) — matches the production board's own choice, deliberately picked for exactly this reason |
 | `GPIO4` | DHT11 single-wire data | Was the unused DS18B20 fallback pin before the DHT11 swap; now genuinely used |

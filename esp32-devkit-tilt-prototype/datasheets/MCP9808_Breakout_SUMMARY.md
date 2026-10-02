@@ -28,7 +28,7 @@ rig's [`../../esp8266-tilt-prototype/datasheets/MCP9808_Breakout_SUMMARY.md`](..
 |-----|----------------|
 | VDD | `DEVKIT_3V3` |
 | GND | `GND` |
-| SCL | `SCL` net (shared with GY-291, Dev Kit V1 `GPIO22`) |
+| SCL | `SCL` net (shared with GY-291, Dev Kit V1 `GPIO19`) |
 | SDA | `SDA` net (shared with GY-291, Dev Kit V1 `GPIO21`) |
 | ALERT (if present) | Not used — left `NC` |
 
